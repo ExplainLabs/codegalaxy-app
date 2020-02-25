@@ -1,0 +1,26 @@
+language: scala
+sudo: false
+jdk:
+- oraclejdk8
+dist: trusty
+env:
+  global:
+  - TRAVIS_NODE_VERSION="8"
+  - TRAVIS_SBT_VERSION="1.2.8"
+before_install:
+- nvm install 6
+- nvm use 6
+- node --version
+script:
+- sbt clean coverage test coverageReport &&
+  sbt coverageAggregate
+after_success:
+- sbt coveralls
+cache:
+  directories:
+  - "$HOME/.ivy2/cache"
+  - "$HOME/.sbt"
+before_cache:
+# Cleanup the cached directories to avoid unnecessary cache updates
+- find $HOME/.ivy2/cache -name "ivydata-*.properties" -print -delete
+- find $HOME/.sbt        -name "*.lock"               -print -delete
