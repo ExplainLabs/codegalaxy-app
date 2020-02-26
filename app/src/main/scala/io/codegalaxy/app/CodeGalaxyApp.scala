@@ -1,5 +1,6 @@
 package io.codegalaxy.app
 
+import io.codegalaxy.app.auth.{LoginScreen, LoginScreenProps}
 import scommons.react._
 
 import scala.scalajs.js.annotation.{JSExport, JSExportTopLevel}
@@ -11,6 +12,9 @@ object CodeGalaxyApp extends FunctionComponent[Unit] {
   override def apply(): ReactClass = super.apply()
 
   protected def render(props: Props): ReactElement = {
-    <.>()()
+    <(LoginScreen())(^.wrapped := LoginScreenProps(
+      onLogin = { (_, _) =>
+      }
+    ))()
   }
 }
