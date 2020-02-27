@@ -1,6 +1,6 @@
 package io.codegalaxy.app.auth
 
-import io.codegalaxy.app.auth.LoginScreen._
+import io.codegalaxy.app.auth.AuthScreen._
 import scommons.react.test.TestSpec
 import scommons.react.test.raw.ShallowInstance
 import scommons.react.test.util.ShallowRendererUtils
@@ -9,14 +9,14 @@ import scommons.reactnative._
 
 import scala.scalajs.js
 
-class LoginScreenSpec extends TestSpec with ShallowRendererUtils {
+class AuthScreenSpec extends TestSpec with ShallowRendererUtils {
 
   it should "call onLogin when Login button is pressed" in {
     //given
     val onLogin = mockFunction[String, String, Unit]
-    val props = LoginScreenProps(onLogin = onLogin)
+    val props = AuthScreenProps(onLogin = onLogin)
     val renderer = createRenderer()
-    renderer.render(<(LoginScreen())(^.wrapped := props)())
+    renderer.render(<(AuthScreen())(^.wrapped := props)())
     val List(email, password) = findComponents(renderer.getRenderOutput(), raw.TextInput)
     val emailText = "test@test.com"
     val passwordText = "test12345"
@@ -33,9 +33,9 @@ class LoginScreenSpec extends TestSpec with ShallowRendererUtils {
 
   it should "enable Login button when both fields are set" in {
     //given
-    val props = LoginScreenProps(onLogin = (_, _) => ())
+    val props = AuthScreenProps(onLogin = (_, _) => ())
     val renderer = createRenderer()
-    renderer.render(<(LoginScreen())(^.wrapped := props)())
+    renderer.render(<(AuthScreen())(^.wrapped := props)())
     val List(email, password) = findComponents(renderer.getRenderOutput(), raw.TextInput)
     val emailText = "test@test.com"
     val passwordText = "test12345"
@@ -50,10 +50,10 @@ class LoginScreenSpec extends TestSpec with ShallowRendererUtils {
 
   it should "render component with disabled Login button" in {
     //given
-    val props = LoginScreenProps(onLogin = (_, _) => ())
+    val props = AuthScreenProps(onLogin = (_, _) => ())
 
     //when
-    val result = shallowRender(<(LoginScreen())(^.wrapped := props)())
+    val result = shallowRender(<(AuthScreen())(^.wrapped := props)())
 
     //then
     assertLoginScreen(result, emailText = "", passwordText = "", disabled = true)

@@ -8,9 +8,9 @@ import scommons.reactnative._
 
 import scala.scalajs.js
 
-case class LoginScreenProps(onLogin: (String, String) => Unit)
+case class AuthScreenProps(onLogin: (String, String) => Unit)
 
-object LoginScreen extends FunctionComponent[LoginScreenProps] {
+object AuthScreen extends FunctionComponent[AuthScreenProps] {
 
   protected def render(compProps: Props): ReactElement = {
     val (email, setEmail) = useState("")

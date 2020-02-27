@@ -18,7 +18,8 @@ object CodeGalaxyApp extends CodeGalaxyModule with CommonMobileModule {
 
       coverageExcludedPackages :=
         "io.codegalaxy.app.BaseStateAndRouteController" +
-          ";io.codegalaxy.app.CodeGalaxyApp"
+          ";io.codegalaxy.app.CodeGalaxyApp" +
+          ";io.codegalaxy.app.CodeGalaxyActions"
     )
 
   override def internalDependencies: Seq[ClasspathDep[ProjectReference]] = Seq(
