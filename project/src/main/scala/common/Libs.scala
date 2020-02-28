@@ -19,8 +19,6 @@ object Libs extends CommonLibs {
   //////////////////////////////////////////////////////////////////////////////
   // js dependencies
 
-  lazy val scommonsApiDom = Def.setting("org.scommons.api" %%% "scommons-api-dom" % scommonsApiVersion)
-  lazy val scommonsReactNavigation = Def.setting("org.scommons.react-native" %%% "scommons-react-navigation" % scommonsReactNativeVersion)
-  lazy val scommonsReactRedux = Def.setting("org.scommons.react" %%% "scommons-react-redux" % scommonsReactVersion)
+  lazy val scommonsReactNativeUi = Def.setting("org.scommons.react-native" %%% "scommons-react-native-ui" % scommonsReactNativeVersion)
 
 }
