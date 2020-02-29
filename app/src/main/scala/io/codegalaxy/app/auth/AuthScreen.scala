@@ -1,22 +1,28 @@
 package io.codegalaxy.app.auth
 
 import io.codegalaxy.app.CodeGalaxyTheme
+import io.github.shogowada.scalajs.reactjs.redux.Redux.Dispatch
 import scommons.react._
 import scommons.react.hooks._
 import scommons.reactnative.TextInput._
 import scommons.reactnative._
 
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.scalajs.js
+import scala.util.Success
 
-case class AuthScreenProps(onLogin: (String, String) => Unit)
+case class AuthScreenProps(dispatch: Dispatch,
+                           actions: AuthActions,
+                           onSuccessfulLogin: () => Unit)
 
 object AuthScreen extends FunctionComponent[AuthScreenProps] {
 
   protected def render(compProps: Props): ReactElement = {
     val (email, setEmail) = useState("")
     val (password, setPassword) = useState("")
-    val props = compProps.wrapped
     val disabled = !email.contains('@') || password.isEmpty
+    
+    val props = compProps.wrapped
 
     <.View(^.rnStyle := styles.container)(
       <.Text(^.rnStyle := styles.heading)(
@@ -42,7 +48,12 @@ object AuthScreen extends FunctionComponent[AuthScreenProps] {
       <.TouchableOpacity(
         ^.disabled := disabled,
         ^.onPress := { () =>
-          props.onLogin(email, password)
+          val action = props.actions.authenticate(props.dispatch, email, password)
+          props.dispatch(action)
+          
+          action.task.future.andThen {
+            case Success(_) => props.onSuccessfulLogin()
+          }
         }
       )(
           <.View(^.rnStyle := styles.button)(
