@@ -1,6 +1,7 @@
 package io.codegalaxy.api
 
-import io.codegalaxy.api.auth._
+import io.codegalaxy.api.user._
+import scommons.api.http.ApiHttpClient.queryParams
 import scommons.api.http.ApiHttpData.UrlEncodedFormData
 import scommons.api.http.ApiHttpMethod._
 import scommons.api.http.{ApiHttpClient, ApiHttpStatusException}
@@ -9,22 +10,24 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 class CodeGalaxyApiClient(client: ApiHttpClient)
-  extends AuthApi {
+  extends UserApi {
 
   ////////////////////////////////////////////////////////////////////////////////////////
-  // auth api
+  // user api
 
-  def authenticate(user: String, password: String): Future[String] = {
+  def authenticate(user: String, password: String): Future[Unit] = {
     client.exec(POST, "/auth/authenticate/userpass", Some(UrlEncodedFormData(Map(
       "username" -> List(user),
       "password" -> List(password)
-    )))).map { resp =>
-      if (resp.status != 200) throw ApiHttpStatusException("Login failed", resp)
-      else {
-        val headers = resp.headers.mkString("\n")
-        println(s"headers:\n$headers")
-        ""
-      }
+    )))).map {
+      case resp if resp.status != 200 => throw ApiHttpStatusException("Login failed", resp)
+      case _ => ()
     }
+  }
+
+  def getUserProfile(force: Boolean): Future[UserProfileData] = {
+    client.execGet[UserProfileData]("/v1/profile", params = queryParams(
+      "force" -> Some(force)
+    ))
   }
 }

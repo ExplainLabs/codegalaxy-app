@@ -1,11 +1,14 @@
 package io.codegalaxy.app
 
 import io.codegalaxy.api.CodeGalaxyApiClient
-import io.codegalaxy.app.auth.AuthActions
+import io.codegalaxy.app.user.UserActions
 import scommons.api.http.dom.DomApiHttpClient
 
 trait CodeGalaxyActions
-  extends AuthActions
+  extends UserActions {
+
+  protected val client: CodeGalaxyApiClient
+}
 
 object CodeGalaxyActions extends CodeGalaxyActions {
 
