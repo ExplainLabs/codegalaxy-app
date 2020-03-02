@@ -2,6 +2,7 @@ package io.codegalaxy.app
 
 import io.codegalaxy.api.user.UserProfileData
 import io.codegalaxy.app.user.UserActions.UserProfileFetchAction
+import io.codegalaxy.app.user.UserState
 import scommons.react.redux.task.FutureTask
 import scommons.react.test.TestSpec
 
@@ -16,9 +17,11 @@ class CodeGalaxyStateReducerSpec extends TestSpec {
     //then
     inside(result) {
       case CodeGalaxyState(
-        currentTask
+        currentTask,
+        userState
       ) =>
         currentTask shouldBe None
+        userState shouldBe UserState()
     }
   }
 
