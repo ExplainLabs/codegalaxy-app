@@ -80,6 +80,9 @@ class LoginPopupSpec extends TestSpec with ShallowRendererUtils {
             ^.placeholder := "E-MAIL-ADDRESS",
             ^.rnStyle := styles.input,
             ^.keyboardType := KeyboardType.`email-address`,
+            ^.autoCapitalize := AutoCapitalize.none,
+            ^.autoCompleteType := AutoCompleteType.off, // android
+            ^.autoCorrect := false,
             ^.value := emailText
           )(),
 
