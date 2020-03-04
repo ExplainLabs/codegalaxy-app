@@ -6,5 +6,7 @@ trait UserApi {
 
   def authenticate(user: String, password: String): Future[Unit]
 
-  def getUserProfile(force: Boolean): Future[UserProfileData]
+  def logout(): Future[Unit]
+
+  def getUserProfile(force: Boolean): Future[Option[UserProfileData]]
 }

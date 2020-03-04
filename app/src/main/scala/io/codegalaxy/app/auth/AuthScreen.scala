@@ -18,8 +18,8 @@ object AuthScreen extends FunctionComponent[AuthScreenProps] {
 
   protected def render(compProps: Props): ReactElement = {
     val (showLoading, setShowLoading) = useState(true)
-    val (showLogin, setShowLogin) = useState(false)
     val props = compProps.wrapped
+    val showLogin = props.state.profile.isEmpty
 
     useEffect({ () =>
       val action = props.actions.userProfileFetch(props.dispatch)
@@ -41,9 +41,7 @@ object AuthScreen extends FunctionComponent[AuthScreenProps] {
           props.dispatch(action)
           
           action.task.future.andThen {
-            case Success(_) =>
-              props.onSuccessfulLogin()
-              setShowLogin(false)
+            case Success(_) => props.onSuccessfulLogin()
           }
         }))()
       )

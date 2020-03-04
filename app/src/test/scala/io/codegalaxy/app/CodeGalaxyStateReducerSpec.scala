@@ -28,7 +28,7 @@ class CodeGalaxyStateReducerSpec extends TestSpec {
   it should "set currentTask when TaskAction" in {
     //given
     val initialState = CodeGalaxyStateReducer.reduce(None, "")
-    val task = FutureTask("test task", Future.successful(mock[UserProfileData]))
+    val task = FutureTask("test task", Future.successful(Option(mock[UserProfileData])))
     initialState.currentTask shouldBe None
 
     //when

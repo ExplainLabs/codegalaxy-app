@@ -18,7 +18,7 @@ class UserStateReducerSpec extends TestSpec {
     val profile = mock[UserProfileData]
 
     //when & then
-    reduce(Some(UserState()), UserProfileFetchedAction(profile)) shouldBe UserState(
+    reduce(Some(UserState()), UserProfileFetchedAction(Some(profile))) shouldBe UserState(
       profile = Some(profile)
     )
   }

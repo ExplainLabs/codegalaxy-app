@@ -17,7 +17,7 @@ class UserActionsSpec extends AsyncTestSpec {
     val dispatch = mockFunction[Any, Any]
     val username = "test-username"
     val password = "test-password"
-    val expectedResp = mock[UserProfileData]
+    val expectedResp = Some(mock[UserProfileData])
 
     //then
     (api.authenticate _).expects(username, password).returning(Future.successful(()))
@@ -40,7 +40,7 @@ class UserActionsSpec extends AsyncTestSpec {
     val api = mock[UserApi]
     val actions = new UserActionsTest(api)
     val dispatch = mockFunction[Any, Any]
-    val expectedResp = mock[UserProfileData]
+    val expectedResp = Some(mock[UserProfileData])
 
     //then
     (api.getUserProfile _).expects(true).returning(Future.successful(expectedResp))

@@ -13,7 +13,7 @@ object UserStateReducer {
 
   private def reduce(state: UserState, action: Any): UserState = action match {
     case UserProfileFetchedAction(profile) => state.copy(
-      profile = Some(profile)
+      profile = profile
     )
     case _ => state
   }

@@ -27,16 +27,21 @@ trait UserActions {
   }
   
   def userProfileFetch(dispatch: Dispatch): UserProfileFetchAction = {
-    val future = client.getUserProfile(force = true).andThen {
+    val future = for {
+      //_ <- client.logout()
+      profile <- client.getUserProfile(force = true)
+    } yield profile
+    
+    val resultF = future.andThen {
       case Success(data) => dispatch(UserProfileFetchedAction(data))
     }
 
-    UserProfileFetchAction(FutureTask("Fetching UserProfile", future))
+    UserProfileFetchAction(FutureTask("Fetching UserProfile", resultF))
   }
 }
 
 object UserActions {
 
-  case class UserProfileFetchAction(task: FutureTask[UserProfileData]) extends TaskAction
-  case class UserProfileFetchedAction(data: UserProfileData) extends Action
+  case class UserProfileFetchAction(task: FutureTask[Option[UserProfileData]]) extends TaskAction
+  case class UserProfileFetchedAction(data: Option[UserProfileData]) extends Action
 }
