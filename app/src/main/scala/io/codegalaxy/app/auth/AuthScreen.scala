@@ -12,6 +12,7 @@ import scala.util.Success
 case class AuthScreenProps(dispatch: Dispatch,
                            actions: UserActions,
                            state: UserState,
+                           onAppReady: () => Unit,
                            onSuccessfulLogin: () => Unit)
 
 object AuthScreen extends FunctionComponent[AuthScreenProps] {
@@ -25,17 +26,15 @@ object AuthScreen extends FunctionComponent[AuthScreenProps] {
       val action = props.actions.userProfileFetch(props.dispatch)
       props.dispatch(action)
 
-      action.task.future.andThen {
-        case _ => setShowLoading(false)
+      action.task.future.andThen { case _ =>
+        props.onAppReady()
+        setShowLoading(false)
       }
       ()
     }, Nil)
 
     <.>()(
-      if (showLoading) Some(
-        <(LoadingPopup()).empty
-      )
-      else if (showLogin) Some(
+      if (!showLoading && showLogin) Some(
         <(LoginPopup())(^.wrapped := LoginPopupProps(onLogin = { (email, password) =>
           val action = props.actions.userAuth(props.dispatch, email, password)
           props.dispatch(action)

@@ -11,7 +11,7 @@ class AuthControllerSpec extends TestSpec {
   it should "return component" in {
     //given
     val actions = mock[UserActions]
-    val controller = new AuthController(actions)
+    val controller = new AuthController(onAppReady = () => (), actions)
     
     //when & then
     controller.uiComponent shouldBe AuthScreen
@@ -21,7 +21,8 @@ class AuthControllerSpec extends TestSpec {
     //given
     val dispatch = mock[Dispatch]
     val actions = mock[UserActions]
-    val controller = new AuthController(actions)
+    val onAppReady = mockFunction[Unit]
+    val controller = new AuthController(onAppReady, actions)
     val state = mock[CodeGalaxyStateDef]
     val userState = mock[UserState]
     val nav = mock[Navigation]
@@ -33,10 +34,11 @@ class AuthControllerSpec extends TestSpec {
     
     //then
     inside(result) {
-      case AuthScreenProps(resDispatch, resActions, resState, _) =>
+      case AuthScreenProps(resDispatch, resActions, resState, resOnAppReady, _) =>
         resDispatch shouldBe dispatch
         resActions shouldBe actions
         resState shouldBe userState
+        resOnAppReady shouldBe onAppReady
         
         //TODO: asset onSuccessfulLogin callback
     }
