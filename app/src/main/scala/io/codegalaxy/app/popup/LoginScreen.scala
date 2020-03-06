@@ -3,15 +3,14 @@ package io.codegalaxy.app.popup
 import io.codegalaxy.app.CodeGalaxyTheme
 import scommons.react._
 import scommons.react.hooks._
-import scommons.reactnative.Modal._
 import scommons.reactnative.TextInput._
 import scommons.reactnative._
 
 import scala.scalajs.js
 
-case class LoginPopupProps(onLogin: (String, String) => Unit)
+case class LoginScreenProps(onLogin: (String, String) => Unit)
 
-object LoginPopup extends FunctionComponent[LoginPopupProps] {
+object LoginScreen extends FunctionComponent[LoginScreenProps] {
 
   protected def render(compProps: Props): ReactElement = {
     val (email, setEmail) = useState("")
@@ -19,48 +18,42 @@ object LoginPopup extends FunctionComponent[LoginPopupProps] {
     val props = compProps.wrapped
     val disabled = !email.contains('@') || password.isEmpty
 
-    <.Modal(
-      ^.animationType := AnimationType.slide,
-      ^.transparent := false,
-      ^.visible := true
-    )(
-      <.View(^.rnStyle := styles.container)(
-        <.Text(^.rnStyle := styles.heading)(
-          "Welcome to CodeGalaxy"
-        ),
-  
-        <.TextInput(
-          ^.placeholder := "E-MAIL-ADDRESS",
-          ^.rnStyle := styles.input,
-          ^.keyboardType := KeyboardType.`email-address`,
-          ^.autoCapitalize := AutoCapitalize.none,
-          ^.autoCompleteType := AutoCompleteType.off, // android
-          ^.autoCorrect := false,
-          ^.value := email,
-          ^.onChangeText := setEmail
-        )(),
-  
-        <.TextInput(
-          ^.placeholder := "PASSWORD",
-          ^.rnStyle := styles.input,
-          ^.secureTextEntry := true,
-          ^.value := password,
-          ^.onChangeText := setPassword
-        )(),
-  
-        <.TouchableOpacity(
-          ^.disabled := disabled,
-          ^.onPress := { () =>
-            props.onLogin(email, password)
-          }
-        )(
-          <.View(^.rnStyle := styles.button)(
-            <.Text(^.rnStyle := js.Array(
-              styles.buttonText,
-              if (disabled) styles.buttonTextDisabled
-              else styles.buttonTextEnabled
-            ))("Login")
-          )
+    <.View(^.rnStyle := styles.container)(
+      <.Text(^.rnStyle := styles.heading)(
+        "Welcome to CodeGalaxy"
+      ),
+
+      <.TextInput(
+        ^.placeholder := "E-MAIL-ADDRESS",
+        ^.rnStyle := styles.input,
+        ^.keyboardType := KeyboardType.`email-address`,
+        ^.autoCapitalize := AutoCapitalize.none,
+        ^.autoCompleteType := AutoCompleteType.off, // android
+        ^.autoCorrect := false,
+        ^.value := email,
+        ^.onChangeText := setEmail
+      )(),
+
+      <.TextInput(
+        ^.placeholder := "PASSWORD",
+        ^.rnStyle := styles.input,
+        ^.secureTextEntry := true,
+        ^.value := password,
+        ^.onChangeText := setPassword
+      )(),
+
+      <.TouchableOpacity(
+        ^.disabled := disabled,
+        ^.onPress := { () =>
+          props.onLogin(email, password)
+        }
+      )(
+        <.View(^.rnStyle := styles.button)(
+          <.Text(^.rnStyle := js.Array(
+            styles.buttonText,
+            if (disabled) styles.buttonTextDisabled
+            else styles.buttonTextEnabled
+          ))("Login")
         )
       )
     )

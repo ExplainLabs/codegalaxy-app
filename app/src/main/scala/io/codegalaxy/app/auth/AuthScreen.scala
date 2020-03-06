@@ -35,7 +35,7 @@ object AuthScreen extends FunctionComponent[AuthScreenProps] {
 
     <.>()(
       if (!showLoading && showLogin) Some(
-        <(LoginPopup())(^.wrapped := LoginPopupProps(onLogin = { (email, password) =>
+        <(LoginScreen())(^.wrapped := LoginScreenProps(onLogin = { (email, password) =>
           val action = props.actions.userAuth(props.dispatch, email, password)
           props.dispatch(action)
           
