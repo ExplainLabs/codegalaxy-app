@@ -1,6 +1,6 @@
-package io.codegalaxy.app.popup
+package io.codegalaxy.app.auth
 
-import io.codegalaxy.app.popup.LoginScreen._
+import io.codegalaxy.app.auth.LoginScreen._
 import scommons.react.test.TestSpec
 import scommons.react.test.raw.ShallowInstance
 import scommons.react.test.util.ShallowRendererUtils

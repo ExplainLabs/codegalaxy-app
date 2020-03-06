@@ -1,4 +1,4 @@
-package io.codegalaxy.app.popup
+package io.codegalaxy.app.auth
 
 import io.codegalaxy.app.CodeGalaxyTheme
 import scommons.react._
@@ -59,8 +59,8 @@ object LoginScreen extends FunctionComponent[LoginScreenProps] {
     )
   }
 
-  private[popup] lazy val styles = StyleSheet.create(new Styles)
-  private[popup] class Styles extends js.Object {
+  private[auth] lazy val styles = StyleSheet.create(new Styles)
+  private[auth] class Styles extends js.Object {
     import Style._
     import ViewStyle._
 

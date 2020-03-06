@@ -1,6 +1,5 @@
 package io.codegalaxy.app.auth
 
-import io.codegalaxy.app.popup._
 import io.codegalaxy.app.user.{UserActions, UserState}
 import io.github.shogowada.scalajs.reactjs.redux.Redux.Dispatch
 import scommons.react._
