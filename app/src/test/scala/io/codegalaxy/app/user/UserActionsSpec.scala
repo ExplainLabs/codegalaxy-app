@@ -10,7 +10,7 @@ import scala.concurrent.Future
 
 class UserActionsSpec extends AsyncTestSpec {
 
-  it should "dispatch UserProfileFetchedAction when authenticate" in {
+  it should "dispatch UserProfileFetchedAction when userAuth" in {
     //given
     val api = mock[UserApi]
     val actions = new UserActionsTest(api)

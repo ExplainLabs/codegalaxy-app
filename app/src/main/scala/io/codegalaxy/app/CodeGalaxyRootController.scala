@@ -18,10 +18,7 @@ class CodeGalaxyRootController(onAppReady: () => Unit, actions: UserActions)
       dispatch = dispatch,
       actions = actions,
       state = state.userState,
-      onAppReady = onAppReady,
-      onSuccessfulLogin = { () =>
-        //TODO: navigate from AuthScreen
-      }
+      onAppReady = onAppReady
     )
   }
 }

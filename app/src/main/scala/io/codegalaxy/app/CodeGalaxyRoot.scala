@@ -7,20 +7,17 @@ import scommons.react._
 import scommons.react.hooks._
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.util.Success
 
 case class CodeGalaxyRootProps(dispatch: Dispatch,
                                actions: UserActions,
                                state: UserState,
-                               onAppReady: () => Unit,
-                               onSuccessfulLogin: () => Unit)
+                               onAppReady: () => Unit)
 
 object CodeGalaxyRoot extends FunctionComponent[CodeGalaxyRootProps] {
 
   protected def render(compProps: Props): ReactElement = {
-    val (showLoading, setShowLoading) = useState(true)
+    val (appInit, setAppInit) = useState(true)
     val props = compProps.wrapped
-    val showLogin = props.state.profile.isEmpty
 
     useEffect({ () =>
       val action = props.actions.userProfileFetch(props.dispatch)
@@ -28,20 +25,18 @@ object CodeGalaxyRoot extends FunctionComponent[CodeGalaxyRootProps] {
 
       action.task.future.andThen { case _ =>
         props.onAppReady()
-        setShowLoading(false)
+        setAppInit(false)
       }
       ()
     }, Nil)
 
+    val showLogin = props.state.profile.isEmpty
+    
     <.>()(
-      if (!showLoading && showLogin) Some(
+      if (appInit) None
+      else if (showLogin) Some(
         <(LoginScreen())(^.wrapped := LoginScreenProps(onLogin = { (email, password) =>
-          val action = props.actions.userAuth(props.dispatch, email, password)
-          props.dispatch(action)
-          
-          action.task.future.andThen {
-            case Success(_) => props.onSuccessfulLogin()
-          }
+          props.dispatch(props.actions.userAuth(props.dispatch, email, password))
         }))()
       )
       else None

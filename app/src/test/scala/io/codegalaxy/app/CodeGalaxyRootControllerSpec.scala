@@ -33,13 +33,11 @@ class CodeGalaxyRootControllerSpec extends TestSpec {
     
     //then
     inside(result) {
-      case CodeGalaxyRootProps(resDispatch, resActions, resState, resOnAppReady, _) =>
+      case CodeGalaxyRootProps(resDispatch, resActions, resState, resOnAppReady) =>
         resDispatch shouldBe dispatch
         resActions shouldBe actions
         resState shouldBe userState
         resOnAppReady shouldBe onAppReady
-        
-        //TODO: asset onSuccessfulLogin callback
     }
   }
 }
