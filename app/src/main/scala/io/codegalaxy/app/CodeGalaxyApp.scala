@@ -1,6 +1,5 @@
 package io.codegalaxy.app
 
-import io.codegalaxy.app.auth._
 import io.github.shogowada.scalajs.reactjs.redux.ReactRedux._
 import io.github.shogowada.scalajs.reactjs.redux.Redux
 import scommons.react._
@@ -17,12 +16,12 @@ class CodeGalaxyApp(onReady: js.Function0[Unit]) extends FunctionComponent[Unit]
   private val store = Redux.createStore(CodeGalaxyStateReducer.reduce)
 
   private lazy val actions = CodeGalaxyActions
-  private lazy val authComp = new AuthController(onReady, actions).apply()
+  private lazy val rootComp = new CodeGalaxyRootController(onReady, actions).apply()
   
   protected def render(props: Props): ReactElement = {
     <.Provider(^.store := store)(
       <.>()(
-        <(authComp).empty,
+        <(rootComp).empty,
         <(CodeGalaxyTaskController()).empty
       )
     )

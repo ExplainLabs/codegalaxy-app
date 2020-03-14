@@ -1,5 +1,6 @@
-package io.codegalaxy.app.auth
+package io.codegalaxy.app
 
+import io.codegalaxy.app.auth._
 import io.codegalaxy.app.user.{UserActions, UserState}
 import io.github.shogowada.scalajs.reactjs.redux.Redux.Dispatch
 import scommons.react._
@@ -8,13 +9,13 @@ import scommons.react.hooks._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.Success
 
-case class AuthScreenProps(dispatch: Dispatch,
-                           actions: UserActions,
-                           state: UserState,
-                           onAppReady: () => Unit,
-                           onSuccessfulLogin: () => Unit)
+case class CodeGalaxyRootProps(dispatch: Dispatch,
+                               actions: UserActions,
+                               state: UserState,
+                               onAppReady: () => Unit,
+                               onSuccessfulLogin: () => Unit)
 
-object AuthScreen extends FunctionComponent[AuthScreenProps] {
+object CodeGalaxyRoot extends FunctionComponent[CodeGalaxyRootProps] {
 
   protected def render(compProps: Props): ReactElement = {
     val (showLoading, setShowLoading) = useState(true)
