@@ -1,7 +1,7 @@
 package io.codegalaxy.api
 
 import io.codegalaxy.api.user._
-import scommons.api.http.{ApiHttpClient, ApiHttpStatusException}
+import scommons.api.http.{ApiHttpClient, ApiHttpResponse, ApiHttpStatusException}
 import scommons.api.http.ApiHttpClient.queryParams
 import scommons.api.http.ApiHttpData.UrlEncodedFormData
 import scommons.api.http.ApiHttpMethod._
@@ -21,7 +21,7 @@ class CodeGalaxyApiClient(client: ApiHttpClient)
       "password" -> List(password)
     )))).map {
       case resp if resp.status != 200 =>
-        throw ApiHttpStatusException("Login failed", resp.copy(body = ""))
+        throw ApiHttpStatusException("Login failed", ApiHttpResponse(resp.url, resp.status, Map.empty, ""))
       case _ => ()
     }
   }
@@ -29,7 +29,7 @@ class CodeGalaxyApiClient(client: ApiHttpClient)
   def logout(): Future[Unit] = {
     client.exec(GET, "/auth/logout", None).map {
       case resp if resp.status != 200 && resp.status != 303 =>
-        throw ApiHttpStatusException("Logout failed", resp.copy(body = ""))
+        throw ApiHttpStatusException("Logout failed", ApiHttpResponse(resp.url, resp.status, Map.empty, ""))
       case _ => ()
     }
   }

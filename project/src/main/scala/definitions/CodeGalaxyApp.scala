@@ -28,6 +28,7 @@ object CodeGalaxyApp extends CodeGalaxyModule with CommonMobileModule {
   override def superRepoProjectsDependencies: Seq[(String, String, Option[String])] = {
     super.superRepoProjectsDependencies ++ Seq(
       ("scommons-react-native", "scommons-react-native-ui", None),
+      ("scommons-react-native", "scommons-expo", None),
 
       ("scommons-react", "scommons-react-test-dom", Some("test"))
     )
@@ -35,7 +36,8 @@ object CodeGalaxyApp extends CodeGalaxyModule with CommonMobileModule {
   
   override def runtimeDependencies: Def.Initialize[Seq[ModuleID]] = Def.setting {
     super.runtimeDependencies.value ++ Seq(
-      Libs.scommonsReactNativeUi.value
+      Libs.scommonsReactNativeUi.value,
+      Libs.scommonsExpo.value
     )
   }
   

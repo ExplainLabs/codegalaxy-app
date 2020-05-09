@@ -1,16 +1,21 @@
 package io.codegalaxy.app
 
 import io.codegalaxy.api.user.UserProfileData
+import io.codegalaxy.app.CodeGalaxyRoot._
 import io.codegalaxy.app.auth._
 import io.codegalaxy.app.user.UserActions.UserProfileFetchAction
 import io.codegalaxy.app.user.{UserActions, UserState}
-import org.scalatest.Succeeded
+import org.scalatest.{Assertion, Succeeded}
+import scommons.react._
+import scommons.react.navigation._
+import scommons.react.navigation.tab.TabBarOptions.LabelPosition
+import scommons.react.navigation.tab._
 import scommons.react.redux.task.FutureTask
-import scommons.react.test.TestSpec
-import scommons.react.test.util.ShallowRendererUtils
+import scommons.react.test._
 import scommons.reactnative._
 
 import scala.concurrent.Future
+import scala.scalajs.js
 
 class CodeGalaxyRootSpec extends TestSpec with ShallowRendererUtils {
 
@@ -76,9 +81,47 @@ class CodeGalaxyRootSpec extends TestSpec with ShallowRendererUtils {
       resActions shouldBe actions
       onReady shouldBe props.onAppReady
     }, { case List(mainScreen) =>
-      assertNativeComponent(mainScreen,
-        <.Text()("TODO: main screen")
-      )
+      assertCodeGalaxyRoot(mainScreen)
+    })
+  }
+
+  private def assertCodeGalaxyRoot(result: ShallowInstance): Assertion = {
+
+    def renderIcon(tab: ShallowInstance, size: Int, color: String): ShallowInstance = {
+      val iconComp = tab.props.options.tabBarIcon(js.Dynamic.literal("size" -> size, "color" -> color))
+
+      val wrapper = new FunctionComponent[Unit] {
+        protected def render(props: Props): ReactElement = {
+          iconComp.asInstanceOf[ReactElement]
+        }
+      }
+
+      shallowRender(<(wrapper()).empty)
+    }
+
+    assertNativeComponent(result, <.NavigationContainer()(), { case List(navigator) =>
+      assertNativeComponent(navigator,
+        <(Tab.Navigator)(
+          ^.initialRouteName := "Courses",
+          ^.tabBarOptions := new TabBarOptions {
+            override val labelPosition = LabelPosition.`below-icon`
+          }
+        )()
+        , { case List(tab1, tab2) =>
+          assertNativeComponent(tab1,
+            <(Tab.Screen)(^.name := "Courses", ^.component := emptyComp)()
+          )
+          assertNativeComponent(renderIcon(tab1, 16, "green"),
+            <(CodeGalaxyIcons.FontAwesome5)(^.name := "list", ^.rnSize := 16, ^.color := "green")()
+          )
+
+          assertNativeComponent(tab2,
+            <(Tab.Screen)(^.name := "Me", ^.component := emptyComp)()
+          )
+          assertNativeComponent(renderIcon(tab2, 32, "red"),
+            <(CodeGalaxyIcons.FontAwesome5)(^.name := "user", ^.rnSize := 32, ^.color := "red")()
+          )
+        })
     })
   }
 }

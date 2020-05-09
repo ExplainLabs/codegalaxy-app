@@ -20,5 +20,6 @@ object Libs extends CommonLibs {
   // js dependencies
 
   lazy val scommonsReactNativeUi = Def.setting("org.scommons.react-native" %%% "scommons-react-native-ui" % scommonsReactNativeVersion)
+  lazy val scommonsExpo = Def.setting("org.scommons.react-native" %%% "scommons-expo" % scommonsReactNativeVersion)
 
 }
