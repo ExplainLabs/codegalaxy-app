@@ -1,29 +1,26 @@
-package io.codegalaxy.app
+package io.codegalaxy.app.user
 
-import io.codegalaxy.app.user.{UserActions, UserController, UserState}
+import io.codegalaxy.app.CodeGalaxyStateDef
 import io.github.shogowada.scalajs.reactjs.redux.Redux.Dispatch
 import scommons.react.navigation.Navigation
 import scommons.react.test.TestSpec
 
-class CodeGalaxyRootControllerSpec extends TestSpec {
+class UserControllerSpec extends TestSpec {
 
   it should "return component" in {
     //given
     val actions = mock[UserActions]
-    val userController = mock[UserController]
-    val controller = new CodeGalaxyRootController(onAppReady = () => (), actions, userController)
+    val controller = new UserController(actions)
     
     //when & then
-    controller.uiComponent.isInstanceOf[CodeGalaxyRoot] shouldBe true
+    controller.uiComponent shouldBe UserScreen
   }
   
   it should "map state to props" in {
     //given
     val dispatch = mock[Dispatch]
     val actions = mock[UserActions]
-    val onAppReady = mockFunction[Unit]
-    val userController = mock[UserController]
-    val controller = new CodeGalaxyRootController(onAppReady, actions, userController)
+    val controller = new UserController(actions)
     val state = mock[CodeGalaxyStateDef]
     val userState = mock[UserState]
     val nav = mock[Navigation]
@@ -35,11 +32,10 @@ class CodeGalaxyRootControllerSpec extends TestSpec {
     
     //then
     inside(result) {
-      case CodeGalaxyRootProps(resDispatch, resActions, resState, resOnAppReady) =>
+      case UserScreenProps(resDispatch, resActions, resData) =>
         resDispatch shouldBe dispatch
         resActions shouldBe actions
-        resState shouldBe userState
-        resOnAppReady shouldBe onAppReady
+        resData shouldBe userState
     }
   }
 }

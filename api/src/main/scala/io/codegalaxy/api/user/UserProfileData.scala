@@ -4,9 +4,9 @@ import play.api.libs.json._
 
 case class UserProfileData(userId: Int,
                            username: String,
-                           city: String,
-                           firstName: String,
-                           lastName: String)
+                           city: Option[String],
+                           firstName: Option[String],
+                           lastName: Option[String])
 
 object UserProfileData {
 

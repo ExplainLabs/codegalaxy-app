@@ -1,13 +1,13 @@
 package io.codegalaxy.app
 
 import io.codegalaxy.app.auth._
-import io.codegalaxy.app.user.{UserActions, UserState}
+import io.codegalaxy.app.user._
 import io.github.shogowada.scalajs.reactjs.redux.Redux.Dispatch
 import scommons.react._
-import scommons.reactnative._
 import scommons.react.navigation._
 import scommons.react.navigation.tab.TabBarOptions.LabelPosition
 import scommons.react.navigation.tab._
+import scommons.reactnative._
 
 import scala.scalajs.js
 
@@ -16,7 +16,7 @@ case class CodeGalaxyRootProps(dispatch: Dispatch,
                                state: UserState,
                                onAppReady: () => Unit)
 
-object CodeGalaxyRoot extends FunctionComponent[CodeGalaxyRootProps] {
+class CodeGalaxyRoot(userController: UserController) extends FunctionComponent[CodeGalaxyRootProps] {
 
   private[app] lazy val Tab = createBottomTabNavigator()
   
@@ -49,7 +49,7 @@ object CodeGalaxyRoot extends FunctionComponent[CodeGalaxyRootProps] {
             )(),
             <(Tab.Screen)(
               ^.name := "Me",
-              ^.component := emptyComp,
+              ^.component := userStackComp,
               ^.options := new TabScreenOptions {
                 override val tabBarIcon = { params =>
                   <(CodeGalaxyIcons.FontAwesome5)(^.name := "user", ^.rnSize := params.size, ^.color := params.color)()
@@ -61,9 +61,10 @@ object CodeGalaxyRoot extends FunctionComponent[CodeGalaxyRootProps] {
       }
     )
   }
+
+  private[app] lazy val userStackComp: ReactClass = UserScreen.userStackComp(userController)
   
   private[app] lazy val emptyComp: ReactClass = new FunctionComponent[Unit] {
-    
     protected def render(props: Props): ReactElement = {
       <.Text()("//TODO: add content")
     }

@@ -1,10 +1,9 @@
 package io.codegalaxy.app
 
 import io.codegalaxy.api.user.UserProfileData
-import io.codegalaxy.app.CodeGalaxyRoot._
 import io.codegalaxy.app.auth._
 import io.codegalaxy.app.user.UserActions.UserProfileFetchAction
-import io.codegalaxy.app.user.{UserActions, UserState}
+import io.codegalaxy.app.user.{UserActions, UserController, UserState}
 import org.scalatest.{Assertion, Succeeded}
 import scommons.react._
 import scommons.react.navigation._
@@ -23,10 +22,13 @@ class CodeGalaxyRootSpec extends TestSpec with ShallowRendererUtils {
     //given
     val dispatch = mockFunction[Any, Any]
     val actions = mock[UserActions]
+    val userController = mock[UserController]
+    val codeGalaxyRoot = new CodeGalaxyRoot(userController)
+    
     //not logged-in
     val userProfile = Option.empty[UserProfileData]
     val props = CodeGalaxyRootProps(dispatch, actions, UserState(userProfile), onAppReady = () => ())
-    val comp = shallowRender(<(CodeGalaxyRoot())(^.wrapped := props)())
+    val comp = shallowRender(<(codeGalaxyRoot())(^.wrapped := props)())
     val loginProps = findComponentProps(comp, LoginScreen)
     val email = "test user"
     val password = "test password"
@@ -47,11 +49,14 @@ class CodeGalaxyRootSpec extends TestSpec with ShallowRendererUtils {
     //given
     val dispatch = mockFunction[Any, Any]
     val actions = mock[UserActions]
+    val userController = mock[UserController]
+    val codeGalaxyRoot = new CodeGalaxyRoot(userController)
+
     val userProfile = Option.empty[UserProfileData]
     val props = CodeGalaxyRootProps(dispatch, actions, UserState(userProfile), onAppReady = () => ())
 
     //when
-    val result = shallowRender(<(CodeGalaxyRoot())(^.wrapped := props)())
+    val result = shallowRender(<(codeGalaxyRoot())(^.wrapped := props)())
 
     //then
     assertComponent(result, WithAutoLogin)({ case WithAutoLoginProps(resDispatch, resActions, onReady) =>
@@ -69,11 +74,14 @@ class CodeGalaxyRootSpec extends TestSpec with ShallowRendererUtils {
     //given
     val dispatch = mockFunction[Any, Any]
     val actions = mock[UserActions]
+    val userController = mock[UserController]
+    val codeGalaxyRoot = new CodeGalaxyRoot(userController)
+
     val userProfile = Some(mock[UserProfileData])
     val props = CodeGalaxyRootProps(dispatch, actions, UserState(userProfile), onAppReady = () => ())
 
     //when
-    val result = shallowRender(<(CodeGalaxyRoot())(^.wrapped := props)())
+    val result = shallowRender(<(codeGalaxyRoot())(^.wrapped := props)())
 
     //then
     assertComponent(result, WithAutoLogin)({ case WithAutoLoginProps(resDispatch, resActions, onReady) =>
@@ -81,11 +89,12 @@ class CodeGalaxyRootSpec extends TestSpec with ShallowRendererUtils {
       resActions shouldBe actions
       onReady shouldBe props.onAppReady
     }, { case List(mainScreen) =>
-      assertCodeGalaxyRoot(mainScreen)
+      assertCodeGalaxyRoot(mainScreen, codeGalaxyRoot)
     })
   }
 
-  private def assertCodeGalaxyRoot(result: ShallowInstance): Assertion = {
+  private def assertCodeGalaxyRoot(result: ShallowInstance, codeGalaxyRoot: CodeGalaxyRoot): Assertion = {
+    import codeGalaxyRoot._
 
     def renderIcon(tab: ShallowInstance, size: Int, color: String): ShallowInstance = {
       val iconComp = tab.props.options.tabBarIcon(js.Dynamic.literal("size" -> size, "color" -> color))
@@ -116,7 +125,7 @@ class CodeGalaxyRootSpec extends TestSpec with ShallowRendererUtils {
           )
 
           assertNativeComponent(tab2,
-            <(Tab.Screen)(^.name := "Me", ^.component := emptyComp)()
+            <(Tab.Screen)(^.name := "Me", ^.component := userStackComp)()
           )
           assertNativeComponent(renderIcon(tab2, 32, "red"),
             <(CodeGalaxyIcons.FontAwesome5)(^.name := "user", ^.rnSize := 32, ^.color := "red")()
