@@ -1,9 +1,8 @@
 package io.codegalaxy.app
 
-import io.codegalaxy.api.user.UserProfileData
 import io.codegalaxy.app.auth._
-import io.codegalaxy.app.user.UserActions.UserProfileFetchAction
-import io.codegalaxy.app.user.{UserActions, UserController, UserState}
+import io.codegalaxy.app.user.UserActions.UserLoginAction
+import io.codegalaxy.app.user.{UserActions, UserController, UserLoginState, UserState}
 import org.scalatest.{Assertion, Succeeded}
 import scommons.react._
 import scommons.react.navigation._
@@ -26,17 +25,16 @@ class CodeGalaxyRootSpec extends TestSpec with ShallowRendererUtils {
     val codeGalaxyRoot = new CodeGalaxyRoot(userController)
     
     //not logged-in
-    val userProfile = Option.empty[UserProfileData]
-    val props = CodeGalaxyRootProps(dispatch, actions, UserState(userProfile), onAppReady = () => ())
+    val props = CodeGalaxyRootProps(dispatch, actions, UserState(None), onAppReady = () => ())
     val comp = shallowRender(<(codeGalaxyRoot())(^.wrapped := props)())
     val loginProps = findComponentProps(comp, LoginScreen)
     val email = "test user"
     val password = "test password"
 
-    val loginAction = UserProfileFetchAction(
-      FutureTask("Logging-in User", Future.successful(userProfile))
+    val loginAction = UserLoginAction(
+      FutureTask("Logging-in User", Future.successful(None))
     )
-    (actions.userAuth _).expects(dispatch, email, password).returning(loginAction)
+    (actions.userLogin _).expects(dispatch, email, password).returning(loginAction)
 
     //then
     dispatch.expects(loginAction)
@@ -52,8 +50,7 @@ class CodeGalaxyRootSpec extends TestSpec with ShallowRendererUtils {
     val userController = mock[UserController]
     val codeGalaxyRoot = new CodeGalaxyRoot(userController)
 
-    val userProfile = Option.empty[UserProfileData]
-    val props = CodeGalaxyRootProps(dispatch, actions, UserState(userProfile), onAppReady = () => ())
+    val props = CodeGalaxyRootProps(dispatch, actions, UserState(None), onAppReady = () => ())
 
     //when
     val result = shallowRender(<(codeGalaxyRoot())(^.wrapped := props)())
@@ -77,8 +74,8 @@ class CodeGalaxyRootSpec extends TestSpec with ShallowRendererUtils {
     val userController = mock[UserController]
     val codeGalaxyRoot = new CodeGalaxyRoot(userController)
 
-    val userProfile = Some(mock[UserProfileData])
-    val props = CodeGalaxyRootProps(dispatch, actions, UserState(userProfile), onAppReady = () => ())
+    val loginData = Some(mock[UserLoginState])
+    val props = CodeGalaxyRootProps(dispatch, actions, UserState(loginData), onAppReady = () => ())
 
     //when
     val result = shallowRender(<(codeGalaxyRoot())(^.wrapped := props)())

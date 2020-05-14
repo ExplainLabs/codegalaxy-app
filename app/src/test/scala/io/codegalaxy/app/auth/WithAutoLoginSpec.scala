@@ -1,8 +1,7 @@
 package io.codegalaxy.app.auth
 
-import io.codegalaxy.api.user.UserProfileData
-import io.codegalaxy.app.user.UserActions
-import io.codegalaxy.app.user.UserActions.UserProfileFetchAction
+import io.codegalaxy.app.user.{UserActions, UserLoginState}
+import io.codegalaxy.app.user.UserActions.UserLoginAction
 import org.scalatest.Succeeded
 import scommons.react._
 import scommons.react.redux.task.FutureTask
@@ -21,13 +20,13 @@ class WithAutoLoginSpec extends AsyncTestSpec
     val dispatch = mockFunction[Any, Any]
     val actions = mock[UserActions]
     val onReady = mockFunction[Unit]
-    val userProfile = Some(mock[UserProfileData])
+    val loginData = Some(mock[UserLoginState])
     val props = WithAutoLoginProps(dispatch, actions, onReady)
 
-    val fetchAction = UserProfileFetchAction(
-      FutureTask("Fetching User", Future.successful(userProfile))
+    val fetchAction = UserLoginAction(
+      FutureTask("Fetching User", Future.successful(loginData))
     )
-    (actions.userProfileFetch _).expects(dispatch).returning(fetchAction)
+    (actions.userLoginFetch _).expects(dispatch).returning(fetchAction)
 
     //then
     dispatch.expects(fetchAction)

@@ -18,7 +18,7 @@ object WithAutoLogin extends FunctionComponent[WithAutoLoginProps] {
     val props = compProps.wrapped
 
     useEffect({ () =>
-      val action = props.actions.userProfileFetch(props.dispatch)
+      val action = props.actions.userLoginFetch(props.dispatch)
       props.dispatch(action)
 
       action.task.future.andThen { case _ =>

@@ -22,12 +22,12 @@ class CodeGalaxyRoot(userController: UserController) extends FunctionComponent[C
   
   protected def render(compProps: Props): ReactElement = {
     val props = compProps.wrapped
-    val showLogin = props.state.profile.isEmpty
+    val showLogin = props.state.login.isEmpty
     
     <(WithAutoLogin())(^.wrapped := WithAutoLoginProps(props.dispatch, props.actions, props.onAppReady))(
       if (showLogin) {
         <(LoginScreen())(^.wrapped := LoginScreenProps(onLogin = { (email, password) =>
-          props.dispatch(props.actions.userAuth(props.dispatch, email, password))
+          props.dispatch(props.actions.userLogin(props.dispatch, email, password))
         }))()
       }
       else {

@@ -1,8 +1,7 @@
 package io.codegalaxy.app
 
-import io.codegalaxy.api.user.UserProfileData
-import io.codegalaxy.app.user.UserActions.UserProfileFetchAction
-import io.codegalaxy.app.user.UserState
+import io.codegalaxy.app.user.UserActions.UserLoginAction
+import io.codegalaxy.app.user.{UserLoginState, UserState}
 import scommons.react.redux.task.FutureTask
 import scommons.react.test.TestSpec
 
@@ -28,11 +27,11 @@ class CodeGalaxyStateReducerSpec extends TestSpec {
   it should "set currentTask when TaskAction" in {
     //given
     val initialState = CodeGalaxyStateReducer.reduce(None, "")
-    val task = FutureTask("test task", Future.successful(Option(mock[UserProfileData])))
+    val task = FutureTask("test task", Future.successful(Option(mock[UserLoginState])))
     initialState.currentTask shouldBe None
 
     //when
-    val result = CodeGalaxyStateReducer.reduce(Some(initialState), UserProfileFetchAction(task))
+    val result = CodeGalaxyStateReducer.reduce(Some(initialState), UserLoginAction(task))
 
     //then
     result.currentTask shouldBe Some(task)

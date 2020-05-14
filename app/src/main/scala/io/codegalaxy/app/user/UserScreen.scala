@@ -28,13 +28,21 @@ object UserScreen extends FunctionComponent[UserScreenProps] {
       )
     }
     
-    <.View()(
-      props.data.profile.map { data =>
+    <.View(^.rnStyle := styles.cardContainer)(
+      props.data.login.map { case UserLoginState(profile, user) =>
         <.>()(
-          renderField("User Name", Some(data.username)),
-          renderField("First Name", data.firstName),
-          renderField("Last Name", data.lastName),
-          renderField("City", data.city)
+          <.View(^.rnStyle := js.Array(styles.cardImageContainer, styles.cardImage, styles.cardImageContainerShadow))(
+            user.avatarUrl.map { avatarUrl =>
+              <.Image(^.rnStyle := styles.cardImage, ^.source := new UriResource {
+                override val uri = avatarUrl
+              })()
+            }
+          ),
+
+          renderField("Full Name", user.fullName),
+          renderField("Email", user.email),
+          renderField("User Name", Some(profile.username)),
+          renderField("City", profile.city)
         )
       }
     )
@@ -52,19 +60,50 @@ object UserScreen extends FunctionComponent[UserScreenProps] {
 
   private[user] lazy val styles = StyleSheet.create(new Styles)
   private[user] class Styles extends js.Object {
+    import Style._
     import TextStyle._
     import ViewStyle._
 
+    val cardContainer: Style = new ViewStyle {
+      override val alignItems = AlignItems.center
+    }
+    val cardImageContainer: Style = new ViewStyle {
+      override val alignItems = AlignItems.center
+      override val backgroundColor = Color.white
+      override val borderColor = Color.black
+      override val borderWidth = 3
+      override val marginTop = 30
+      override val marginBottom = 20
+    }
+    val cardImageContainerShadow: Style = Platform.select {
+      case Platform.ios | Platform.web => new ViewStyle {
+        override val shadowColor = Color.black
+        override val shadowOffset = new ShadowOffset {
+          override val height = 10
+        }
+        override val shadowOpacity = 1
+      }
+      case Platform.android => new ViewStyle {
+        override val borderWidth = 3
+        override val borderColor = Color.black
+        override val elevation = 15
+      }
+    }
+    val cardImage: Style = new ViewStyle {
+      override val width = 120
+      override val height = 120
+      override val borderRadius = 60
+    }
     val fieldRow: Style = new ViewStyle {
       override val flexDirection = FlexDirection.row
       override val marginTop = 10
     }
     val fieldContainer: Style = new ViewStyle {
-      override val flex = 1
+      override val flex = 2
       override val alignItems = AlignItems.`flex-end`
     }
     val valueContainer: Style = new ViewStyle {
-      override val flex = 1
+      override val flex = 3
       override val alignItems = AlignItems.`flex-start`
     }
     val fieldName: Style = new TextStyle {

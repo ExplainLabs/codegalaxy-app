@@ -9,4 +9,6 @@ trait UserApi {
   def logout(): Future[Unit]
 
   def getUserProfile(force: Boolean): Future[Option[UserProfileData]]
+  
+  def getUser: Future[UserData]
 }

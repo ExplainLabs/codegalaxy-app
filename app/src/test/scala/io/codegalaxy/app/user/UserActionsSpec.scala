@@ -10,50 +10,56 @@ import scala.concurrent.Future
 
 class UserActionsSpec extends AsyncTestSpec {
 
-  it should "dispatch UserProfileFetchedAction when userAuth" in {
+  it should "dispatch UserLoggedinAction when userLogin" in {
     //given
     val api = mock[UserApi]
     val actions = new UserActionsTest(api)
     val dispatch = mockFunction[Any, Any]
     val username = "test-username"
     val password = "test-password"
-    val expectedResp = Some(mock[UserProfileData])
+    val profileResp = mock[UserProfileData]
+    val userResp = mock[UserData]
+    val loginData = UserLoginState(profileResp, userResp)
 
     //then
     (api.authenticate _).expects(username, password).returning(Future.successful(()))
-    (api.getUserProfile _).expects(true).returning(Future.successful(expectedResp))
-    dispatch.expects(UserProfileFetchedAction(expectedResp))
+    (api.getUserProfile _).expects(true).returning(Future.successful(Some(profileResp)))
+    (api.getUser _).expects().returning(Future.successful(userResp))
+    dispatch.expects(UserLoggedinAction(Some(loginData)))
 
     //when
-    val UserProfileFetchAction(FutureTask(message, future)) =
-      actions.userAuth(dispatch, username, password)
+    val UserLoginAction(FutureTask(message, future)) =
+      actions.userLogin(dispatch, username, password)
 
     //then
     message shouldBe "Authenticate User"
     future.map { resp =>
-      resp shouldBe expectedResp
+      resp shouldBe Some(loginData)
     }
   }
   
-  it should "dispatch UserProfileFetchedAction when userProfileFetch" in {
+  it should "dispatch UserLoggedinAction when userLoginFetch" in {
     //given
     val api = mock[UserApi]
     val actions = new UserActionsTest(api)
     val dispatch = mockFunction[Any, Any]
-    val expectedResp = Some(mock[UserProfileData])
+    val profileResp = mock[UserProfileData]
+    val userResp = mock[UserData]
+    val loginData = UserLoginState(profileResp, userResp)
 
     //then
-    (api.getUserProfile _).expects(true).returning(Future.successful(expectedResp))
-    dispatch.expects(UserProfileFetchedAction(expectedResp))
+    (api.getUserProfile _).expects(true).returning(Future.successful(Some(profileResp)))
+    (api.getUser _).expects().returning(Future.successful(userResp))
+    dispatch.expects(UserLoggedinAction(Some(loginData)))
 
     //when
-    val UserProfileFetchAction(FutureTask(message, future)) =
-      actions.userProfileFetch(dispatch)
+    val UserLoginAction(FutureTask(message, future)) =
+      actions.userLoginFetch(dispatch)
 
     //then
     message shouldBe "Fetching UserProfile"
     future.map { resp =>
-      resp shouldBe expectedResp
+      resp shouldBe Some(loginData)
     }
   }
 }

@@ -1,12 +1,14 @@
 package io.codegalaxy.app.user
 
-import io.codegalaxy.api.user.UserProfileData
+import io.codegalaxy.api.user.{UserData, UserProfileData}
 import io.codegalaxy.app.user.UserScreen._
 import io.github.shogowada.scalajs.reactjs.redux.Redux.Dispatch
 import scommons.react._
 import scommons.react.navigation._
 import scommons.react.test._
 import scommons.reactnative._
+
+import scala.scalajs.js
 
 class UserScreenSpec extends TestSpec with ShallowRendererUtils {
 
@@ -32,14 +34,14 @@ class UserScreenSpec extends TestSpec with ShallowRendererUtils {
     //given
     val props = {
       val props = getUserScreenProps()
-      props.copy(data = props.data.copy(profile = None))
+      props.copy(data = props.data.copy(login = None))
     }
 
     //when
     val result = shallowRender(<(UserScreen())(^.wrapped := props)())
 
     //then
-    assertNativeComponent(result, <.View()())
+    assertNativeComponent(result, <.View(^.rnStyle := styles.cardContainer)())
   }
   
   it should "render profile data" in {
@@ -56,12 +58,20 @@ class UserScreenSpec extends TestSpec with ShallowRendererUtils {
   private def getUserScreenProps(dispatch: Dispatch = mock[Dispatch],
                                  actions: UserActions = mock[UserActions],
                                  data: UserState = UserState(
-                                   profile = Some(UserProfileData(
-                                     userId = 123,
-                                     username = "test_username",
-                                     city = Some("Test City"),
-                                     firstName = Some("Test firstName"),
-                                     lastName = Some("Test lastName")
+                                   login = Some(UserLoginState(
+                                     profile = UserProfileData(
+                                       userId = 123,
+                                       username = "test_username",
+                                       city = Some("Test City"),
+                                       firstName = Some("Test firstName"),
+                                       lastName = Some("Test lastName")
+                                     ),
+                                     user = UserData(
+                                       username = "test_username",
+                                       email = Some("Test email"),
+                                       fullName = Some("Test fullName"),
+                                       avatarUrl = Some("Test avatarUrl")
+                                     )
                                    ))
                                  )): UserScreenProps = {
     UserScreenProps(
@@ -84,14 +94,22 @@ class UserScreenSpec extends TestSpec with ShallowRendererUtils {
       )
     }
     
-    val Some(data) = props.data.profile
+    val Some(UserLoginState(profile, user)) = props.data.login
     
-    assertNativeComponent(result, <.View()(
+    assertNativeComponent(result, <.View(^.rnStyle := styles.cardContainer)(
       <.>()(
-        renderField("User Name", Some(data.username)),
-        renderField("First Name", data.firstName),
-        renderField("Last Name", data.lastName),
-        renderField("City", data.city)
+        <.View(^.rnStyle := js.Array(styles.cardImageContainer, styles.cardImage, styles.cardImageContainerShadow))(
+          user.avatarUrl.map { avatarUrl =>
+            <.Image(^.rnStyle := styles.cardImage, ^.source := new UriResource {
+              override val uri = avatarUrl
+            })()
+          }
+        ),
+
+        renderField("Full Name", user.fullName),
+        renderField("Email", user.email),
+        renderField("User Name", Some(profile.username)),
+        renderField("City", profile.city)
       )
     ))
   }

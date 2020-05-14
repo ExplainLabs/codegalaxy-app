@@ -7,41 +7,51 @@ import io.github.shogowada.scalajs.reactjs.redux.Redux.Dispatch
 import scommons.react.redux.task.{FutureTask, TaskAction}
 
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 import scala.util.Success
 
 trait UserActions {
 
   protected def client: UserApi
 
-  def userAuth(dispatch: Dispatch, user: String, password: String): UserProfileFetchAction = {
+  def userLogin(dispatch: Dispatch, user: String, password: String): UserLoginAction = {
     val future = for {
       _ <- client.authenticate(user, password)
-      profile <- client.getUserProfile(force = true)
-    } yield profile
+      loginData <- fetchLoginData()
+    } yield loginData
     
     val resultF = future.andThen {
-      case Success(profile) => dispatch(UserProfileFetchedAction(profile))
+      case Success(profile) => dispatch(UserLoggedinAction(profile))
     }
 
-    UserProfileFetchAction(FutureTask("Authenticate User", resultF))
+    UserLoginAction(FutureTask("Authenticate User", resultF))
   }
   
-  def userProfileFetch(dispatch: Dispatch): UserProfileFetchAction = {
-    val future = for {
-      //_ <- client.logout()
-      profile <- client.getUserProfile(force = true)
-    } yield profile
-    
-    val resultF = future.andThen {
-      case Success(data) => dispatch(UserProfileFetchedAction(data))
+  def userLoginFetch(dispatch: Dispatch): UserLoginAction = {
+    val resultF = fetchLoginData().andThen {
+      case Success(data) => dispatch(UserLoggedinAction(data))
     }
 
-    UserProfileFetchAction(FutureTask("Fetching UserProfile", resultF))
+    UserLoginAction(FutureTask("Fetching UserProfile", resultF))
+  }
+  
+  private def fetchLoginData(): Future[Option[UserLoginState]] = {
+    for {
+      maybeProfile <- client.getUserProfile(force = true)
+      user <- client.getUser
+    } yield {
+      maybeProfile.map { profile =>
+        UserLoginState(
+          profile = profile,
+          user = user
+        )
+      }
+    }
   }
 }
 
 object UserActions {
 
-  case class UserProfileFetchAction(task: FutureTask[Option[UserProfileData]]) extends TaskAction
-  case class UserProfileFetchedAction(data: Option[UserProfileData]) extends Action
+  case class UserLoginAction(task: FutureTask[Option[UserLoginState]]) extends TaskAction
+  case class UserLoggedinAction(data: Option[UserLoginState]) extends Action
 }

@@ -1,7 +1,6 @@
 package io.codegalaxy.app.user
 
-import io.codegalaxy.api.user.UserProfileData
-import io.codegalaxy.app.user.UserActions.UserProfileFetchedAction
+import io.codegalaxy.app.user.UserActions.UserLoggedinAction
 import scommons.react.test.TestSpec
 
 class UserStateReducerSpec extends TestSpec {
@@ -13,13 +12,13 @@ class UserStateReducerSpec extends TestSpec {
     reduce(None, "") shouldBe UserState()
   }
 
-  it should "set profile when UserProfileFetchedAction" in {
+  it should "set profile when UserLoggedinAction" in {
     //given
-    val profile = mock[UserProfileData]
+    val loginData = mock[UserLoginState]
 
     //when & then
-    reduce(Some(UserState()), UserProfileFetchedAction(Some(profile))) shouldBe UserState(
-      profile = Some(profile)
+    reduce(Some(UserState()), UserLoggedinAction(Some(loginData))) shouldBe UserState(
+      login = Some(loginData)
     )
   }
 }

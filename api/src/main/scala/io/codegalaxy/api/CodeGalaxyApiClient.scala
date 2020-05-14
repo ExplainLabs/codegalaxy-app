@@ -42,4 +42,8 @@ class CodeGalaxyApiClient(client: ApiHttpClient)
       case resp => Some(ApiHttpClient.parseResponse[UserProfileData](resp))
     }
   }
+
+  def getUser: Future[UserData] = {
+    client.execGet[UserData]("/v1/user")
+  }
 }
