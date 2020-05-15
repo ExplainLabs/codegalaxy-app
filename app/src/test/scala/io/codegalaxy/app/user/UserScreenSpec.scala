@@ -1,16 +1,39 @@
 package io.codegalaxy.app.user
 
 import io.codegalaxy.api.user.{UserData, UserProfileData}
+import io.codegalaxy.app.user.UserActions.UserLogoutAction
 import io.codegalaxy.app.user.UserScreen._
 import io.github.shogowada.scalajs.reactjs.redux.Redux.Dispatch
 import scommons.react._
 import scommons.react.navigation._
+import scommons.react.redux.task.FutureTask
 import scommons.react.test._
 import scommons.reactnative._
 
+import scala.concurrent.Future
 import scala.scalajs.js
 
 class UserScreenSpec extends TestSpec with ShallowRendererUtils {
+
+  it should "dispatch actions on logout" in {
+    //given
+    val dispatch = mockFunction[Any, Any]
+    val actions = mock[UserActions]
+    val props = getUserScreenProps(dispatch, actions)
+    val comp = shallowRender(<(UserScreen())(^.wrapped := props)())
+    val logout = findComponents(comp, <.Text.reactClass).last
+
+    val loguotAction = UserLogoutAction(
+      FutureTask("Fetching User", Future.successful(()))
+    )
+    (actions.userLogout _).expects(dispatch).returning(loguotAction)
+
+    //then
+    dispatch.expects(loguotAction)
+
+    //when
+    logout.props.onPress()
+  }
 
   it should "render userStackComp" in {
     //given
@@ -109,7 +132,9 @@ class UserScreenSpec extends TestSpec with ShallowRendererUtils {
         renderField("Full Name", user.fullName),
         renderField("Email", user.email),
         renderField("User Name", Some(profile.username)),
-        renderField("City", profile.city)
+        renderField("City", profile.city),
+
+        <.Text(^.rnStyle := styles.logoutBtn)("Logout")
       )
     ))
   }

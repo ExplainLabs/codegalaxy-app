@@ -35,16 +35,28 @@ trait UserActions {
     UserLoginAction(FutureTask("Fetching UserProfile", resultF))
   }
   
+  def userLogout(dispatch: Dispatch): UserLogoutAction = {
+    val resultF = client.logout().andThen {
+      case Success(_) => dispatch(UserLoggedoutAction())
+    }
+
+    UserLogoutAction(FutureTask("Logout User", resultF))
+  }
+
   private def fetchLoginData(): Future[Option[UserLoginState]] = {
     for {
       maybeProfile <- client.getUserProfile(force = true)
-      user <- client.getUser
+      maybeUser <-
+        if (maybeProfile.isDefined) client.getUser.map(Some(_))
+        else Future.successful(None)
     } yield {
-      maybeProfile.map { profile =>
-        UserLoginState(
-          profile = profile,
-          user = user
-        )
+      maybeProfile.flatMap { profile =>
+        maybeUser.map { user =>
+          UserLoginState(
+            profile = profile,
+            user = user
+          )
+        }
       }
     }
   }
@@ -54,4 +66,7 @@ object UserActions {
 
   case class UserLoginAction(task: FutureTask[Option[UserLoginState]]) extends TaskAction
   case class UserLoggedinAction(data: Option[UserLoginState]) extends Action
+  
+  case class UserLogoutAction(task: FutureTask[Unit]) extends TaskAction
+  case class UserLoggedoutAction() extends Action
 }

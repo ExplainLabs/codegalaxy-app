@@ -3,6 +3,7 @@ package io.codegalaxy.app.user
 import io.codegalaxy.api.user._
 import io.codegalaxy.app.user.UserActions._
 import io.codegalaxy.app.user.UserActionsSpec._
+import org.scalatest.Succeeded
 import scommons.react.redux.task.FutureTask
 import scommons.react.test.dom.AsyncTestSpec
 
@@ -38,7 +39,7 @@ class UserActionsSpec extends AsyncTestSpec {
     }
   }
   
-  it should "dispatch UserLoggedinAction when userLoginFetch" in {
+  it should "dispatch UserLoggedinAction(Some) if successful when userLoginFetch" in {
     //given
     val api = mock[UserApi]
     val actions = new UserActionsTest(api)
@@ -60,6 +61,48 @@ class UserActionsSpec extends AsyncTestSpec {
     message shouldBe "Fetching UserProfile"
     future.map { resp =>
       resp shouldBe Some(loginData)
+    }
+  }
+  
+  it should "dispatch UserLoggedinAction(None) if non-successful when userLoginFetch" in {
+    //given
+    val api = mock[UserApi]
+    val actions = new UserActionsTest(api)
+    val dispatch = mockFunction[Any, Any]
+
+    //then
+    (api.getUserProfile _).expects(true).returning(Future.successful(None))
+    dispatch.expects(UserLoggedinAction(None))
+
+    //when
+    val UserLoginAction(FutureTask(message, future)) =
+      actions.userLoginFetch(dispatch)
+
+    //then
+    message shouldBe "Fetching UserProfile"
+    future.map { resp =>
+      resp shouldBe None
+    }
+  }
+  
+  it should "dispatch UserLoggedoutAction when userLogout" in {
+    //given
+    val api = mock[UserApi]
+    val actions = new UserActionsTest(api)
+    val dispatch = mockFunction[Any, Any]
+
+    //then
+    (api.logout _).expects().returning(Future.successful(()))
+    dispatch.expects(UserLoggedoutAction())
+
+    //when
+    val UserLogoutAction(FutureTask(message, future)) =
+      actions.userLogout(dispatch)
+
+    //then
+    message shouldBe "Logout User"
+    future.map { _ =>
+      Succeeded
     }
   }
 }

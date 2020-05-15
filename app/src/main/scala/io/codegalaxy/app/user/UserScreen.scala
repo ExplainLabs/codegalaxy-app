@@ -42,7 +42,11 @@ object UserScreen extends FunctionComponent[UserScreenProps] {
           renderField("Full Name", user.fullName),
           renderField("Email", user.email),
           renderField("User Name", Some(profile.username)),
-          renderField("City", profile.city)
+          renderField("City", profile.city),
+
+          <.Text(^.rnStyle := styles.logoutBtn, ^.onPress := { () =>
+            props.dispatch(props.actions.userLogout(props.dispatch))
+          })("Logout")
         )
       }
     )
@@ -112,6 +116,12 @@ object UserScreen extends FunctionComponent[UserScreenProps] {
     }
     val fieldValue: Style = new TextStyle {
       override val fontStyle = FontStyle.italic
+    }
+    val logoutBtn: Style = new TextStyle {
+      override val color = Color.royalblue
+      override val fontSize = 18
+      override val fontWeight = FontWeight.bold
+      override val marginTop = 20
     }
   }
 }
