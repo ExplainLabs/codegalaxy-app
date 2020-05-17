@@ -5,6 +5,7 @@ import io.codegalaxy.app.user._
 import io.github.shogowada.scalajs.reactjs.redux.Redux.Dispatch
 import scommons.react._
 import scommons.react.navigation._
+import scommons.react.navigation.stack._
 import scommons.react.navigation.tab.TabBarOptions.LabelPosition
 import scommons.react.navigation.tab._
 import scommons.reactnative._
@@ -16,22 +17,30 @@ case class CodeGalaxyRootProps(dispatch: Dispatch,
                                state: UserState,
                                onAppReady: () => Unit)
 
-class CodeGalaxyRoot(userController: UserController) extends FunctionComponent[CodeGalaxyRootProps] {
+class CodeGalaxyRoot(actions: CodeGalaxyActions) extends FunctionComponent[CodeGalaxyRootProps] {
 
   private[app] lazy val Tab = createBottomTabNavigator()
+  private[app] lazy val Stack = createStackNavigator()
+
+  private[app] lazy val loginController = new LoginController(actions)
+  private lazy val userController = new UserController(actions)
   
   protected def render(compProps: Props): ReactElement = {
     val props = compProps.wrapped
     val showLogin = props.state.login.isEmpty
     
     <(WithAutoLogin())(^.wrapped := WithAutoLoginProps(props.dispatch, props.actions, props.onAppReady))(
-      if (showLogin) {
-        <(LoginScreen())(^.wrapped := LoginScreenProps(onLogin = { (email, password) =>
-          props.dispatch(props.actions.userLogin(props.dispatch, email, password))
-        }))()
-      }
-      else {
-        <.NavigationContainer()(
+      <.NavigationContainer()(
+        if (showLogin) {
+          <(Stack.Navigator)(
+            ^.screenOptions := new StackScreenOptions {
+              override val headerShown = false
+            }
+          )(
+            <(Stack.Screen)(^.name := "Login", ^.component := loginController())()
+          )
+        }
+        else {
           <(Tab.Navigator)(
             ^.initialRouteName := "Courses",
             ^.tabBarOptions := new TabBarOptions {
@@ -57,8 +66,8 @@ class CodeGalaxyRoot(userController: UserController) extends FunctionComponent[C
               }
             )()
           )
-        )
-      }
+        }
+      )
     )
   }
 

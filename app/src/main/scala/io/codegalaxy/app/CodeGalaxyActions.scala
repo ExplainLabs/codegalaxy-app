@@ -5,10 +5,7 @@ import io.codegalaxy.app.user.UserActions
 import scommons.api.http.dom.DomApiHttpClient
 
 trait CodeGalaxyActions
-  extends UserActions {
-
-  protected val client: CodeGalaxyApiClient
-}
+  extends UserActions
 
 object CodeGalaxyActions extends CodeGalaxyActions {
 

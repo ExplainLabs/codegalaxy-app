@@ -1,6 +1,6 @@
 package io.codegalaxy.app
 
-import io.codegalaxy.app.user.{UserActions, UserController, UserState}
+import io.codegalaxy.app.user.UserState
 import io.github.shogowada.scalajs.reactjs.redux.Redux.Dispatch
 import scommons.react.navigation.Navigation
 import scommons.react.test.TestSpec
@@ -9,9 +9,8 @@ class CodeGalaxyRootControllerSpec extends TestSpec {
 
   it should "return component" in {
     //given
-    val actions = mock[UserActions]
-    val userController = mock[UserController]
-    val controller = new CodeGalaxyRootController(onAppReady = () => (), actions, userController)
+    val actions = mock[CodeGalaxyActions]
+    val controller = new CodeGalaxyRootController(onAppReady = () => (), actions)
     
     //when & then
     controller.uiComponent.isInstanceOf[CodeGalaxyRoot] shouldBe true
@@ -20,10 +19,9 @@ class CodeGalaxyRootControllerSpec extends TestSpec {
   it should "map state to props" in {
     //given
     val dispatch = mock[Dispatch]
-    val actions = mock[UserActions]
+    val actions = mock[CodeGalaxyActions]
     val onAppReady = mockFunction[Unit]
-    val userController = mock[UserController]
-    val controller = new CodeGalaxyRootController(onAppReady, actions, userController)
+    val controller = new CodeGalaxyRootController(onAppReady, actions)
     val state = mock[CodeGalaxyStateDef]
     val userState = mock[UserState]
     val nav = mock[Navigation]

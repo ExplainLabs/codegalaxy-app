@@ -1,54 +1,25 @@
 package io.codegalaxy.app
 
 import io.codegalaxy.app.auth._
-import io.codegalaxy.app.user.UserActions.UserLoginAction
-import io.codegalaxy.app.user.{UserActions, UserController, UserLoginState, UserState}
-import org.scalatest.{Assertion, Succeeded}
+import io.codegalaxy.app.user._
+import org.scalatest.Assertion
 import scommons.react._
 import scommons.react.navigation._
+import scommons.react.navigation.stack._
 import scommons.react.navigation.tab.TabBarOptions.LabelPosition
 import scommons.react.navigation.tab._
-import scommons.react.redux.task.FutureTask
 import scommons.react.test._
 import scommons.reactnative._
 
-import scala.concurrent.Future
 import scala.scalajs.js
 
 class CodeGalaxyRootSpec extends TestSpec with ShallowRendererUtils {
 
-  it should "dispatch action when onLogin" in {
-    //given
-    val dispatch = mockFunction[Any, Any]
-    val actions = mock[UserActions]
-    val userController = mock[UserController]
-    val codeGalaxyRoot = new CodeGalaxyRoot(userController)
-    
-    //not logged-in
-    val props = CodeGalaxyRootProps(dispatch, actions, UserState(None), onAppReady = () => ())
-    val comp = shallowRender(<(codeGalaxyRoot())(^.wrapped := props)())
-    val loginProps = findComponentProps(comp, LoginScreen)
-    val email = "test user"
-    val password = "test password"
-
-    val loginAction = UserLoginAction(
-      FutureTask("Logging-in User", Future.successful(None))
-    )
-    (actions.userLogin _).expects(dispatch, email, password).returning(loginAction)
-
-    //then
-    dispatch.expects(loginAction)
-
-    //when
-    loginProps.onLogin(email, password)
-  }
-  
   it should "render LoginScreen if not logged-in" in {
     //given
     val dispatch = mockFunction[Any, Any]
-    val actions = mock[UserActions]
-    val userController = mock[UserController]
-    val codeGalaxyRoot = new CodeGalaxyRoot(userController)
+    val actions = mock[CodeGalaxyActions]
+    val codeGalaxyRoot = new CodeGalaxyRoot(actions)
 
     val props = CodeGalaxyRootProps(dispatch, actions, UserState(None), onAppReady = () => ())
 
@@ -60,19 +31,28 @@ class CodeGalaxyRootSpec extends TestSpec with ShallowRendererUtils {
       resDispatch shouldBe dispatch
       resActions shouldBe actions
       onReady shouldBe props.onAppReady
-    }, { case List(login) =>
-      assertComponent(login, LoginScreen) { case LoginScreenProps(_) =>
-        Succeeded
-      }
+    }, { case List(navContainer) =>
+      import codeGalaxyRoot._
+
+      assertNativeComponent(navContainer, <.NavigationContainer()(), { case List(navigator) =>
+        assertNativeComponent(navigator,
+          <(Stack.Navigator)(
+            ^.screenOptions := new StackScreenOptions {
+              override val headerShown = false
+            }
+          )(
+            <(Stack.Screen)(^.name := "Login", ^.component := loginController())()
+          )
+        )
+      })
     })
   }
   
   it should "render main screen if logged-in" in {
     //given
     val dispatch = mockFunction[Any, Any]
-    val actions = mock[UserActions]
-    val userController = mock[UserController]
-    val codeGalaxyRoot = new CodeGalaxyRoot(userController)
+    val actions = mock[CodeGalaxyActions]
+    val codeGalaxyRoot = new CodeGalaxyRoot(actions)
 
     val loginData = Some(mock[UserLoginState])
     val props = CodeGalaxyRootProps(dispatch, actions, UserState(loginData), onAppReady = () => ())

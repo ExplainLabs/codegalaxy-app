@@ -1,6 +1,5 @@
 package io.codegalaxy.app
 
-import io.codegalaxy.app.user.UserController
 import io.github.shogowada.scalajs.reactjs.redux.ReactRedux._
 import io.github.shogowada.scalajs.reactjs.redux.Redux
 import scommons.expo.Font
@@ -21,8 +20,7 @@ class CodeGalaxyApp(onReady: js.Function0[Unit]) extends FunctionComponent[Unit]
   private val store = Redux.createStore(CodeGalaxyStateReducer.reduce)
 
   private lazy val actions = CodeGalaxyActions
-  private lazy val userController = new UserController(actions)
-  private lazy val rootComp = new CodeGalaxyRootController(onReady, actions, userController).apply()
+  private lazy val rootComp = new CodeGalaxyRootController(onReady, actions).apply()
   
   protected def render(props: Props): ReactElement = {
     val (isReady, setIsReady) = useState(false)
