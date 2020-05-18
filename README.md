@@ -6,7 +6,9 @@
 ## codegalaxy-app
 Mobile App for https://codegalaxy.io/
 
-### How to run it in your device
+![Screenshots](docs/images/screenshots.png)
+
+### How to open it in your device (Android)
 
 * [live expo link](https://expo.io/@viktorpodzigun/codegalaxy-app)
 
@@ -17,9 +19,10 @@ First, build the application with the following command:
 sbt "project codegalaxy-app" fastOptJS
 ```
 
-To run the application locally, use the following command:
+Then start the application locally, in simulator:
 ```bash
 cd app
 expo start --ios
+#or:
 expo start --android
 ```
