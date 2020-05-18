@@ -1,5 +1,6 @@
 package io.codegalaxy.app
 
+import io.codegalaxy.app.topic.TopicState
 import io.codegalaxy.app.user.UserActions.UserLoginAction
 import io.codegalaxy.app.user.{UserLoginState, UserState}
 import scommons.react.redux.task.FutureTask
@@ -17,10 +18,12 @@ class CodeGalaxyStateReducerSpec extends TestSpec {
     inside(result) {
       case CodeGalaxyState(
         currentTask,
-        userState
+        userState,
+        topicState
       ) =>
         currentTask shouldBe None
         userState shouldBe UserState()
+        topicState shouldBe TopicState()
     }
   }
 

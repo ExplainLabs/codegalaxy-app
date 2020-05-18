@@ -88,14 +88,14 @@ class CodeGalaxyRootSpec extends TestSpec with ShallowRendererUtils {
     assertNativeComponent(result, <.NavigationContainer()(), { case List(navigator) =>
       assertNativeComponent(navigator,
         <(Tab.Navigator)(
-          ^.initialRouteName := "Courses",
+          ^.initialRouteName := "Quizzes",
           ^.tabBarOptions := new TabBarOptions {
             override val labelPosition = LabelPosition.`below-icon`
           }
         )()
         , { case List(tab1, tab2) =>
           assertNativeComponent(tab1,
-            <(Tab.Screen)(^.name := "Courses", ^.component := emptyComp)()
+            <(Tab.Screen)(^.name := "Quizzes", ^.component := topicStackComp)()
           )
           assertNativeComponent(renderIcon(tab1, 16, "green"),
             <(CodeGalaxyIcons.FontAwesome5)(^.name := "list", ^.rnSize := 16, ^.color := "green")()

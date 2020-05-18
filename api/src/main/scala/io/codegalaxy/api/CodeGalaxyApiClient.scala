@@ -1,5 +1,6 @@
 package io.codegalaxy.api
 
+import io.codegalaxy.api.topic._
 import io.codegalaxy.api.user._
 import scommons.api.http.{ApiHttpClient, ApiHttpResponse, ApiHttpStatusException}
 import scommons.api.http.ApiHttpClient.queryParams
@@ -10,7 +11,8 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 class CodeGalaxyApiClient(client: ApiHttpClient)
-  extends UserApi {
+  extends UserApi
+  with TopicApi {
 
   ////////////////////////////////////////////////////////////////////////////////////////
   // user api
@@ -45,5 +47,14 @@ class CodeGalaxyApiClient(client: ApiHttpClient)
 
   def getUser: Future[UserData] = {
     client.execGet[UserData]("/v1/user")
+  }
+
+  ////////////////////////////////////////////////////////////////////////////////////////
+  // topic api
+
+  def getTopics(info: Boolean): Future[List[TopicWithInfoData]] = {
+    client.execGet[List[TopicWithInfoData]]("/v1/topics", params = queryParams(
+      "info" -> Some(info)
+    ))
   }
 }

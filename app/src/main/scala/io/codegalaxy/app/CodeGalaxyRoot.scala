@@ -1,6 +1,7 @@
 package io.codegalaxy.app
 
 import io.codegalaxy.app.auth._
+import io.codegalaxy.app.topic.{TopicsController, TopicsScreen}
 import io.codegalaxy.app.user._
 import io.github.shogowada.scalajs.reactjs.redux.Redux.Dispatch
 import scommons.react._
@@ -23,7 +24,8 @@ class CodeGalaxyRoot(actions: CodeGalaxyActions) extends FunctionComponent[CodeG
   private[app] lazy val Stack = createStackNavigator()
 
   private[app] lazy val loginController = new LoginController(actions)
-  private lazy val userController = new UserController(actions)
+  private[app] lazy val topicStackComp = TopicsScreen.topicStackComp(new TopicsController(actions))
+  private[app] lazy val userStackComp = UserScreen.userStackComp(new UserController(actions))
   
   protected def render(compProps: Props): ReactElement = {
     val props = compProps.wrapped
@@ -42,14 +44,14 @@ class CodeGalaxyRoot(actions: CodeGalaxyActions) extends FunctionComponent[CodeG
         }
         else {
           <(Tab.Navigator)(
-            ^.initialRouteName := "Courses",
+            ^.initialRouteName := "Quizzes",
             ^.tabBarOptions := new TabBarOptions {
               override val labelPosition = LabelPosition.`below-icon`
             }
           )(
             <(Tab.Screen)(
-              ^.name := "Courses",
-              ^.component := emptyComp,
+              ^.name := "Quizzes",
+              ^.component := topicStackComp,
               ^.options := new TabScreenOptions {
                 override val tabBarIcon = { params =>
                   <(CodeGalaxyIcons.FontAwesome5)(^.name := "list", ^.rnSize := params.size, ^.color := params.color)()
@@ -70,12 +72,4 @@ class CodeGalaxyRoot(actions: CodeGalaxyActions) extends FunctionComponent[CodeG
       )
     )
   }
-
-  private[app] lazy val userStackComp: ReactClass = UserScreen.userStackComp(userController)
-  
-  private[app] lazy val emptyComp: ReactClass = new FunctionComponent[Unit] {
-    protected def render(props: Props): ReactElement = {
-      <.Text()("//TODO: add content")
-    }
-  }.apply()
 }
