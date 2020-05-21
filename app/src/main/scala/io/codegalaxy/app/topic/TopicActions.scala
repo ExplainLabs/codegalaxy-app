@@ -7,15 +7,23 @@ import io.github.shogowada.scalajs.reactjs.redux.Redux.Dispatch
 import scommons.react.redux.task.{FutureTask, TaskAction}
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.util.Success
+import scala.concurrent.Future
 
 trait TopicActions {
 
   protected def client: TopicApi
 
   def fetchTopics(dispatch: Dispatch): TopicsFetchAction = {
-    val resultF = client.getTopics(info = true).andThen {
-      case Success(dataList) => dispatch(TopicsFetchedAction(dataList))
+    val resultF = for {
+      dataList <- client.getTopics(info = true)
+      res <- Future.sequence(dataList.map { data =>
+        client.getTopicIcon(data.alias).map { icon =>
+          TopicItemState(data, icon)
+        }
+      })
+    } yield {
+      dispatch(TopicsFetchedAction(res))
+      res
     }
 
     TopicsFetchAction(FutureTask("Fetching Topics", resultF))
@@ -24,6 +32,6 @@ trait TopicActions {
 
 object TopicActions {
 
-  case class TopicsFetchAction(task: FutureTask[List[TopicWithInfoData]]) extends TaskAction
-  case class TopicsFetchedAction(dataList: List[TopicWithInfoData]) extends Action
+  case class TopicsFetchAction(task: FutureTask[List[TopicItemState]]) extends TaskAction
+  case class TopicsFetchedAction(dataList: List[TopicItemState]) extends Action
 }

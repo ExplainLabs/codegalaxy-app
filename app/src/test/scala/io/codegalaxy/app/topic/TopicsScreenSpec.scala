@@ -1,6 +1,7 @@
 package io.codegalaxy.app.topic
 
 import io.codegalaxy.api.topic.{TopicInfoData, TopicWithInfoData}
+import io.codegalaxy.app.CodeGalaxyIcons
 import io.codegalaxy.app.topic.TopicsScreen._
 import io.codegalaxy.app.topic.TopicsScreenSpec.FlatListDataMock
 import io.github.shogowada.scalajs.reactjs.redux.Redux.Dispatch
@@ -8,6 +9,7 @@ import scommons.react._
 import scommons.react.test._
 import scommons.reactnative.FlatList.FlatListData
 import scommons.reactnative._
+import scommons.reactnative.svg._
 
 import scala.scalajs.js
 import scala.scalajs.js.annotation.JSExportAll
@@ -33,13 +35,13 @@ class TopicsScreenSpec extends TestSpec with ShallowRendererUtils {
     val props = getTopicsScreenProps()
     val comp = shallowRender(<(TopicsScreen())(^.wrapped := props)())
     val List(flatList) = findComponents(comp, <.FlatList.reactClass)
-    val data = props.data.topics.head
+    val item = props.data.topics.head
 
     //when
-    val result = flatList.props.keyExtractor(data.asInstanceOf[js.Any])
+    val result = flatList.props.keyExtractor(item.asInstanceOf[js.Any])
 
     //then
-    result shouldBe data.alias
+    result shouldBe item.data.alias
   }
 
   it should "render item component" in {
@@ -47,10 +49,10 @@ class TopicsScreenSpec extends TestSpec with ShallowRendererUtils {
     val props = getTopicsScreenProps()
     val comp = shallowRender(<(TopicsScreen())(^.wrapped := props)())
     val List(flatList) = findComponents(comp, <.FlatList.reactClass)
-    val data = props.data.topics.head
+    val item = props.data.topics.head
     
     val listData = mock[FlatListDataMock]
-    (listData.item _).expects().returning(data)
+    (listData.item _).expects().returning(item)
 
     def renderItem(flatList: ShallowInstance): ShallowInstance = {
       val wrapper = new FunctionComponent[Unit] {
@@ -67,15 +69,29 @@ class TopicsScreenSpec extends TestSpec with ShallowRendererUtils {
     val result = renderItem(flatList)
 
     //then
+    val data = item.data
+    
     assertNativeComponent(result,
       <.TouchableWithoutFeedback()(
-        <.View(^.rnStyle := styles.itemContainer)(
-          <.Text(^.rnStyle := styles.itemTitle)(data.name),
-          <.Text(^.rnStyle := styles.itemDescription)(data.info.map { info =>
-            s"Lang: ${data.language}" +
-              s", Questions: ${info.numberOfQuestions}" +
-              s", Learners: ${info.numberOfLearners}"
-          }.getOrElse(""))
+        <.View(^.rnStyle := styles.rowContainer)(
+          <.View(^.rnStyle := js.Array(styles.iconContainer, styles.icon))(
+            item.svgIcon.map { svgXml =>
+              <.SvgCss(^.rnStyle := styles.icon, ^.xml := svgXml)()
+            }
+          ),
+          <.View(^.rnStyle := styles.itemContainer)(
+            <.Text(^.rnStyle := styles.itemTitle)(data.name),
+            data.info.map { info =>
+              <.View(^.rnStyle := styles.itemInfoContainer)(
+                <(CodeGalaxyIcons.FontAwesome5)(^.rnStyle := styles.itemInfo, ^.name := "language", ^.rnSize := 16)(),
+                <.Text(^.rnStyle := styles.itemInfo)(s" : ${data.language}  "),
+                <(CodeGalaxyIcons.FontAwesome5)(^.rnStyle := styles.itemInfo, ^.name := "file-code", ^.rnSize := 16)(),
+                <.Text(^.rnStyle := styles.itemInfo)(s" : ${info.numberOfQuestions}  "),
+                <(CodeGalaxyIcons.FontAwesome5)(^.rnStyle := styles.itemInfo, ^.name := "users", ^.rnSize := 16)(),
+                <.Text(^.rnStyle := styles.itemInfo)(s" : ${info.numberOfLearners}")
+              )
+            }.getOrElse("")
+          )
         )
       )
     )
@@ -102,17 +118,19 @@ class TopicsScreenSpec extends TestSpec with ShallowRendererUtils {
   private def getTopicsScreenProps(dispatch: Dispatch = mock[Dispatch],
                                    actions: TopicActions = mock[TopicActions],
                                    data: TopicState = TopicState(
-                                     topics = List(TopicWithInfoData(
-                                       alias = "test",
-                                       name = "Test",
-                                       language = "en",
-                                       audience = Some("Test audience"),
-                                       info = Some(TopicInfoData(
-                                         numberOfQuestions = 1,
-                                         numberOfPaid = 2,
-                                         numberOfLearners = 3,
-                                         numberOfChapters = 4
-                                       ))
+                                     topics = List(TopicItemState(
+                                       data = TopicWithInfoData(
+                                         alias = "test",
+                                         name = "Test",
+                                         language = "en",
+                                         info = Some(TopicInfoData(
+                                           numberOfQuestions = 1,
+                                           numberOfPaid = 2,
+                                           numberOfLearners = 3,
+                                           numberOfChapters = 4
+                                         ))
+                                       ),
+                                       svgIcon = Some("svg-xml")
                                      ))
                                    ),
                                    navigate: String => Unit = _ => ()): TopicsScreenProps = {
@@ -128,6 +146,6 @@ object TopicsScreenSpec {
 
   @JSExportAll
   trait FlatListDataMock {
-    def item: TopicWithInfoData
+    def item: TopicItemState
   }
 }

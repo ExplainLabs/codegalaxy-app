@@ -57,4 +57,11 @@ class CodeGalaxyApiClient(client: ApiHttpClient)
       "info" -> Some(info)
     ))
   }
+
+  def getTopicIcon(alias: String): Future[Option[String]] = {
+    client.exec(GET, s"/app/assets/images/icons/light/icon__$alias.svg", None).map {
+      case resp if resp.status == 200 => Some(resp.body)
+      case _ => None
+    }
+  }
 }

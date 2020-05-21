@@ -15,11 +15,24 @@ class TopicActionsSpec extends AsyncTestSpec {
     val api = mock[TopicApi]
     val actions = new TopicActionsTest(api)
     val dispatch = mockFunction[Any, Any]
-    val topicsResp = List(mock[TopicWithInfoData])
+    val topicData = TopicWithInfoData(
+      alias = "test",
+      name = "Test",
+      language = "en",
+      info = Some(TopicInfoData(
+        numberOfQuestions = 1,
+        numberOfPaid = 2,
+        numberOfLearners = 3,
+        numberOfChapters = 4
+      ))
+    )
+    val svgIcon = "test svg"
+    val items = List(TopicItemState(topicData, Some(svgIcon)))
 
     //then
-    (api.getTopics _).expects(true).returning(Future.successful(topicsResp))
-    dispatch.expects(TopicsFetchedAction(topicsResp))
+    (api.getTopics _).expects(true).returning(Future.successful(List(topicData)))
+    (api.getTopicIcon _).expects(topicData.alias).returning(Future.successful(Some(svgIcon)))
+    dispatch.expects(TopicsFetchedAction(items))
 
     //when
     val TopicsFetchAction(FutureTask(message, future)) =
@@ -28,7 +41,7 @@ class TopicActionsSpec extends AsyncTestSpec {
     //then
     message shouldBe "Fetching Topics"
     future.map { resp =>
-      resp shouldBe topicsResp
+      resp shouldBe items
     }
   }
 }

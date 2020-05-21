@@ -1,6 +1,5 @@
 package io.codegalaxy.app.topic
 
-import io.codegalaxy.api.topic.TopicWithInfoData
 import io.codegalaxy.app.topic.TopicActions.TopicsFetchedAction
 import scommons.react.test.TestSpec
 
@@ -15,7 +14,7 @@ class TopicStateReducerSpec extends TestSpec {
 
   it should "set topics when TopicsFetchedAction" in {
     //given
-    val dataList = List(mock[TopicWithInfoData])
+    val dataList = List(mock[TopicItemState])
 
     //when & then
     reduce(Some(TopicState()), TopicsFetchedAction(dataList)) shouldBe TopicState(

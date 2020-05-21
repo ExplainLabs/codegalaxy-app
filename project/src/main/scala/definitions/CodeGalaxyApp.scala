@@ -18,7 +18,8 @@ object CodeGalaxyApp extends CodeGalaxyModule with CommonMobileModule {
 
       coverageExcludedPackages :=
         "io.codegalaxy.app.CodeGalaxyApp" +
-          ";io.codegalaxy.app.CodeGalaxyActions"
+          ";io.codegalaxy.app.CodeGalaxyActions" +
+          ";io.codegalaxy.app.CodeGalaxyIcons"
     )
 
   override def internalDependencies: Seq[ClasspathDep[ProjectReference]] = Seq(
@@ -28,7 +29,6 @@ object CodeGalaxyApp extends CodeGalaxyModule with CommonMobileModule {
   override def superRepoProjectsDependencies: Seq[(String, String, Option[String])] = {
     super.superRepoProjectsDependencies ++ Seq(
       ("scommons-react-native", "scommons-react-native-ui", None),
-      ("scommons-react-native", "scommons-expo", None),
 
       ("scommons-react", "scommons-react-test-dom", Some("test"))
     )
@@ -36,8 +36,7 @@ object CodeGalaxyApp extends CodeGalaxyModule with CommonMobileModule {
   
   override def runtimeDependencies: Def.Initialize[Seq[ModuleID]] = Def.setting {
     super.runtimeDependencies.value ++ Seq(
-      Libs.scommonsReactNativeUi.value,
-      Libs.scommonsExpo.value
+      Libs.scommonsReactNativeUi.value
     )
   }
   
