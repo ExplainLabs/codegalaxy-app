@@ -4,8 +4,8 @@ import io.codegalaxy.api.user._
 import io.codegalaxy.app.user.UserActions._
 import io.codegalaxy.app.user.UserActionsSpec._
 import org.scalatest.Succeeded
+import scommons.nodejs.test.AsyncTestSpec
 import scommons.react.redux.task.FutureTask
-import scommons.react.test.dom.AsyncTestSpec
 
 import scala.concurrent.Future
 

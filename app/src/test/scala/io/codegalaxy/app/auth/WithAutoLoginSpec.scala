@@ -1,17 +1,17 @@
 package io.codegalaxy.app.auth
 
-import io.codegalaxy.app.user.{UserActions, UserLoginState}
 import io.codegalaxy.app.user.UserActions.UserLoginAction
+import io.codegalaxy.app.user.{UserActions, UserLoginState}
 import org.scalatest.Succeeded
+import scommons.nodejs.test.AsyncTestSpec
 import scommons.react._
 import scommons.react.redux.task.FutureTask
-import scommons.react.test.dom.AsyncTestSpec
-import scommons.react.test.raw.TestRenderer
-import scommons.react.test.util.{ShallowRendererUtils, TestRendererUtils}
+import scommons.react.test._
 
 import scala.concurrent.Future
 
 class WithAutoLoginSpec extends AsyncTestSpec
+  with BaseTestSpec
   with ShallowRendererUtils
   with TestRendererUtils {
 

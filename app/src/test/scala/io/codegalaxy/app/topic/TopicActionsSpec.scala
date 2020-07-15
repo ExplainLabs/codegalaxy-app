@@ -3,8 +3,8 @@ package io.codegalaxy.app.topic
 import io.codegalaxy.api.topic._
 import io.codegalaxy.app.topic.TopicActions._
 import io.codegalaxy.app.topic.TopicActionsSpec._
+import scommons.nodejs.test.AsyncTestSpec
 import scommons.react.redux.task.FutureTask
-import scommons.react.test.dom.AsyncTestSpec
 
 import scala.concurrent.Future
 
