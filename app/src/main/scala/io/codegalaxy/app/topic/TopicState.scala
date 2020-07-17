@@ -1,11 +1,9 @@
 package io.codegalaxy.app.topic
 
-import io.codegalaxy.api.topic._
 import io.codegalaxy.app.topic.TopicActions._
+import io.codegalaxy.domain.TopicEntity
 
-case class TopicItemState(data: TopicWithInfoData, svgIcon: Option[String])
-
-case class TopicState(topics: List[TopicItemState] = Nil)
+case class TopicState(topics: Seq[TopicEntity] = Nil)
 
 object TopicStateReducer {
 

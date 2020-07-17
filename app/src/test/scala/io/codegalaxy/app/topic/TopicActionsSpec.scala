@@ -1,8 +1,8 @@
 package io.codegalaxy.app.topic
 
-import io.codegalaxy.api.topic._
 import io.codegalaxy.app.topic.TopicActions._
 import io.codegalaxy.app.topic.TopicActionsSpec._
+import io.codegalaxy.domain.TopicEntity
 import scommons.nodejs.test.AsyncTestSpec
 import scommons.react.redux.task.FutureTask
 
@@ -12,45 +12,44 @@ class TopicActionsSpec extends AsyncTestSpec {
 
   it should "dispatch TopicsFetchedAction when fetchTopics" in {
     //given
-    val api = mock[TopicApi]
-    val actions = new TopicActionsTest(api)
+    val topicService = mock[TopicService]
+    val actions = new TopicActionsTest(topicService)
     val dispatch = mockFunction[Any, Any]
-    val topicData = TopicWithInfoData(
+    val topic = TopicEntity(
+      id = 1,
       alias = "test",
       name = "Test",
-      language = "en",
-      info = Some(TopicInfoData(
-        numberOfQuestions = 1,
-        numberOfPaid = 2,
-        numberOfLearners = 3,
-        numberOfChapters = 4
-      ))
+      lang = "en",
+      numQuestions = 1,
+      numPaid = 2,
+      numLearners = 3,
+      numChapters = 4,
+      svgIcon = Some("test svg")
     )
-    val svgIcon = "test svg"
-    val items = List(TopicItemState(topicData, Some(svgIcon)))
+    val dataList = List(topic)
+    val refresh = true
 
     //then
-    (api.getTopics _).expects(true).returning(Future.successful(List(topicData)))
-    (api.getTopicIcon _).expects(topicData.alias).returning(Future.successful(Some(svgIcon)))
-    dispatch.expects(TopicsFetchedAction(items))
+    (topicService.fetch _).expects(refresh).returning(Future.successful(dataList))
+    dispatch.expects(TopicsFetchedAction(dataList))
 
     //when
     val TopicsFetchAction(FutureTask(message, future)) =
-      actions.fetchTopics(dispatch)
+      actions.fetchTopics(dispatch, refresh)
 
     //then
     message shouldBe "Fetching Topics"
     future.map { resp =>
-      resp shouldBe items
+      resp shouldBe dataList
     }
   }
 }
 
 object TopicActionsSpec {
 
-  private class TopicActionsTest(api: TopicApi)
+  private class TopicActionsTest(service: TopicService)
     extends TopicActions {
 
-    protected def client: TopicApi = api
+    protected def topicService: TopicService = service
   }
 }

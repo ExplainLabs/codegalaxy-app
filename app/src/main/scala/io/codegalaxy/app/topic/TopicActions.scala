@@ -1,29 +1,21 @@
 package io.codegalaxy.app.topic
 
-import io.codegalaxy.api.topic._
 import io.codegalaxy.app.topic.TopicActions._
+import io.codegalaxy.domain.TopicEntity
 import io.github.shogowada.scalajs.reactjs.redux.Action
 import io.github.shogowada.scalajs.reactjs.redux.Redux.Dispatch
 import scommons.react.redux.task.{FutureTask, TaskAction}
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
 
 trait TopicActions {
 
-  protected def client: TopicApi
+  protected def topicService: TopicService
 
-  def fetchTopics(dispatch: Dispatch): TopicsFetchAction = {
-    val resultF = for {
-      dataList <- client.getTopics(info = true)
-      res <- Future.sequence(dataList.map { data =>
-        client.getTopicIcon(data.alias).map { icon =>
-          TopicItemState(data, icon)
-        }
-      })
-    } yield {
-      dispatch(TopicsFetchedAction(res))
-      res
+  def fetchTopics(dispatch: Dispatch, refresh: Boolean = false): TopicsFetchAction = {
+    val resultF = topicService.fetch(refresh).map { dataList =>
+      dispatch(TopicsFetchedAction(dataList))
+      dataList
     }
 
     TopicsFetchAction(FutureTask("Fetching Topics", resultF))
@@ -32,6 +24,6 @@ trait TopicActions {
 
 object TopicActions {
 
-  case class TopicsFetchAction(task: FutureTask[List[TopicItemState]]) extends TaskAction
-  case class TopicsFetchedAction(dataList: List[TopicItemState]) extends Action
+  case class TopicsFetchAction(task: FutureTask[Seq[TopicEntity]]) extends TaskAction
+  case class TopicsFetchedAction(dataList: Seq[TopicEntity]) extends Action
 }

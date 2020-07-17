@@ -1,6 +1,7 @@
 package io.codegalaxy.app.topic
 
 import io.codegalaxy.app.CodeGalaxyIcons
+import io.codegalaxy.domain.TopicEntity
 import io.github.shogowada.scalajs.reactjs.redux.Redux.Dispatch
 import scommons.react._
 import scommons.react.hooks._
@@ -28,30 +29,26 @@ object TopicsScreen extends FunctionComponent[TopicsScreenProps] {
       ()
     }, Nil)
 
-    def renderItem(item: TopicItemState): ReactElement = {
-      val data = item.data
-      
+    def renderItem(data: TopicEntity): ReactElement = {
       <.TouchableWithoutFeedback(^.onPress := { () =>
         //TODO: handle onPress
       })(
         <.View(^.rnStyle := styles.rowContainer)(
           <.View(^.rnStyle := js.Array(styles.iconContainer, styles.icon))(
-            item.svgIcon.map { svgXml =>
+            data.svgIcon.map { svgXml =>
               <.SvgCss(^.rnStyle := styles.icon, ^.xml := svgXml)()
             }
           ),
           <.View(^.rnStyle := styles.itemContainer)(
             <.Text(^.rnStyle := styles.itemTitle)(data.name),
-            data.info.map { info =>
-              <.View(^.rnStyle := styles.itemInfoContainer)(
-                <(CodeGalaxyIcons.FontAwesome5)(^.rnStyle := styles.itemInfo, ^.name := "language", ^.rnSize := 16)(),
-                <.Text(^.rnStyle := styles.itemInfo)(s" : ${data.language}  "),
-                <(CodeGalaxyIcons.FontAwesome5)(^.rnStyle := styles.itemInfo, ^.name := "file-code", ^.rnSize := 16)(),
-                <.Text(^.rnStyle := styles.itemInfo)(s" : ${info.numberOfQuestions}  "),
-                <(CodeGalaxyIcons.FontAwesome5)(^.rnStyle := styles.itemInfo, ^.name := "users", ^.rnSize := 16)(),
-                <.Text(^.rnStyle := styles.itemInfo)(s" : ${info.numberOfLearners}")
-              )
-            }.getOrElse("")
+            <.View(^.rnStyle := styles.itemInfoContainer)(
+              <(CodeGalaxyIcons.FontAwesome5)(^.rnStyle := styles.itemInfo, ^.name := "language", ^.rnSize := 16)(),
+              <.Text(^.rnStyle := styles.itemInfo)(s" : ${data.lang}  "),
+              <(CodeGalaxyIcons.FontAwesome5)(^.rnStyle := styles.itemInfo, ^.name := "file-code", ^.rnSize := 16)(),
+              <.Text(^.rnStyle := styles.itemInfo)(s" : ${data.numQuestions}  "),
+              <(CodeGalaxyIcons.FontAwesome5)(^.rnStyle := styles.itemInfo, ^.name := "users", ^.rnSize := 16)(),
+              <.Text(^.rnStyle := styles.itemInfo)(s" : ${data.numLearners}")
+            )
           )
         )
       )
@@ -60,11 +57,11 @@ object TopicsScreen extends FunctionComponent[TopicsScreenProps] {
     <.View(^.rnStyle := styles.container)(
       <.FlatList(
         ^.flatListData := js.Array(props.data.topics: _*),
-        ^.renderItem := { data: FlatListData[TopicItemState] =>
+        ^.renderItem := { data: FlatListData[TopicEntity] =>
           renderItem(data.item)
         },
-        ^.keyExtractor := { item: TopicItemState =>
-          item.data.alias
+        ^.keyExtractor := { item: TopicEntity =>
+          item.alias
         }
       )()
     )
