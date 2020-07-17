@@ -2,20 +2,28 @@ package io.codegalaxy.app.topic
 
 import io.codegalaxy.api.topic.TopicWithInfoData
 import io.codegalaxy.app.CodeGalaxyIcons
+import io.codegalaxy.app.topic.TopicActions.TopicsFetchAction
 import io.codegalaxy.app.topic.TopicsScreen._
 import io.codegalaxy.app.topic.TopicsScreenSpec.FlatListDataMock
 import io.codegalaxy.domain.TopicEntity
 import io.github.shogowada.scalajs.reactjs.redux.Redux.Dispatch
+import org.scalatest.Succeeded
+import scommons.nodejs.test.AsyncTestSpec
 import scommons.react._
+import scommons.react.redux.task.FutureTask
 import scommons.react.test._
 import scommons.reactnative.FlatList.FlatListData
 import scommons.reactnative._
 import scommons.reactnative.svg._
 
+import scala.concurrent.Future
 import scala.scalajs.js
 import scala.scalajs.js.annotation.JSExportAll
 
-class TopicsScreenSpec extends TestSpec with ShallowRendererUtils {
+class TopicsScreenSpec extends AsyncTestSpec
+  with BaseTestSpec
+  with ShallowRendererUtils
+  with TestRendererUtils {
 
   ignore should "call navigate when onPress" in {
     //given
@@ -29,6 +37,64 @@ class TopicsScreenSpec extends TestSpec with ShallowRendererUtils {
 
     //when
     touchable.props.onPress()
+    
+    Succeeded
+  }
+
+  it should "dispatch actions when onRefresh" in {
+    //given
+    val dispatch = mockFunction[Any, Any]
+    val actions = mock[TopicActions]
+    val props = getTopicsScreenProps(dispatch, actions)
+    val renderer = createTestRenderer(<(TopicsScreen())(^.wrapped := props)())
+    val List(flatList) = findComponents(renderer.root, <.FlatList.reactClass)
+    flatList.props.refreshing shouldBe false
+    
+    val fetchAction = TopicsFetchAction(FutureTask("Fetching Topics",
+      Future.successful(Nil)))
+    
+    //then
+    (actions.fetchTopics _).expects(dispatch, true).returning(fetchAction)
+    dispatch.expects(fetchAction)
+
+    //when
+    flatList.props.onRefresh()
+
+    //then
+    flatList.props.refreshing shouldBe true
+    
+    eventually {
+      flatList.props.refreshing shouldBe false
+    }
+  }
+
+  it should "dispatch actions when mount" in {
+    //given
+    val dispatch = mockFunction[Any, Any]
+    val actions = mock[TopicActions]
+    val props = {
+      val props = getTopicsScreenProps(dispatch, actions)
+      props.copy(data = props.data.copy(topics = Nil))
+    }
+    val fetchAction = TopicsFetchAction(FutureTask("Fetching Topics",
+      Future.successful(Nil)))
+    
+    //then
+    (actions.fetchTopics _).expects(dispatch, false).returning(fetchAction)
+    dispatch.expects(fetchAction)
+
+    //when
+    val result = testRender(<(TopicsScreen())(^.wrapped := props)())
+
+    //then
+    assertNativeComponent(result,
+      <.View(^.rnStyle := styles.container)(
+        <.FlatList(
+          ^.refreshing := false,
+          ^.flatListData := js.Array(props.data.topics: _*)
+        )()
+      )
+    )
   }
 
   it should "return data.alias from keyExtractor" in {
@@ -106,6 +172,7 @@ class TopicsScreenSpec extends TestSpec with ShallowRendererUtils {
     assertNativeComponent(result,
       <.View(^.rnStyle := styles.container)(
         <.FlatList(
+          ^.refreshing := false,
           ^.flatListData := js.Array(props.data.topics: _*)
         )()
       )

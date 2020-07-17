@@ -17,7 +17,7 @@ class TopicServiceSpec extends BaseDBContextSpec {
     val (t1, svg1) = (getTopicData("topic1"), "test svg1")
     val (t2, svg2) = (getTopicData("topic2"), "test svg2")
 
-    (api.getTopics _).expects(true).returning(Future.successful(List(t1, t2)))
+    (api.getTopics _).expects().returning(Future.successful(List(t1, t2)))
     (api.getTopicIcon _).expects(t1.alias).returning(Future.successful(Some(svg1)))
     (api.getTopicIcon _).expects(t2.alias).returning(Future.successful(Some(svg2)))
 
@@ -51,7 +51,7 @@ class TopicServiceSpec extends BaseDBContextSpec {
     val newTopic = getTopicData("newTopic")
     val newSvg = "new svg"
 
-    (api.getTopics _).expects(true).returning(Future.successful(List(t1, newTopic)))
+    (api.getTopics _).expects().returning(Future.successful(List(t1, newTopic)))
     (api.getTopicIcon _).expects(t1.alias).returning(Future.successful(Some(svg1)))
     (api.getTopicIcon _).expects(newTopic.alias).returning(Future.successful(Some(newSvg)))
 
@@ -91,7 +91,7 @@ class TopicServiceSpec extends BaseDBContextSpec {
     val (t1, svg1) = (getTopicData("topic1"), "test svg1")
     val (t2, svg2) = (getTopicData("topic2"), "test svg2")
 
-    (api.getTopics _).expects(*).never()
+    (api.getTopics _).expects().never()
     (api.getTopicIcon _).expects(*).never()
 
     val beforeF = for {
@@ -126,12 +126,12 @@ class TopicServiceSpec extends BaseDBContextSpec {
       alias = alias,
       name = "Test",
       language = "en",
-      info = Some(TopicInfoData(
+      info = TopicInfoData(
         numberOfQuestions = 1,
         numberOfPaid = 2,
         numberOfLearners = 3,
         numberOfChapters = 4
-      ))
+      )
     )
   }
 
@@ -142,10 +142,10 @@ class TopicServiceSpec extends BaseDBContextSpec {
       alias = data.alias,
       name = data.name,
       lang = data.language,
-      numQuestions = data.info.map(_.numberOfQuestions).getOrElse(0),
-      numPaid = data.info.map(_.numberOfPaid).getOrElse(0),
-      numLearners = data.info.map(_.numberOfLearners).getOrElse(0),
-      numChapters = data.info.map(_.numberOfChapters).getOrElse(0),
+      numQuestions = data.info.numberOfQuestions,
+      numPaid = data.info.numberOfPaid,
+      numLearners = data.info.numberOfLearners,
+      numChapters = data.info.numberOfChapters,
       svgIcon = maybeIcon
     )
   }

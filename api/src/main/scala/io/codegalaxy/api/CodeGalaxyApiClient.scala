@@ -52,9 +52,9 @@ class CodeGalaxyApiClient(client: ApiHttpClient)
   ////////////////////////////////////////////////////////////////////////////////////////
   // topic api
 
-  def getTopics(info: Boolean): Future[List[TopicWithInfoData]] = {
+  def getTopics: Future[List[TopicWithInfoData]] = {
     client.execGet[List[TopicWithInfoData]]("/v1/topics", params = queryParams(
-      "info" -> Some(info)
+      "info" -> Some(true)
     ))
   }
 

@@ -11,6 +11,7 @@ import scommons.reactnative.FlatList.FlatListData
 import scommons.reactnative._
 import scommons.reactnative.svg._
 
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.scalajs.js
 
 case class TopicsScreenProps(dispatch: Dispatch,
@@ -20,6 +21,7 @@ case class TopicsScreenProps(dispatch: Dispatch,
 object TopicsScreen extends FunctionComponent[TopicsScreenProps] {
 
   protected def render(compProps: Props): ReactElement = {
+    val (refreshing, setRefreshing) = useState(false)
     val props = compProps.wrapped
     
     useEffect({ () =>
@@ -56,6 +58,18 @@ object TopicsScreen extends FunctionComponent[TopicsScreenProps] {
 
     <.View(^.rnStyle := styles.container)(
       <.FlatList(
+        ^.refreshing := refreshing,
+        ^.onRefresh := { () =>
+          if (!refreshing) {
+            setRefreshing(true)
+            val fetchAction = props.actions.fetchTopics(props.dispatch, refresh = true)
+            props.dispatch(fetchAction)
+
+            fetchAction.task.future.andThen { case _ =>
+              setRefreshing(false)
+            }
+          }
+        },
         ^.flatListData := js.Array(props.data.topics: _*),
         ^.renderItem := { data: FlatListData[TopicEntity] =>
           renderItem(data.item)

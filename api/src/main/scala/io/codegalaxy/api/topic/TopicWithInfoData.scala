@@ -5,7 +5,7 @@ import play.api.libs.json._
 case class TopicWithInfoData(alias: String,
                              name: String,
                              language: String,
-                             info: Option[TopicInfoData])
+                             info: TopicInfoData)
 
 object TopicWithInfoData {
 
