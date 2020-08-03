@@ -1,6 +1,6 @@
 
-[![Build Status](https://travis-ci.org/viktor-podzigun/codegalaxy-app.svg?branch=master)](https://travis-ci.org/viktor-podzigun/codegalaxy-app)
-[![Coverage Status](https://coveralls.io/repos/github/viktor-podzigun/codegalaxy-app/badge.svg?branch=master)](https://coveralls.io/github/viktor-podzigun/codegalaxy-app?branch=master)
+[![Build Status](https://travis-ci.org/ExplainLabs/codegalaxy-app.svg?branch=master)](https://travis-ci.org/ExplainLabs/codegalaxy-app)
+[![Coverage Status](https://coveralls.io/repos/github/ExplainLabs/codegalaxy-app/badge.svg?branch=master)](https://coveralls.io/github/ExplainLabs/codegalaxy-app?branch=master)
 [![Scala.js](https://www.scala-js.org/assets/badges/scalajs-0.6.17.svg)](https://www.scala-js.org)
 
 ## codegalaxy-app
