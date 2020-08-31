@@ -5,12 +5,14 @@ import io.codegalaxy.app.topic.{TopicsController, TopicsScreen}
 import io.codegalaxy.app.user._
 import io.github.shogowada.scalajs.reactjs.redux.Redux.Dispatch
 import scommons.react._
+import scommons.react.hooks._
 import scommons.react.navigation._
 import scommons.react.navigation.stack._
 import scommons.react.navigation.tab.TabBarOptions.LabelPosition
 import scommons.react.navigation.tab._
 import scommons.reactnative._
 
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.scalajs.js
 
 case class CodeGalaxyRootProps(dispatch: Dispatch,
@@ -29,9 +31,32 @@ class CodeGalaxyRoot(actions: CodeGalaxyActions) extends FunctionComponent[CodeG
   
   protected def render(compProps: Props): ReactElement = {
     val props = compProps.wrapped
-    val showLogin = props.state.login.isEmpty
-    
-    <(WithAutoLogin())(^.wrapped := WithAutoLoginProps(props.dispatch, props.actions, props.onAppReady))(
+    val showLogin = props.state.profile.isEmpty
+    val (isReady, setIsReady) = useState(false)
+
+    useEffect({ () =>
+      val initF = for {
+        _ <- {
+          val action = props.actions.userProfileFetch(props.dispatch)
+          props.dispatch(action)
+          action.task.future
+        }
+        _ <- {
+          val action = actions.fetchTopics(props.dispatch)
+          props.dispatch(action)
+          action.task.future
+        }
+      } yield ()
+      
+      initF.andThen { case _ =>
+        setIsReady(true)
+        props.onAppReady()
+      }
+      ()
+    }, Nil)
+
+    if (!isReady) <.>()() //Loading...
+    else {
       <.NavigationContainer()(
         if (showLogin) {
           <(Stack.Navigator)(
@@ -70,6 +95,6 @@ class CodeGalaxyRoot(actions: CodeGalaxyActions) extends FunctionComponent[CodeG
           )
         }
       )
-    )
+    }
   }
 }

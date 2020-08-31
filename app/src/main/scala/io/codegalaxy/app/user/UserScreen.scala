@@ -29,18 +29,18 @@ object UserScreen extends FunctionComponent[UserScreenProps] {
     }
     
     <.View(^.rnStyle := styles.cardContainer)(
-      props.data.login.map { case UserLoginState(profile, user) =>
+      props.data.profile.map { profile =>
         <.>()(
           <.View(^.rnStyle := js.Array(styles.cardImageContainer, styles.cardImage, styles.cardImageContainerShadow))(
-            user.avatarUrl.map { avatarUrl =>
+            profile.avatarUrl.map { avatarUrl =>
               <.Image(^.rnStyle := styles.cardImage, ^.source := new UriResource {
                 override val uri = avatarUrl
               })()
             }
           ),
 
-          renderField("Full Name", user.fullName),
-          renderField("Email", user.email),
+          renderField("Full Name", profile.fullName),
+          renderField("Email", profile.email),
           renderField("User Name", Some(profile.username)),
           renderField("City", profile.city),
 
