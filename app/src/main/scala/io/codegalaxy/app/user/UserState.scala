@@ -1,12 +1,9 @@
 package io.codegalaxy.app.user
 
-import io.codegalaxy.api.user._
 import io.codegalaxy.app.user.UserActions._
+import io.codegalaxy.domain.ProfileEntity
 
-case class UserLoginState(profile: UserProfileData,
-                          user: UserData)
-
-case class UserState(login: Option[UserLoginState] = None)
+case class UserState(profile: Option[ProfileEntity] = None)
 
 object UserStateReducer {
 
@@ -15,8 +12,8 @@ object UserStateReducer {
   }
 
   private def reduce(state: UserState, action: Any): UserState = action match {
-    case UserLoggedinAction(login) => state.copy(login = login)
-    case UserLoggedoutAction() => state.copy(login = None)
+    case UserLoggedinAction(login) => state.copy(profile = login)
+    case UserLoggedoutAction() => state.copy(profile = None)
     case _ => state
   }
 }
