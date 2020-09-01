@@ -20,6 +20,8 @@ trait CodeGalaxyModule extends CommonModule {
 object CodeGalaxyModule {
 
   val settings: Seq[Setting[_]] = Seq(
-    organization := "io.codegalaxy.app"
+    organization := "io.codegalaxy.app",
+
+    parallelExecution in Test := false
   )
 }

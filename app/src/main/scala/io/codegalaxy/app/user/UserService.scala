@@ -4,6 +4,7 @@ import io.codegalaxy.api.user.{UserApi, UserData, UserProfileData}
 import io.codegalaxy.app.user.UserService._
 import io.codegalaxy.domain.ProfileEntity
 import io.codegalaxy.domain.dao.ProfileDao
+import scommons.reactnative.Image
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -31,6 +32,10 @@ class UserService(api: UserApi, dao: ProfileDao) {
             }
           } yield maybeProfile
         }
+      _ <- res.flatMap(_.avatarUrl) match {
+        case None => Future.successful(())
+        case Some(avatarUrl) => Image.prefetch(avatarUrl)
+      }
     } yield res
   }
   
