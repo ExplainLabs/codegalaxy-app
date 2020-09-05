@@ -8,7 +8,8 @@ case class TopicEntity(id: Int,
                        numPaid: Int,
                        numLearners: Int,
                        numChapters: Int,
-                       svgIcon: Option[String])
+                       svgIcon: Option[String],
+                       progress: Option[Int])
 
 //noinspection TypeAnnotation
 trait TopicSchema {

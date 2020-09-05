@@ -9,5 +9,5 @@ case class UserData(username: String,
 
 object UserData {
 
-  implicit val jsonFormat: Format[UserData] = Json.format[UserData]
+  implicit val jsonReads: Reads[UserData] = Json.reads[UserData]
 }

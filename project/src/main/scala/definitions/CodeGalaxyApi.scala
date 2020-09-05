@@ -1,6 +1,6 @@
 package definitions
 
-import common.Libs
+import common.{Libs, TestLibs}
 import sbt.Keys._
 import sbt._
 import sbtcrossproject.CrossPlugin.autoImport._
@@ -25,7 +25,8 @@ object CodeGalaxyApi {
       
       libraryDependencies ++= Seq(
         Libs.scommonsApiCore.value,
-        Libs.scommonsApiJodaTime.value
+        Libs.scommonsApiJodaTime.value,
+        TestLibs.scalaTestJs.value % "test"
       )
     ).jvmSettings(
       // Add JVM-specific settings here

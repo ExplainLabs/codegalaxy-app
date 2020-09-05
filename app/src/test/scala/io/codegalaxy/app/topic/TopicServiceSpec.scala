@@ -1,7 +1,9 @@
 package io.codegalaxy.app.topic
 
+import io.codegalaxy.api.stats._
 import io.codegalaxy.api.topic._
 import io.codegalaxy.app.BaseDBContextSpec
+import io.codegalaxy.app.topic.TopicServiceSpec._
 import io.codegalaxy.domain.TopicEntity
 import io.codegalaxy.domain.dao.TopicDao
 
@@ -11,15 +13,17 @@ class TopicServiceSpec extends BaseDBContextSpec {
 
   it should "fetch topics and save them in DB" in withCtx { ctx =>
     //given
-    val api = mock[TopicApi]
+    val api = mock[TopicWithStatsApi]
     val dao = new TopicDao(ctx)
     val service = new TopicService(api, dao)
     val (t1, svg1) = (getTopicData("topic1"), "test svg1")
     val (t2, svg2) = (getTopicData("topic2"), "test svg2")
+    val stats = getStatsRespData("topic1")
 
     (api.getTopics _).expects().returning(Future.successful(List(t1, t2)))
     (api.getTopicIcon _).expects(t1.alias).returning(Future.successful(Some(svg1)))
     (api.getTopicIcon _).expects(t2.alias).returning(Future.successful(Some(svg2)))
+    (api.getStats _).expects().returning(Future.successful(List(stats)))
 
     val beforeF = dao.deleteAll()
     
@@ -35,31 +39,34 @@ class TopicServiceSpec extends BaseDBContextSpec {
     } yield {
       resList shouldBe topicsList
       resList shouldBe Seq(
-        toTopicEntity(t1, Some(svg1)).copy(id = 1),
-        toTopicEntity(t2, Some(svg2)).copy(id = 2)
+        toTopicEntity(t1, Some(svg1), Some(stats.statistics.progressAll)).copy(id = 1),
+        toTopicEntity(t2, Some(svg2), None).copy(id = 2)
       )
     }
   }
   
   it should "refresh topics in DB" in withCtx { ctx =>
     //given
-    val api = mock[TopicApi]
+    val api = mock[TopicWithStatsApi]
     val dao = new TopicDao(ctx)
     val service = new TopicService(api, dao)
     val (t1, svg1) = (getTopicData("topic1"), "test svg1")
     val (t2, svg2) = (getTopicData("topic2"), "test svg2")
+    val stats = getStatsRespData("topic1")
     val newTopic = getTopicData("newTopic")
     val newSvg = "new svg"
+    val newStats = getStatsRespData("newTopic")
 
     (api.getTopics _).expects().returning(Future.successful(List(t1, newTopic)))
     (api.getTopicIcon _).expects(t1.alias).returning(Future.successful(Some(svg1)))
     (api.getTopicIcon _).expects(newTopic.alias).returning(Future.successful(Some(newSvg)))
+    (api.getStats _).expects().returning(Future.successful(List(newStats)))
 
     val beforeF = for {
       _ <- dao.deleteAll()
       _ <- dao.upsertMany(Seq(
-        toTopicEntity(t1, Some(svg1)),
-        toTopicEntity(t2, Some(svg2))
+        toTopicEntity(t1, Some(svg1), Some(stats.statistics.progressAll)),
+        toTopicEntity(t2, Some(svg2), None)
       ))
       Some(existing) <- service.getById(1)
     } yield existing
@@ -77,28 +84,30 @@ class TopicServiceSpec extends BaseDBContextSpec {
     } yield {
       resList shouldBe topicsList
       resList shouldBe Seq(
-        existing,
-        toTopicEntity(newTopic, Some(newSvg)).copy(id = 3)
+        existing.copy(progress = None),
+        toTopicEntity(newTopic, Some(newSvg), Some(newStats.statistics.progressAll)).copy(id = 3)
       )
     }
   }
   
   it should "return local data from DB" in withCtx { ctx =>
     //given
-    val api = mock[TopicApi]
+    val api = mock[TopicWithStatsApi]
     val dao = new TopicDao(ctx)
     val service = new TopicService(api, dao)
     val (t1, svg1) = (getTopicData("topic1"), "test svg1")
     val (t2, svg2) = (getTopicData("topic2"), "test svg2")
+    val stats = getStatsRespData("topic1")
 
     (api.getTopics _).expects().never()
     (api.getTopicIcon _).expects(*).never()
+    (api.getStats _).expects().never()
 
     val beforeF = for {
       _ <- dao.deleteAll()
       _ <- dao.upsertMany(Seq(
-        toTopicEntity(t1, Some(svg1)),
-        toTopicEntity(t2, Some(svg2))
+        toTopicEntity(t1, Some(svg1), Some(stats.statistics.progressAll)),
+        toTopicEntity(t2, Some(svg2), None)
       ))
     } yield ()
 
@@ -115,8 +124,8 @@ class TopicServiceSpec extends BaseDBContextSpec {
     } yield {
       resList shouldBe topicsList
       resList shouldBe Seq(
-        toTopicEntity(t1, Some(svg1)).copy(id = 1),
-        toTopicEntity(t2, Some(svg2)).copy(id = 2)
+        toTopicEntity(t1, Some(svg1), Some(stats.statistics.progressAll)).copy(id = 1),
+        toTopicEntity(t2, Some(svg2), None).copy(id = 2)
       )
     }
   }
@@ -135,8 +144,20 @@ class TopicServiceSpec extends BaseDBContextSpec {
     )
   }
 
+  private def getStatsRespData(alias: String): StatsRespData = {
+    StatsRespData(
+      topic = StatsTopicData(
+        alias = alias
+      ),
+      statistics = StatsData(
+        progressAll = 88
+      )
+    )
+  }
+
   private def toTopicEntity(data: TopicWithInfoData,
-                            maybeIcon: Option[String]): TopicEntity = {
+                            maybeIcon: Option[String],
+                            maybeProgress: Option[Int]): TopicEntity = {
     TopicEntity(
       id = -1,
       alias = data.alias,
@@ -146,7 +167,13 @@ class TopicServiceSpec extends BaseDBContextSpec {
       numPaid = data.info.numberOfPaid,
       numLearners = data.info.numberOfLearners,
       numChapters = data.info.numberOfChapters,
-      svgIcon = maybeIcon
+      svgIcon = maybeIcon,
+      progress = maybeProgress
     )
   }
+}
+
+object TopicServiceSpec {
+
+  trait TopicWithStatsApi extends TopicApi with StatsApi
 }

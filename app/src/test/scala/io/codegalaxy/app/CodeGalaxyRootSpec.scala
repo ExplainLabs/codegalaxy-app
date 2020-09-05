@@ -46,13 +46,11 @@ class CodeGalaxyRootSpec extends AsyncTestSpec
     val props = CodeGalaxyRootProps(dispatch, actions, UserState(None), onAppReady = onAppReady)
 
     val profileAction = UserLoginAction(FutureTask("Fetching Profile", Future.successful(None)))
-    val fetchTopicsAction = TopicsFetchAction(FutureTask("Fetching Topics", Future.successful(Nil)))
 
     //then
     (actions.userProfileFetch _).expects(dispatch).returning(profileAction)
-    (actions.fetchTopics _).expects(dispatch, false).returning(fetchTopicsAction)
+    (actions.fetchTopics _).expects(*, *).never()
     dispatch.expects(profileAction)
-    dispatch.expects(fetchTopicsAction)
     onAppReady.expects()
 
     //when
@@ -61,12 +59,7 @@ class CodeGalaxyRootSpec extends AsyncTestSpec
     //then
     import codeGalaxyRoot._
 
-    val resultF = for {
-      _ <- profileAction.task.future
-      _ <- fetchTopicsAction.task.future
-    } yield ()
-
-    resultF.map { _ =>
+    eventually {
       TestRenderer.act { () =>
         renderer.update(<(codeGalaxyRoot())(^.wrapped := props)())
       }

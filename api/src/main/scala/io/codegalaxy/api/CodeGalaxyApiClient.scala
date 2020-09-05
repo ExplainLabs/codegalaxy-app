@@ -1,5 +1,6 @@
 package io.codegalaxy.api
 
+import io.codegalaxy.api.stats._
 import io.codegalaxy.api.topic._
 import io.codegalaxy.api.user._
 import scommons.api.http.{ApiHttpClient, ApiHttpResponse, ApiHttpStatusException}
@@ -12,7 +13,8 @@ import scala.concurrent.Future
 
 class CodeGalaxyApiClient(client: ApiHttpClient)
   extends UserApi
-  with TopicApi {
+  with TopicApi
+  with StatsApi {
 
   ////////////////////////////////////////////////////////////////////////////////////////
   // user api
@@ -63,5 +65,12 @@ class CodeGalaxyApiClient(client: ApiHttpClient)
       case resp if resp.status == 200 => Some(resp.body)
       case _ => None
     }
+  }
+
+  ////////////////////////////////////////////////////////////////////////////////////////
+  // stats api
+
+  def getStats: Future[List[StatsRespData]] = {
+    client.execGet[List[StatsRespData]]("/v1/stats")
   }
 }
