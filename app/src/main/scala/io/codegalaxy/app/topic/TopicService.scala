@@ -1,5 +1,6 @@
 package io.codegalaxy.app.topic
 
+import io.codegalaxy.api.stats._
 import io.codegalaxy.api.topic._
 import io.codegalaxy.app.topic.TopicService._
 import io.codegalaxy.domain.TopicEntity
@@ -8,7 +9,8 @@ import io.codegalaxy.domain.dao.TopicDao
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class TopicService(api: TopicApi, dao: TopicDao) {
+class TopicService(api: TopicApi with StatsApi,
+                   dao: TopicDao) {
 
   def getById(id: Int): Future[Option[TopicEntity]] = {
     dao.getById(id)
@@ -23,25 +25,42 @@ class TopicService(api: TopicApi, dao: TopicDao) {
         if (existing.nonEmpty) Future.successful(existing)
         else {
           for {
-            dataList <- api.getTopics
-            allData <- Future.sequence(dataList.map { data =>
-              api.getTopicIcon(data.alias).map { icon =>
-                (data, icon)
-              }
-            })
-            res <- dao.upsertMany(allData.map { case (data, icon) =>
-              convertToTopicEntity(data, icon)
+            dataList <- getTopicsData
+            res <- dao.upsertMany(dataList.map {
+              case (data, icon, progress) =>
+                convertToTopicEntity(data, icon, progress)
             })
           } yield res
         }
     } yield res
+  }
+  
+  private def getTopicsData: Future[List[(TopicWithInfoData, Option[String], Option[Int])]] = {
+    for {
+      dataList <- api.getTopics
+      dataAndIconList <- Future.sequence(dataList.map { data =>
+        api.getTopicIcon(data.alias).map { icon =>
+          (data, icon)
+        }
+      })
+      statsList <- api.getStats
+    } yield {
+      dataAndIconList.map { case (data, icon) =>
+        val maybeProgress = statsList
+          .find(_.topic.alias == data.alias)
+          .map(_.statistics.progressAll)
+        
+        (data, icon, maybeProgress)
+      }
+    }
   }
 }
 
 object TopicService {
 
   private def convertToTopicEntity(data: TopicWithInfoData,
-                                   maybeIcon: Option[String]): TopicEntity = {
+                                   maybeIcon: Option[String],
+                                   maybeProgress: Option[Int]): TopicEntity = {
     TopicEntity(
       id = -1,
       alias = data.alias,
@@ -51,7 +70,8 @@ object TopicService {
       numPaid = data.info.numberOfPaid,
       numLearners = data.info.numberOfLearners,
       numChapters = data.info.numberOfChapters,
-      svgIcon = maybeIcon
+      svgIcon = maybeIcon,
+      progress = maybeProgress
     )
   }
 }

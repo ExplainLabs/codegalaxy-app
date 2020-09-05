@@ -24,7 +24,8 @@ class TopicActionsSpec extends AsyncTestSpec {
       numPaid = 2,
       numLearners = 3,
       numChapters = 4,
-      svgIcon = Some("test svg")
+      svgIcon = Some("test svg"),
+      progress = None
     )
     val dataList = List(topic)
     val refresh = true

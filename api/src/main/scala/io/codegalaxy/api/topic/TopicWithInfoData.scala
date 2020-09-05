@@ -9,5 +9,5 @@ case class TopicWithInfoData(alias: String,
 
 object TopicWithInfoData {
 
-  implicit val jsonFormat: Format[TopicWithInfoData] = Json.format[TopicWithInfoData]
+  implicit val jsonReads: Reads[TopicWithInfoData] = Json.reads[TopicWithInfoData]
 }

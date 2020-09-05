@@ -9,5 +9,5 @@ case class TopicInfoData(numberOfQuestions: Int,
 
 object TopicInfoData {
 
-  implicit val jsonFormat: Format[TopicInfoData] = Json.format[TopicInfoData]
+  implicit val jsonReads: Reads[TopicInfoData] = Json.reads[TopicInfoData]
 }

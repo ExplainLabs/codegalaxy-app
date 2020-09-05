@@ -13,6 +13,7 @@ import scommons.react.navigation.tab._
 import scommons.reactnative._
 
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 import scala.scalajs.js
 
 case class CodeGalaxyRootProps(dispatch: Dispatch,
@@ -36,16 +37,17 @@ class CodeGalaxyRoot(actions: CodeGalaxyActions) extends FunctionComponent[CodeG
 
     useEffect({ () =>
       val initF = for {
-        _ <- {
+        maybeProfile <- {
           val action = props.actions.userProfileFetch(props.dispatch)
           props.dispatch(action)
           action.task.future
         }
-        _ <- {
+        _ <- if (maybeProfile.isDefined) {
           val action = actions.fetchTopics(props.dispatch)
           props.dispatch(action)
           action.task.future
         }
+        else Future.successful(Nil)
       } yield ()
       
       initF.andThen { case _ =>

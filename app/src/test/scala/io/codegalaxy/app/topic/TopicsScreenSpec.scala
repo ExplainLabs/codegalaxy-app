@@ -7,7 +7,7 @@ import io.codegalaxy.app.topic.TopicsScreen._
 import io.codegalaxy.app.topic.TopicsScreenSpec.FlatListDataMock
 import io.codegalaxy.domain.TopicEntity
 import io.github.shogowada.scalajs.reactjs.redux.Redux.Dispatch
-import org.scalatest.Succeeded
+import org.scalatest.{Assertion, Succeeded}
 import scommons.nodejs.test.AsyncTestSpec
 import scommons.react._
 import scommons.react.redux.task.FutureTask
@@ -111,53 +111,35 @@ class TopicsScreenSpec extends AsyncTestSpec
     result shouldBe item.alias
   }
 
-  it should "render item component" in {
+  it should "render item component with Start action" in {
     //given
     val props = getTopicsScreenProps()
-    val comp = shallowRender(<(TopicsScreen())(^.wrapped := props)())
-    val List(flatList) = findComponents(comp, <.FlatList.reactClass)
-    val data = props.data.topics.head
+    val item = props.data.topics.head
+    item.progress shouldBe None
     
-    val listData = mock[FlatListDataMock]
-    (listData.item _).expects().returning(data)
-
-    def renderItem(flatList: ShallowInstance): ShallowInstance = {
-      val wrapper = new FunctionComponent[Unit] {
-        protected def render(compProps: Props): ReactElement = {
-          val result = flatList.props.renderItem(listData.asInstanceOf[FlatListData[TopicWithInfoData]])
-          result.asInstanceOf[ReactElement]
-        }
-      }
-
-      shallowRender(<(wrapper())()())
-    }
-
     //when
-    val result = renderItem(flatList)
+    val result = renderItem(props, item)
 
     //then
-    assertNativeComponent(result,
-      <.TouchableWithoutFeedback()(
-        <.View(^.rnStyle := styles.rowContainer)(
-          <.View(^.rnStyle := js.Array(styles.iconContainer, styles.icon))(
-            data.svgIcon.map { svgXml =>
-              <.SvgCss(^.rnStyle := styles.icon, ^.xml := svgXml)()
-            }
-          ),
-          <.View(^.rnStyle := styles.itemContainer)(
-            <.Text(^.rnStyle := styles.itemTitle)(data.name),
-            <.View(^.rnStyle := styles.itemInfoContainer)(
-              <(CodeGalaxyIcons.FontAwesome5)(^.rnStyle := styles.itemInfo, ^.name := "language", ^.rnSize := 16)(),
-              <.Text(^.rnStyle := styles.itemInfo)(s" : ${data.lang}  "),
-              <(CodeGalaxyIcons.FontAwesome5)(^.rnStyle := styles.itemInfo, ^.name := "file-code", ^.rnSize := 16)(),
-              <.Text(^.rnStyle := styles.itemInfo)(s" : ${data.numQuestions}  "),
-              <(CodeGalaxyIcons.FontAwesome5)(^.rnStyle := styles.itemInfo, ^.name := "users", ^.rnSize := 16)(),
-              <.Text(^.rnStyle := styles.itemInfo)(s" : ${data.numLearners}")
-            )
-          )
-        )
-      )
-    )
+    assertItem(result, item)
+  }
+
+  it should "render item component with Open action" in {
+    //given
+    val props = {
+      val props = getTopicsScreenProps()
+      props.copy(data = props.data.copy(
+        topics = props.data.topics.map(_.copy(progress = Some(99)))
+      ))
+    }
+    val item = props.data.topics.head
+    item.progress should not be None
+    
+    //when
+    val result = renderItem(props, item)
+
+    //then
+    assertItem(result, item)
   }
 
   it should "render main component" in {
@@ -191,7 +173,8 @@ class TopicsScreenSpec extends AsyncTestSpec
                                        numPaid = 2,
                                        numLearners = 3,
                                        numChapters = 4,
-                                       svgIcon = Some("svg-xml")
+                                       svgIcon = Some("svg-xml"),
+                                       progress = None
                                      ))
                                    ),
                                    navigate: String => Unit = _ => ()): TopicsScreenProps = {
@@ -199,6 +182,60 @@ class TopicsScreenSpec extends AsyncTestSpec
       dispatch = dispatch,
       actions = actions,
       data = data
+    )
+  }
+
+  private def renderItem(props: TopicsScreenProps, data: TopicEntity): ShallowInstance = {
+    val comp = shallowRender(<(TopicsScreen())(^.wrapped := props)())
+    val List(flatList) = findComponents(comp, <.FlatList.reactClass)
+
+    val listData = mock[FlatListDataMock]
+    (listData.item _).expects().returning(data)
+
+    val wrapper = new FunctionComponent[Unit] {
+      protected def render(compProps: Props): ReactElement = {
+        val result = flatList.props.renderItem(listData.asInstanceOf[FlatListData[TopicWithInfoData]])
+        result.asInstanceOf[ReactElement]
+      }
+    }
+
+    shallowRender(<(wrapper())()())
+  }
+
+  private def assertItem(result: ShallowInstance, data: TopicEntity): Assertion = {
+    assertNativeComponent(result,
+      <.TouchableWithoutFeedback()(
+        <.View(^.rnStyle := styles.rowContainer)(
+          <.View(^.rnStyle := js.Array(styles.iconContainer, styles.icon))(
+            data.svgIcon.map { svgXml =>
+              <.SvgCss(^.rnStyle := styles.icon, ^.xml := svgXml)()
+            }
+          ),
+          <.View(^.rnStyle := styles.itemContainer)(
+            <.Text(^.rnStyle := styles.itemTitle)(data.name),
+            <.View(^.rnStyle := styles.itemInfoContainer)(
+              <(CodeGalaxyIcons.FontAwesome5)(^.rnStyle := styles.itemInfo, ^.name := "language", ^.rnSize := 16)(),
+              <.Text(^.rnStyle := styles.itemInfo)(s" : ${data.lang}  "),
+              <(CodeGalaxyIcons.FontAwesome5)(^.rnStyle := styles.itemInfo, ^.name := "file-code", ^.rnSize := 16)(),
+              <.Text(^.rnStyle := styles.itemInfo)(s" : ${data.numQuestions}  "),
+              <(CodeGalaxyIcons.FontAwesome5)(^.rnStyle := styles.itemInfo, ^.name := "users", ^.rnSize := 16)(),
+              <.Text(^.rnStyle := styles.itemInfo)(s" : ${data.numLearners}")
+            )
+          ),
+          <.View(^.rnStyle := styles.statsContainer)(data.progress match {
+            case Some(progress) => <.>()(
+              <.Text(^.rnStyle := styles.statsLabel)("Open"),
+              <.View(^.rnStyle := styles.statsProgress)(
+                <.Text()(s"$progress")
+              )
+            )
+            case None => <.>()(
+              <.Text(^.rnStyle := styles.statsLabel)("Start"),
+              <.SvgXml(^.rnStyle := styles.startSvg, ^.xml := startSvgXml)()
+            )
+          })
+        )
+      )
     )
   }
 }

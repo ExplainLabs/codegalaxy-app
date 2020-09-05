@@ -10,5 +10,5 @@ case class UserProfileData(userId: Int,
 
 object UserProfileData {
 
-  implicit val jsonFormat: Format[UserProfileData] = Json.format[UserProfileData]
+  implicit val jsonReads: Reads[UserProfileData] = Json.reads[UserProfileData]
 }
