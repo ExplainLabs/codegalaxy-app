@@ -1,7 +1,8 @@
 package io.codegalaxy.app
 
 import io.codegalaxy.app.auth._
-import io.codegalaxy.app.topic.{TopicsController, TopicsScreen}
+import io.codegalaxy.app.chapter.ChapterListController
+import io.codegalaxy.app.topic.TopicListController
 import io.codegalaxy.app.user._
 import io.github.shogowada.scalajs.reactjs.redux.Redux.Dispatch
 import scommons.react._
@@ -23,13 +24,6 @@ case class CodeGalaxyRootProps(dispatch: Dispatch,
 
 class CodeGalaxyRoot(actions: CodeGalaxyActions) extends FunctionComponent[CodeGalaxyRootProps] {
 
-  private[app] lazy val Tab = createBottomTabNavigator()
-  private[app] lazy val Stack = createStackNavigator()
-
-  private[app] lazy val loginController = new LoginController(actions)
-  private[app] lazy val topicStackComp = TopicsScreen.topicStackComp(new TopicsController(actions))
-  private[app] lazy val userStackComp = UserScreen.userStackComp(new UserController(actions))
-  
   protected def render(compProps: Props): ReactElement = {
     val props = compProps.wrapped
     val showLogin = props.state.profile.isEmpty
@@ -49,7 +43,7 @@ class CodeGalaxyRoot(actions: CodeGalaxyActions) extends FunctionComponent[CodeG
         }
         else Future.successful(Nil)
       } yield ()
-      
+
       initF.andThen { case _ =>
         setIsReady(true)
         props.onAppReady()
@@ -99,4 +93,31 @@ class CodeGalaxyRoot(actions: CodeGalaxyActions) extends FunctionComponent[CodeG
       )
     }
   }
+
+  private[app] lazy val Tab = createBottomTabNavigator()
+  private[app] lazy val Stack = createStackNavigator()
+
+  private[app] lazy val loginController = new LoginController(actions)
+  private[app] lazy val topicListController = new TopicListController(actions)
+  private[app] lazy val chapterListController = new ChapterListController(actions)
+  private[app] lazy val userController = new UserController(actions)
+
+  private[app] lazy val TopicStack = createStackNavigator()
+  private[app] lazy val topicStackComp: ReactClass = new FunctionComponent[Unit] {
+    protected def render(props: Props): ReactElement = {
+      <(TopicStack.Navigator)(^.initialRouteName := "Quizzes")(
+        <(TopicStack.Screen)(^.name := "Quizzes", ^.component := topicListController())(),
+        <(TopicStack.Screen)(^.name := "Quiz", ^.component := chapterListController())()
+      )
+    }
+  }.apply()
+  
+  private[app] lazy val UserStack = createStackNavigator()
+  private[app] lazy val userStackComp: ReactClass = new FunctionComponent[Unit] {
+    protected def render(props: Props): ReactElement = {
+      <(UserStack.Navigator)(^.initialRouteName := "Profile")(
+        <(UserStack.Screen)(^.name := "Profile", ^.component := userController())()
+      )
+    }
+  }.apply()
 }

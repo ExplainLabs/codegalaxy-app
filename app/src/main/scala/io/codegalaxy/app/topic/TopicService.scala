@@ -12,8 +12,8 @@ import scala.concurrent.Future
 class TopicService(api: TopicApi with StatsApi,
                    dao: TopicDao) {
 
-  def getById(id: Int): Future[Option[TopicEntity]] = {
-    dao.getById(id)
+  def getByAlias(alias: String): Future[Option[TopicEntity]] = {
+    dao.getByAlias(alias)
   }
   
   def fetch(refresh: Boolean = false): Future[Seq[TopicEntity]] = {

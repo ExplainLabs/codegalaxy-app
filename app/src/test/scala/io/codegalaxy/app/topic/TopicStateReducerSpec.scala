@@ -1,17 +1,13 @@
 package io.codegalaxy.app.topic
 
+import io.codegalaxy.app.BaseStateReducerSpec
 import io.codegalaxy.app.topic.TopicActions.TopicsFetchedAction
 import io.codegalaxy.domain.TopicEntity
-import scommons.react.test.TestSpec
 
-class TopicStateReducerSpec extends TestSpec {
-
-  private val reduce = TopicStateReducer.apply _
-
-  it should "return default state when state is None" in {
-    //when & then
-    reduce(None, "") shouldBe TopicState()
-  }
+class TopicStateReducerSpec extends BaseStateReducerSpec(
+  createState = TopicState(),
+  reduce = TopicStateReducer.apply
+) {
 
   it should "set topics when TopicsFetchedAction" in {
     //given

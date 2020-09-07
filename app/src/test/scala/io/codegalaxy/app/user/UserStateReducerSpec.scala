@@ -1,17 +1,13 @@
 package io.codegalaxy.app.user
 
+import io.codegalaxy.app.BaseStateReducerSpec
 import io.codegalaxy.app.user.UserActions._
 import io.codegalaxy.domain.ProfileEntity
-import scommons.react.test.TestSpec
 
-class UserStateReducerSpec extends TestSpec {
-
-  private val reduce = UserStateReducer.apply _
-
-  it should "return default state when state is None" in {
-    //when & then
-    reduce(None, "") shouldBe UserState()
-  }
+class UserStateReducerSpec extends BaseStateReducerSpec(
+  createState = UserState(),
+  reduce = UserStateReducer.apply
+) {
 
   it should "set profile to Some when UserLoggedinAction" in {
     //given

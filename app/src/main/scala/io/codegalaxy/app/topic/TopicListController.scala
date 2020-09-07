@@ -6,18 +6,21 @@ import scommons.react._
 import scommons.react.navigation._
 import scommons.reactnative.app.BaseStateAndRouteController
 
-class TopicsController(actions: TopicActions)
-  extends BaseStateAndRouteController[CodeGalaxyStateDef, TopicsScreenProps] {
+class TopicListController(actions: TopicActions)
+  extends BaseStateAndRouteController[CodeGalaxyStateDef, TopicListScreenProps] {
 
-  lazy val uiComponent: UiComponent[TopicsScreenProps] = TopicsScreen
+  lazy val uiComponent: UiComponent[TopicListScreenProps] = TopicListScreen
 
   def mapStateAndRouteToProps(dispatch: Dispatch,
                               state: CodeGalaxyStateDef,
-                              nav: Navigation): TopicsScreenProps = {
-    TopicsScreenProps(
+                              nav: Navigation): TopicListScreenProps = {
+    TopicListScreenProps(
       dispatch = dispatch,
       actions = actions,
-      data = state.topicState
+      data = state.topicState,
+      navigate = { topic =>
+        nav.navigate("Quiz", TopicParams(topic).toMap)
+      }
     )
   }
 }

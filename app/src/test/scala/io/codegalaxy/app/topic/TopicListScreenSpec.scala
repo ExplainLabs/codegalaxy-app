@@ -1,10 +1,10 @@
 package io.codegalaxy.app.topic
 
-import io.codegalaxy.api.topic.TopicWithInfoData
 import io.codegalaxy.app.CodeGalaxyIcons
+import io.codegalaxy.app.info._
 import io.codegalaxy.app.topic.TopicActions.TopicsFetchAction
-import io.codegalaxy.app.topic.TopicsScreen._
-import io.codegalaxy.app.topic.TopicsScreenSpec.FlatListDataMock
+import io.codegalaxy.app.topic.TopicListScreen._
+import io.codegalaxy.app.topic.TopicListScreenSpec.FlatListDataMock
 import io.codegalaxy.domain.TopicEntity
 import io.github.shogowada.scalajs.reactjs.redux.Redux.Dispatch
 import org.scalatest.{Assertion, Succeeded}
@@ -20,20 +20,21 @@ import scala.concurrent.Future
 import scala.scalajs.js
 import scala.scalajs.js.annotation.JSExportAll
 
-class TopicsScreenSpec extends AsyncTestSpec
+class TopicListScreenSpec extends AsyncTestSpec
   with BaseTestSpec
   with ShallowRendererUtils
   with TestRendererUtils {
 
-  ignore should "call navigate when onPress" in {
+  it should "call onTopicNavigate when onPress" in {
     //given
     val navigate = mockFunction[String, Unit]
-    val props = getTopicsScreenProps(navigate = navigate)
-    val comp = shallowRender(<(TopicsScreen())(^.wrapped := props)())
+    val props = getTopicListScreenProps(navigate = navigate)
+    val item = props.data.topics.head
+    val comp = renderItem(props, item)
     val List(touchable) = findComponents(comp, <.TouchableWithoutFeedback.reactClass)
 
     //then
-    navigate.expects("Test")
+    navigate.expects(item.alias)
 
     //when
     touchable.props.onPress()
@@ -45,8 +46,8 @@ class TopicsScreenSpec extends AsyncTestSpec
     //given
     val dispatch = mockFunction[Any, Any]
     val actions = mock[TopicActions]
-    val props = getTopicsScreenProps(dispatch, actions)
-    val renderer = createTestRenderer(<(TopicsScreen())(^.wrapped := props)())
+    val props = getTopicListScreenProps(dispatch, actions)
+    val renderer = createTestRenderer(<(TopicListScreen())(^.wrapped := props)())
     val List(flatList) = findComponents(renderer.root, <.FlatList.reactClass)
     flatList.props.refreshing shouldBe false
     
@@ -73,7 +74,7 @@ class TopicsScreenSpec extends AsyncTestSpec
     val dispatch = mockFunction[Any, Any]
     val actions = mock[TopicActions]
     val props = {
-      val props = getTopicsScreenProps(dispatch, actions)
+      val props = getTopicListScreenProps(dispatch, actions)
       props.copy(data = props.data.copy(topics = Nil))
     }
     val fetchAction = TopicsFetchAction(FutureTask("Fetching Topics",
@@ -84,7 +85,7 @@ class TopicsScreenSpec extends AsyncTestSpec
     dispatch.expects(fetchAction)
 
     //when
-    val result = testRender(<(TopicsScreen())(^.wrapped := props)())
+    val result = testRender(<(TopicListScreen())(^.wrapped := props)())
 
     //then
     assertNativeComponent(result,
@@ -99,8 +100,8 @@ class TopicsScreenSpec extends AsyncTestSpec
 
   it should "return data.alias from keyExtractor" in {
     //given
-    val props = getTopicsScreenProps()
-    val comp = shallowRender(<(TopicsScreen())(^.wrapped := props)())
+    val props = getTopicListScreenProps()
+    val comp = shallowRender(<(TopicListScreen())(^.wrapped := props)())
     val List(flatList) = findComponents(comp, <.FlatList.reactClass)
     val item = props.data.topics.head
 
@@ -113,7 +114,7 @@ class TopicsScreenSpec extends AsyncTestSpec
 
   it should "render item component with Start action" in {
     //given
-    val props = getTopicsScreenProps()
+    val props = getTopicListScreenProps()
     val item = props.data.topics.head
     item.progress shouldBe None
     
@@ -127,7 +128,7 @@ class TopicsScreenSpec extends AsyncTestSpec
   it should "render item component with Open action" in {
     //given
     val props = {
-      val props = getTopicsScreenProps()
+      val props = getTopicListScreenProps()
       props.copy(data = props.data.copy(
         topics = props.data.topics.map(_.copy(progress = Some(99)))
       ))
@@ -144,8 +145,8 @@ class TopicsScreenSpec extends AsyncTestSpec
 
   it should "render main component" in {
     //given
-    val props = getTopicsScreenProps()
-    val component = <(TopicsScreen())(^.wrapped := props)()
+    val props = getTopicListScreenProps()
+    val component = <(TopicListScreen())(^.wrapped := props)()
 
     //when
     val result = shallowRender(component)
@@ -160,33 +161,34 @@ class TopicsScreenSpec extends AsyncTestSpec
       )
     )
   }
-  
-  private def getTopicsScreenProps(dispatch: Dispatch = mock[Dispatch],
-                                   actions: TopicActions = mock[TopicActions],
-                                   data: TopicState = TopicState(
-                                     topics = List(TopicEntity(
-                                       id = 1,
-                                       alias = "test",
-                                       name = "Test",
-                                       lang = "en",
-                                       numQuestions = 1,
-                                       numPaid = 2,
-                                       numLearners = 3,
-                                       numChapters = 4,
-                                       svgIcon = Some("svg-xml"),
-                                       progress = None
-                                     ))
-                                   ),
-                                   navigate: String => Unit = _ => ()): TopicsScreenProps = {
-    TopicsScreenProps(
+
+  private def getTopicListScreenProps(dispatch: Dispatch = mock[Dispatch],
+                                      actions: TopicActions = mock[TopicActions],
+                                      data: TopicState = TopicState(
+                                        topics = List(TopicEntity(
+                                          id = 1,
+                                          alias = "test_topic",
+                                          name = "Test Topic",
+                                          lang = "en",
+                                          numQuestions = 1,
+                                          numPaid = 2,
+                                          numLearners = 3,
+                                          numChapters = 4,
+                                          svgIcon = Some("svg-xml"),
+                                          progress = None
+                                        ))
+                                      ),
+                                      navigate: String => Unit = _ => ()): TopicListScreenProps = {
+    TopicListScreenProps(
       dispatch = dispatch,
       actions = actions,
-      data = data
+      data = data,
+      navigate = navigate
     )
   }
 
-  private def renderItem(props: TopicsScreenProps, data: TopicEntity): ShallowInstance = {
-    val comp = shallowRender(<(TopicsScreen())(^.wrapped := props)())
+  private def renderItem(props: TopicListScreenProps, data: TopicEntity): ShallowInstance = {
+    val comp = shallowRender(<(TopicListScreen())(^.wrapped := props)())
     val List(flatList) = findComponents(comp, <.FlatList.reactClass)
 
     val listData = mock[FlatListDataMock]
@@ -194,7 +196,7 @@ class TopicsScreenSpec extends AsyncTestSpec
 
     val wrapper = new FunctionComponent[Unit] {
       protected def render(compProps: Props): ReactElement = {
-        val result = flatList.props.renderItem(listData.asInstanceOf[FlatListData[TopicWithInfoData]])
+        val result = flatList.props.renderItem(listData.asInstanceOf[FlatListData[TopicEntity]])
         result.asInstanceOf[ReactElement]
       }
     }
@@ -203,14 +205,20 @@ class TopicsScreenSpec extends AsyncTestSpec
   }
 
   private def assertItem(result: ShallowInstance, data: TopicEntity): Assertion = {
-    assertNativeComponent(result,
-      <.TouchableWithoutFeedback()(
-        <.View(^.rnStyle := styles.rowContainer)(
+    assertNativeComponent(result, <.TouchableWithoutFeedback()(), { children: List[ShallowInstance] =>
+      val List(container) = children
+      
+      assertNativeComponent(container, <.View(^.rnStyle := styles.rowContainer)(), { children: List[ShallowInstance] =>
+        val List(icon, info, action) = children
+        
+        assertNativeComponent(icon, 
           <.View(^.rnStyle := js.Array(styles.iconContainer, styles.icon))(
             data.svgIcon.map { svgXml =>
               <.SvgCss(^.rnStyle := styles.icon, ^.xml := svgXml)()
             }
-          ),
+          )
+        )
+        assertNativeComponent(info,
           <.View(^.rnStyle := styles.itemContainer)(
             <.Text(^.rnStyle := styles.itemTitle)(data.name),
             <.View(^.rnStyle := styles.itemInfoContainer)(
@@ -221,26 +229,18 @@ class TopicsScreenSpec extends AsyncTestSpec
               <(CodeGalaxyIcons.FontAwesome5)(^.rnStyle := styles.itemInfo, ^.name := "users", ^.rnSize := 16)(),
               <.Text(^.rnStyle := styles.itemInfo)(s" : ${data.numLearners}")
             )
-          ),
-          <.View(^.rnStyle := styles.statsContainer)(data.progress match {
-            case Some(progress) => <.>()(
-              <.Text(^.rnStyle := styles.statsLabel)("Open"),
-              <.View(^.rnStyle := styles.statsProgress)(
-                <.Text()(s"$progress")
-              )
-            )
-            case None => <.>()(
-              <.Text(^.rnStyle := styles.statsLabel)("Start"),
-              <.SvgXml(^.rnStyle := styles.startSvg, ^.xml := startSvgXml)()
-            )
-          })
+          )
         )
-      )
-    )
+        assertComponent(action, ListItemNavIcon) { case ListItemNavIconProps(progress, showLabel) =>
+          progress shouldBe data.progress.getOrElse(0)
+          showLabel shouldBe true
+        }
+      })
+    })
   }
 }
 
-object TopicsScreenSpec {
+object TopicListScreenSpec {
 
   @JSExportAll
   trait FlatListDataMock {

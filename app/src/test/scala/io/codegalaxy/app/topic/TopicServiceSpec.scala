@@ -1,5 +1,6 @@
 package io.codegalaxy.app.topic
 
+import io.codegalaxy.api.data.InfoData
 import io.codegalaxy.api.stats._
 import io.codegalaxy.api.topic._
 import io.codegalaxy.app.BaseDBContextSpec
@@ -68,7 +69,7 @@ class TopicServiceSpec extends BaseDBContextSpec {
         toTopicEntity(t1, Some(svg1), Some(stats.statistics.progressAll)),
         toTopicEntity(t2, Some(svg2), None)
       ))
-      Some(existing) <- service.getById(1)
+      Some(existing) <- service.getByAlias(t1.alias)
     } yield existing
 
     //when
@@ -135,7 +136,7 @@ class TopicServiceSpec extends BaseDBContextSpec {
       alias = alias,
       name = "Test",
       language = "en",
-      info = TopicInfoData(
+      info = InfoData(
         numberOfQuestions = 1,
         numberOfPaid = 2,
         numberOfLearners = 3,

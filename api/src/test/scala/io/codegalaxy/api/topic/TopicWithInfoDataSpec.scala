@@ -1,5 +1,6 @@
 package io.codegalaxy.api.topic
 
+import io.codegalaxy.api.data.InfoData
 import org.scalatest.{FlatSpec, Matchers}
 import play.api.libs.json.Json
 
@@ -9,7 +10,7 @@ class TopicWithInfoDataSpec extends FlatSpec with Matchers {
     alias = "test_topic",
     name = "Test",
     language = "en",
-    info = TopicInfoData(
+    info = InfoData(
       numberOfQuestions = 1,
       numberOfPaid = 2,
       numberOfLearners = 3,
