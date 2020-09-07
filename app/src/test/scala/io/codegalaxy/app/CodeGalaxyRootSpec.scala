@@ -37,6 +37,43 @@ class CodeGalaxyRootSpec extends AsyncTestSpec
     assertNativeComponent(result, <.>()())
   }
   
+  it should "render topic stack component" in {
+    //give
+    val actions = mock[CodeGalaxyActions]
+    val codeGalaxyRoot = new CodeGalaxyRoot(actions)
+
+    //when
+    val result = shallowRender(<(codeGalaxyRoot.topicStackComp)()())
+
+    //then
+    import codeGalaxyRoot._
+    
+    assertNativeComponent(result,
+      <(TopicStack.Navigator)(^.initialRouteName := "Quizzes")(
+        <(TopicStack.Screen)(^.name := "Quizzes", ^.component := topicListController())(),
+        <(TopicStack.Screen)(^.name := "Quiz", ^.component := chapterListController())()
+      )
+    )
+  }
+
+  it should "render user stack component" in {
+    //given
+    val actions = mock[CodeGalaxyActions]
+    val codeGalaxyRoot = new CodeGalaxyRoot(actions)
+
+    //when
+    val result = shallowRender(<(codeGalaxyRoot.userStackComp)()())
+
+    //then
+    import codeGalaxyRoot._
+    
+    assertNativeComponent(result,
+      <(UserStack.Navigator)(^.initialRouteName := "Profile")(
+        <(UserStack.Screen)(^.name := "Profile", ^.component := userController())()
+      )
+    )
+  }
+
   it should "dispatch actions and render LoginScreen if not logged-in" in {
     //given
     val dispatch = mockFunction[Any, Any]

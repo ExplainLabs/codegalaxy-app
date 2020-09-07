@@ -5,7 +5,6 @@ import io.codegalaxy.app.user.UserScreen._
 import io.codegalaxy.domain.ProfileEntity
 import io.github.shogowada.scalajs.reactjs.redux.Redux.Dispatch
 import scommons.react._
-import scommons.react.navigation._
 import scommons.react.redux.task.FutureTask
 import scommons.react.test._
 import scommons.reactnative._
@@ -33,24 +32,6 @@ class UserScreenSpec extends TestSpec with ShallowRendererUtils {
 
     //when
     logout.props.onPress()
-  }
-
-  it should "render userStackComp" in {
-    //given
-    val userController = mock[UserController]
-    val userControllerComp = "UserController".asInstanceOf[ReactClass]
-    (userController.apply _).expects().returning(userControllerComp)
-    val userStackComp = UserScreen.userStackComp(userController)
-
-    //when
-    val result = shallowRender(<(userStackComp)()())
-
-    //then
-    assertNativeComponent(result,
-      <(Stack.Navigator)(^.initialRouteName := "Profile")(
-        <(Stack.Screen)(^.name := "Profile", ^.component := userControllerComp)()
-      )
-    )
   }
 
   it should "render empty component if no profile data" in {

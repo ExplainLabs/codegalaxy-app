@@ -2,8 +2,6 @@ package io.codegalaxy.app.user
 
 import io.github.shogowada.scalajs.reactjs.redux.Redux.Dispatch
 import scommons.react._
-import scommons.react.navigation._
-import scommons.react.navigation.stack._
 import scommons.reactnative._
 
 import scala.scalajs.js
@@ -51,16 +49,6 @@ object UserScreen extends FunctionComponent[UserScreenProps] {
       }
     )
   }
-
-  private[user] lazy val Stack = createStackNavigator()
-
-  def userStackComp(userController: UserController): ReactClass = new FunctionComponent[Unit] {
-    protected def render(props: Props): ReactElement = {
-      <(Stack.Navigator)(^.initialRouteName := "Profile")(
-        <(Stack.Screen)(^.name := "Profile", ^.component := userController())()
-      )
-    }
-  }.apply()
 
   private[user] lazy val styles = StyleSheet.create(new Styles)
   private[user] class Styles extends js.Object {

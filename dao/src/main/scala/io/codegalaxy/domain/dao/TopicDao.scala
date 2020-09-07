@@ -10,9 +10,9 @@ class TopicDao(val ctx: CodeGalaxyDBContext) extends CommonDao
 
   import ctx._
 
-  def getById(id: Int): Future[Option[TopicEntity]] = {
-    getOne("getById", ctx.performIO(ctx.run(topics
-      .filter(c => c.id == lift(id))
+  def getByAlias(alias: String): Future[Option[TopicEntity]] = {
+    getOne("getByAlias", ctx.performIO(ctx.run(topics
+      .filter(c => c.alias == lift(alias))
     )))
   }
 

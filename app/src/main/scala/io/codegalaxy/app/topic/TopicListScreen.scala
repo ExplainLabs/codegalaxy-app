@@ -1,12 +1,11 @@
 package io.codegalaxy.app.topic
 
 import io.codegalaxy.app.CodeGalaxyIcons
+import io.codegalaxy.app.info._
 import io.codegalaxy.domain.TopicEntity
 import io.github.shogowada.scalajs.reactjs.redux.Redux.Dispatch
 import scommons.react._
 import scommons.react.hooks._
-import scommons.react.navigation._
-import scommons.react.navigation.stack._
 import scommons.reactnative.FlatList.FlatListData
 import scommons.reactnative._
 import scommons.reactnative.svg._
@@ -14,11 +13,12 @@ import scommons.reactnative.svg._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.scalajs.js
 
-case class TopicsScreenProps(dispatch: Dispatch,
-                             actions: TopicActions,
-                             data: TopicState)
+case class TopicListScreenProps(dispatch: Dispatch,
+                                actions: TopicActions,
+                                data: TopicState,
+                                navigate: String => Unit)
 
-object TopicsScreen extends FunctionComponent[TopicsScreenProps] {
+object TopicListScreen extends FunctionComponent[TopicListScreenProps] {
 
   protected def render(compProps: Props): ReactElement = {
     val (refreshing, setRefreshing) = useState(false)
@@ -33,7 +33,7 @@ object TopicsScreen extends FunctionComponent[TopicsScreenProps] {
 
     def renderItem(data: TopicEntity): ReactElement = {
       <.TouchableWithoutFeedback(^.onPress := { () =>
-        //TODO: handle onPress
+        props.navigate(data.alias)
       })(
         <.View(^.rnStyle := styles.rowContainer)(
           <.View(^.rnStyle := js.Array(styles.iconContainer, styles.icon))(
@@ -52,18 +52,10 @@ object TopicsScreen extends FunctionComponent[TopicsScreenProps] {
               <.Text(^.rnStyle := styles.itemInfo)(s" : ${data.numLearners}")
             )
           ),
-          <.View(^.rnStyle := styles.statsContainer)(data.progress match {
-            case Some(progress) => <.>()(
-              <.Text(^.rnStyle := styles.statsLabel)("Open"),
-              <.View(^.rnStyle := styles.statsProgress)(
-                <.Text()(s"$progress")
-              )
-            )
-            case None => <.>()(
-              <.Text(^.rnStyle := styles.statsLabel)("Start"),
-              <.SvgXml(^.rnStyle := styles.startSvg, ^.xml := startSvgXml)()
-            )
-          })
+          <(ListItemNavIcon())(^.wrapped := ListItemNavIconProps(
+            progress = data.progress.getOrElse(0),
+            showLabel = true
+          ))()
         )
       )
     }
@@ -92,25 +84,6 @@ object TopicsScreen extends FunctionComponent[TopicsScreenProps] {
       )()
     )
   }
-
-  private[topic] lazy val Stack = createStackNavigator()
-
-  def topicStackComp(topicsController: TopicsController): ReactClass = new FunctionComponent[Unit] {
-    protected def render(props: Props): ReactElement = {
-      <(Stack.Navigator)(^.initialRouteName := "Quizzes")(
-        <(Stack.Screen)(^.name := "Quizzes", ^.component := topicsController())()
-      )
-    }
-  }.apply()
-
-  private[topic] lazy val startSvgXml =
-    """<svg width="32" height="32" viewBox="0 0 512 512">
-      |  <path
-      |    fill="#1e90ff"
-      |    d="M256 504c137 0 248-111 248-248S393 8 256 8 8 119 8 256s111 248 248 248zM40 256c0-118.7 96.1-216 216-216 118.7 0 216 96.1 216 216 0 118.7-96.1 216-216 216-118.7 0-216-96.1-216-216zm331.7-18l-176-107c-15.8-8.8-35.7 2.5-35.7 21v208c0 18.4 19.8 29.8 35.7 21l176-101c16.4-9.1 16.4-32.8 0-42zM192 335.8V176.9c0-4.7 5.1-7.6 9.1-5.1l134.5 81.7c3.9 2.4 3.8 8.1-.1 10.3L201 341c-4 2.3-9-.6-9-5.2z"
-      |  />
-      |</svg>
-      |""".stripMargin
 
   private[topic] lazy val styles = StyleSheet.create(new Styles)
   private[topic] class Styles extends js.Object {
@@ -152,32 +125,6 @@ object TopicsScreen extends FunctionComponent[TopicsScreenProps] {
     }
     val itemInfo: Style = new TextStyle {
       override val color = "rgba(0, 0, 0, .5)"
-    }
-    val statsContainer: Style = new ViewStyle {
-      override val flex = 1
-      override val flexDirection = FlexDirection.row
-      override val flexWrap = FlexWrap.wrap
-      override val alignItems = AlignItems.center
-      override val justifyContent = JustifyContent.`flex-end`
-    }
-    val statsLabel: Style = new TextStyle {
-      override val color = Color.dodgerblue
-      override val fontWeight = FontWeight.bold
-      override val marginRight = 5
-    }
-    val statsProgress: Style = new ViewStyle {
-      override val alignItems = AlignItems.center
-      override val justifyContent = JustifyContent.center
-      override val width = 32
-      override val height = 32
-      override val borderRadius = 16
-      override val borderWidth = 2
-      override val borderColor = Color.dodgerblue
-    }
-    val startSvg: Style = new ViewStyle {
-      override val color = Color.dodgerblue
-      override val width = "100%"
-      override val height = "100%"
     }
   }
 }
