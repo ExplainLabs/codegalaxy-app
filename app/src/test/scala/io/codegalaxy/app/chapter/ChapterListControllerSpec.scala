@@ -25,22 +25,25 @@ class ChapterListControllerSpec extends TestSpec {
     val state = mock[CodeGalaxyStateDef]
     val chapterState = mock[ChapterState]
     val nav = mock[Navigation]
+    val chapter = "test_chapter"
     val params = TopicParams("test_topic")
 
     (state.chapterState _).expects().returning(chapterState)
     (nav.getParams _).expects().returning(params.toMap)
+    (nav.navigate(_: String, _: Map[String, String]))
+      .expects("Question", params.copy(chapter = Some(chapter)).toMap)
     
     //when
     val result = controller.mapStateAndRouteToProps(dispatch, state, nav)
     
     //then
     inside(result) {
-      case ChapterListScreenProps(resDispatch, resActions, resData, resParams, _) =>
+      case ChapterListScreenProps(resDispatch, resActions, resData, resParams, navigate) =>
         resDispatch shouldBe dispatch
         resActions shouldBe actions
         resData shouldBe chapterState
         resParams shouldBe params
-        //navigate(params.topic)
+        navigate(chapter)
     }
   }
 }

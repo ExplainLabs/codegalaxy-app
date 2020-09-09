@@ -51,7 +51,8 @@ class CodeGalaxyRootSpec extends AsyncTestSpec
     assertNativeComponent(result,
       <(TopicStack.Navigator)(^.initialRouteName := "Quizzes")(
         <(TopicStack.Screen)(^.name := "Quizzes", ^.component := topicListController())(),
-        <(TopicStack.Screen)(^.name := "Quiz", ^.component := chapterListController())()
+        <(TopicStack.Screen)(^.name := "Quiz", ^.component := chapterListController())(),
+        <(TopicStack.Screen)(^.name := "Question", ^.component := questionController())()
       )
     )
   }

@@ -2,6 +2,7 @@ package io.codegalaxy.app
 
 import io.codegalaxy.app.auth._
 import io.codegalaxy.app.chapter.ChapterListController
+import io.codegalaxy.app.question.QuestionController
 import io.codegalaxy.app.topic.TopicListController
 import io.codegalaxy.app.user._
 import io.github.shogowada.scalajs.reactjs.redux.Redux.Dispatch
@@ -100,6 +101,7 @@ class CodeGalaxyRoot(actions: CodeGalaxyActions) extends FunctionComponent[CodeG
   private[app] lazy val loginController = new LoginController(actions)
   private[app] lazy val topicListController = new TopicListController(actions)
   private[app] lazy val chapterListController = new ChapterListController(actions)
+  private[app] lazy val questionController = new QuestionController(actions)
   private[app] lazy val userController = new UserController(actions)
 
   private[app] lazy val TopicStack = createStackNavigator()
@@ -107,7 +109,8 @@ class CodeGalaxyRoot(actions: CodeGalaxyActions) extends FunctionComponent[CodeG
     protected def render(props: Props): ReactElement = {
       <(TopicStack.Navigator)(^.initialRouteName := "Quizzes")(
         <(TopicStack.Screen)(^.name := "Quizzes", ^.component := topicListController())(),
-        <(TopicStack.Screen)(^.name := "Quiz", ^.component := chapterListController())()
+        <(TopicStack.Screen)(^.name := "Quiz", ^.component := chapterListController())(),
+        <(TopicStack.Screen)(^.name := "Question", ^.component := questionController())()
       )
     }
   }.apply()

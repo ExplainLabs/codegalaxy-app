@@ -1,6 +1,7 @@
 package io.codegalaxy.api
 
 import io.codegalaxy.api.chapter._
+import io.codegalaxy.api.question._
 import io.codegalaxy.api.stats._
 import io.codegalaxy.api.topic._
 import io.codegalaxy.api.user._
@@ -16,7 +17,8 @@ class CodeGalaxyApiClient(client: ApiHttpClient)
   extends UserApi
   with TopicApi
   with StatsApi
-  with ChapterApi {
+  with ChapterApi
+  with QuestionApi {
 
   ////////////////////////////////////////////////////////////////////////////////////////
   // user api
@@ -81,5 +83,12 @@ class CodeGalaxyApiClient(client: ApiHttpClient)
 
   def getChapters(topic: String): Future[List[ChapterRespData]] = {
     client.execGet[List[ChapterRespData]](s"/v1/topics/$topic/modules")
+  }
+
+  ////////////////////////////////////////////////////////////////////////////////////////
+  // question api
+
+  def getNextQuestion(topic: String, chapter: String): Future[QuestionData] = {
+    client.execGet[QuestionData](s"/v1/topics/$topic/modules/$chapter/question")
   }
 }
