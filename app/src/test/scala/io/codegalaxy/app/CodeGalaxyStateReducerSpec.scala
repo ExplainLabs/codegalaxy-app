@@ -1,6 +1,7 @@
 package io.codegalaxy.app
 
 import io.codegalaxy.app.chapter.ChapterState
+import io.codegalaxy.app.question.QuestionState
 import io.codegalaxy.app.topic.TopicState
 import io.codegalaxy.app.user.UserActions.UserLoginAction
 import io.codegalaxy.app.user.UserState
@@ -22,12 +23,14 @@ class CodeGalaxyStateReducerSpec extends TestSpec {
         currentTask,
         userState,
         topicState,
-        chapterState
+        chapterState,
+        questionState
       ) =>
         currentTask shouldBe None
         userState shouldBe UserState()
         topicState shouldBe TopicState()
         chapterState shouldBe ChapterState()
+        questionState shouldBe QuestionState()
     }
   }
 

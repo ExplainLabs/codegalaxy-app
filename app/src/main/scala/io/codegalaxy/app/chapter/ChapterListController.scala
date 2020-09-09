@@ -24,7 +24,7 @@ class ChapterListController(actions: ChapterActions)
       data = state.chapterState,
       params = params,
       navigate = { chapter =>
-        //nav.navigate("Chapter", params.copy(chapter = Some(chapter)).toMap)
+        nav.navigate("Question", params.copy(chapter = Some(chapter)).toMap)
       }
     )
   }
