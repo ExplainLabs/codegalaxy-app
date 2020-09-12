@@ -17,18 +17,14 @@ class QuestionScreenSpec extends AsyncTestSpec
   with ShallowRendererUtils
   with TestRendererUtils {
 
-  it should "dispatch actions when mount" in {
+  it should "dispatch actions if topic is changed when mount" in {
     //given
     val dispatch = mockFunction[Any, Any]
     val actions = mock[QuestionActions]
     val topic = "new_topic"
-    val chapter = "new_chapter"
-    val props = {
+    val (props, Some(chapter)) = {
       val props = getQuestionScreenProps(dispatch, actions)
-      props.copy(params = props.params.copy(
-        topic = topic,
-        chapter = Some(chapter)
-      ))
+      (props.copy(params = props.params.copy(topic = topic)), props.data.chapter)
     }
     val data = mock[QuestionData]
     val fetchAction = QuestionFetchAction(topic, chapter, FutureTask("Fetching Question",
@@ -45,6 +41,47 @@ class QuestionScreenSpec extends AsyncTestSpec
     fetchAction.task.future.map { _ =>
       Succeeded
     }
+  }
+
+  it should "dispatch actions if chapter is changed when mount" in {
+    //given
+    val dispatch = mockFunction[Any, Any]
+    val actions = mock[QuestionActions]
+    val chapter = "new_chapter"
+    val (props, Some(topic)) = {
+      val props = getQuestionScreenProps(dispatch, actions)
+      (props.copy(params = props.params.copy(chapter = Some(chapter))), props.data.topic)
+    }
+    val data = mock[QuestionData]
+    val fetchAction = QuestionFetchAction(topic, chapter, FutureTask("Fetching Question",
+      Future.successful(data)))
+    
+    //then
+    (actions.fetchQuestion _).expects(dispatch, topic, chapter).returning(fetchAction)
+    dispatch.expects(fetchAction)
+
+    //when
+    testRender(<(QuestionScreen())(^.wrapped := props)())
+
+    //then
+    fetchAction.task.future.map { _ =>
+      Succeeded
+    }
+  }
+
+  it should "do not dispatch actions if params not changed when mount" in {
+    //given
+    val dispatch = mockFunction[Any, Any]
+    val actions = mock[QuestionActions]
+    val props = getQuestionScreenProps(dispatch, actions)
+    
+    //then
+    (actions.fetchQuestion _).expects(*, *, *).never()
+
+    //when
+    testRender(<(QuestionScreen())(^.wrapped := props)())
+
+    Succeeded
   }
 
   it should "render Loading... if no question data " in {

@@ -102,6 +102,21 @@ class ChapterListScreenSpec extends AsyncTestSpec
     }
   }
 
+  it should "not dispatch actions if params not changed when mount" in {
+    //given
+    val dispatch = mockFunction[Any, Any]
+    val actions = mock[ChapterActions]
+    val props = getChapterListScreenProps(dispatch, actions)
+    
+    //then
+    (actions.fetchChapters _).expects(*, *, *).never()
+
+    //when
+    testRender(<(ChapterListScreen())(^.wrapped := props)())
+
+    Succeeded
+  }
+
   it should "return data.alias from keyExtractor" in {
     //given
     val props = getChapterListScreenProps()

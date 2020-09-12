@@ -125,12 +125,12 @@ class ChapterServiceSpec extends BaseDBContextSpec {
       chapter = ChapterData(
         alias = alias,
         name = "Test Chapter",
-        info = InfoData(
+        info = Some(InfoData(
           numberOfQuestions = 1,
           numberOfPaid = 2,
           numberOfLearners = 3,
           numberOfChapters = 4
-        )
+        ))
       ),
       stats = StatsData(
         progressAll = 99
@@ -140,15 +140,17 @@ class ChapterServiceSpec extends BaseDBContextSpec {
 
   private def toChapterEntity(topic: String, resp: ChapterRespData): ChapterEntity = {
     val data = resp.chapter
+    val info = data.info.getOrElse(InfoData())
+    
     ChapterEntity(
       id = -1,
       topic = topic,
       alias = data.alias,
       name = data.name,
-      numQuestions = data.info.numberOfQuestions,
-      numPaid = data.info.numberOfPaid,
-      numLearners = data.info.numberOfLearners,
-      numChapters = data.info.numberOfChapters,
+      numQuestions = info.numberOfQuestions,
+      numPaid = info.numberOfPaid,
+      numLearners = info.numberOfLearners,
+      numChapters = info.numberOfChapters,
       progress = resp.stats.progressAll
     )
   }

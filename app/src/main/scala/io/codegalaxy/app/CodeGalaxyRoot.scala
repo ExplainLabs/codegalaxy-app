@@ -3,7 +3,7 @@ package io.codegalaxy.app
 import io.codegalaxy.app.auth._
 import io.codegalaxy.app.chapter.ChapterListController
 import io.codegalaxy.app.question.QuestionController
-import io.codegalaxy.app.topic.TopicListController
+import io.codegalaxy.app.topic.{TopicListController, TopicParams}
 import io.codegalaxy.app.user._
 import io.github.shogowada.scalajs.reactjs.redux.Redux.Dispatch
 import scommons.react._
@@ -20,15 +20,38 @@ import scala.scalajs.js
 
 case class CodeGalaxyRootProps(dispatch: Dispatch,
                                actions: UserActions,
-                               state: UserState,
+                               state: CodeGalaxyStateDef,
                                onAppReady: () => Unit)
 
 class CodeGalaxyRoot(actions: CodeGalaxyActions) extends FunctionComponent[CodeGalaxyRootProps] {
 
   protected def render(compProps: Props): ReactElement = {
     val props = compProps.wrapped
-    val showLogin = props.state.profile.isEmpty
+    val userState = props.state.userState
+    val showLogin = userState.profile.isEmpty
     val (isReady, setIsReady) = useState(false)
+
+    def getParams(navProps: NavigationProps): TopicParams = {
+      val params = new Navigation(navProps.navigation, navProps.route).getParams
+      TopicParams.fromMap(params)
+    }
+    
+    def findTopicName(alias: String): Option[String] = {
+      props.state.topicState.topics.find(_.alias == alias).map(_.name)
+    }
+
+    def findChapterName(alias: String): Option[String] = {
+      props.state.chapterState.chapters.find(_.alias == alias).map(_.name)
+    }
+    
+    def getScreenTitle(navProps: NavigationProps): String = {
+      val routeName = navProps.route.name
+      routeName match {
+        case "Quiz" => findTopicName(getParams(navProps).topic).getOrElse(routeName)
+        case "Question" => findChapterName(getParams(navProps).getChapter).getOrElse(routeName)
+        case _ => routeName
+      }
+    }
 
     useEffect({ () =>
       val initF = for {
@@ -56,47 +79,39 @@ class CodeGalaxyRoot(actions: CodeGalaxyActions) extends FunctionComponent[CodeG
     else {
       <.NavigationContainer()(
         if (showLogin) {
-          <(Stack.Navigator)(
+          <(LoginStack.Navigator)(
             ^.screenOptions := new StackScreenOptions {
               override val headerShown = false
             }
           )(
-            <(Stack.Screen)(^.name := "Login", ^.component := loginController())()
+            <(LoginStack.Screen)(^.name := "Login", ^.component := loginController())()
           )
         }
         else {
-          <(Tab.Navigator)(
-            ^.initialRouteName := "Quizzes",
-            ^.tabBarOptions := new TabBarOptions {
-              override val labelPosition = LabelPosition.`below-icon`
+          <(AppStack.Navigator)(
+            ^.screenOptions := { navProps =>
+              val screenTitle = getScreenTitle(navProps)
+              val options = new StackScreenOptions {
+                val headerBackTitleVisible = false
+                override val title = screenTitle
+              }
+              options
             }
           )(
-            <(Tab.Screen)(
-              ^.name := "Quizzes",
-              ^.component := topicStackComp,
-              ^.options := new TabScreenOptions {
-                override val tabBarIcon = { params =>
-                  <(CodeGalaxyIcons.FontAwesome5)(^.name := "list", ^.rnSize := params.size, ^.color := params.color)()
-                }: js.Function1[TabBarIconParams, ReactElement]
-              }
+            <(AppStack.Screen)(
+              ^.name := "Home",
+              ^.options := new StackScreenOptions {
+                override val title = "CodeGalaxy"
+              },
+              ^.component := homeTabComp
             )(),
-            <(Tab.Screen)(
-              ^.name := "Me",
-              ^.component := userStackComp,
-              ^.options := new TabScreenOptions {
-                override val tabBarIcon = { params =>
-                  <(CodeGalaxyIcons.FontAwesome5)(^.name := "user", ^.rnSize := params.size, ^.color := params.color)()
-                }: js.Function1[TabBarIconParams, ReactElement]
-              }
-            )()
+            <(AppStack.Screen)(^.name := "Quiz", ^.component := chapterListController())(),
+            <(AppStack.Screen)(^.name := "Question", ^.component := questionController())()
           )
         }
       )
     }
   }
-
-  private[app] lazy val Tab = createBottomTabNavigator()
-  private[app] lazy val Stack = createStackNavigator()
 
   private[app] lazy val loginController = new LoginController(actions)
   private[app] lazy val topicListController = new TopicListController(actions)
@@ -104,13 +119,36 @@ class CodeGalaxyRoot(actions: CodeGalaxyActions) extends FunctionComponent[CodeG
   private[app] lazy val questionController = new QuestionController(actions)
   private[app] lazy val userController = new UserController(actions)
 
-  private[app] lazy val TopicStack = createStackNavigator()
-  private[app] lazy val topicStackComp: ReactClass = new FunctionComponent[Unit] {
+  private[app] lazy val LoginStack = createStackNavigator()
+  private[app] lazy val AppStack = createStackNavigator()
+
+  private[app] lazy val HomeTab = createBottomTabNavigator()
+  private[app] lazy val homeTabComp: ReactClass = new FunctionComponent[Unit] {
     protected def render(props: Props): ReactElement = {
-      <(TopicStack.Navigator)(^.initialRouteName := "Quizzes")(
-        <(TopicStack.Screen)(^.name := "Quizzes", ^.component := topicListController())(),
-        <(TopicStack.Screen)(^.name := "Quiz", ^.component := chapterListController())(),
-        <(TopicStack.Screen)(^.name := "Question", ^.component := questionController())()
+      <(HomeTab.Navigator)(
+        ^.initialRouteName := "Quizzes",
+        ^.tabBarOptions := new TabBarOptions {
+          override val labelPosition = LabelPosition.`below-icon`
+        }
+      )(
+        <(HomeTab.Screen)(
+          ^.name := "Quizzes",
+          ^.component := topicListController(),
+          ^.options := new TabScreenOptions {
+            override val tabBarIcon = { params =>
+              <(CodeGalaxyIcons.FontAwesome5)(^.name := "list", ^.rnSize := params.size, ^.color := params.color)()
+            }: js.Function1[TabBarIconParams, ReactElement]
+          }
+        )(),
+        <(HomeTab.Screen)(
+          ^.name := "Me",
+          ^.component := userStackComp,
+          ^.options := new TabScreenOptions {
+            override val tabBarIcon = { params =>
+              <(CodeGalaxyIcons.FontAwesome5)(^.name := "user", ^.rnSize := params.size, ^.color := params.color)()
+            }: js.Function1[TabBarIconParams, ReactElement]
+          }
+        )()
       )
     }
   }.apply()

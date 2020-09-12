@@ -16,7 +16,7 @@ class CodeGalaxyRootController(onAppReady: () => Unit, actions: CodeGalaxyAction
     CodeGalaxyRootProps(
       dispatch = dispatch,
       actions = actions,
-      state = state.userState,
+      state = state,
       onAppReady = onAppReady
     )
   }

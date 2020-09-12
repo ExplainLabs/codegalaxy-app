@@ -98,6 +98,21 @@ class TopicListScreenSpec extends AsyncTestSpec
     )
   }
 
+  it should "not dispatch actions if topics list is not empty when mount" in {
+    //given
+    val dispatch = mockFunction[Any, Any]
+    val actions = mock[TopicActions]
+    val props = getTopicListScreenProps(dispatch, actions)
+    
+    //then
+    (actions.fetchTopics _).expects(*, *).never()
+
+    //when
+    testRender(<(TopicListScreen())(^.wrapped := props)())
+
+    Succeeded
+  }
+
   it should "return data.alias from keyExtractor" in {
     //given
     val props = getTopicListScreenProps()

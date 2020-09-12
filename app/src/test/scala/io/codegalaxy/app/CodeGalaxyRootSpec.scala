@@ -1,9 +1,11 @@
 package io.codegalaxy.app
 
+import io.codegalaxy.app.chapter.ChapterState
 import io.codegalaxy.app.topic.TopicActions.TopicsFetchAction
+import io.codegalaxy.app.topic.TopicState
 import io.codegalaxy.app.user.UserActions.UserLoginAction
 import io.codegalaxy.app.user._
-import io.codegalaxy.domain.ProfileEntity
+import io.codegalaxy.domain.{ChapterEntity, ProfileEntity, TopicEntity}
 import org.scalatest.Assertion
 import scommons.nodejs.test.AsyncTestSpec
 import scommons.react._
@@ -23,65 +25,15 @@ class CodeGalaxyRootSpec extends AsyncTestSpec
   with ShallowRendererUtils
   with TestRendererUtils {
 
-  it should "render initial component" in {
-    //given
-    val dispatch = mockFunction[Any, Any]
-    val actions = mock[CodeGalaxyActions]
-    val codeGalaxyRoot = new CodeGalaxyRoot(actions)
-    val props = CodeGalaxyRootProps(dispatch, actions, UserState(None), onAppReady = () => ())
-
-    //when
-    val result = shallowRender(<(codeGalaxyRoot())(^.wrapped := props)())
-
-    //then
-    assertNativeComponent(result, <.>()())
-  }
-  
-  it should "render topic stack component" in {
-    //give
-    val actions = mock[CodeGalaxyActions]
-    val codeGalaxyRoot = new CodeGalaxyRoot(actions)
-
-    //when
-    val result = shallowRender(<(codeGalaxyRoot.topicStackComp)()())
-
-    //then
-    import codeGalaxyRoot._
-    
-    assertNativeComponent(result,
-      <(TopicStack.Navigator)(^.initialRouteName := "Quizzes")(
-        <(TopicStack.Screen)(^.name := "Quizzes", ^.component := topicListController())(),
-        <(TopicStack.Screen)(^.name := "Quiz", ^.component := chapterListController())(),
-        <(TopicStack.Screen)(^.name := "Question", ^.component := questionController())()
-      )
-    )
-  }
-
-  it should "render user stack component" in {
-    //given
-    val actions = mock[CodeGalaxyActions]
-    val codeGalaxyRoot = new CodeGalaxyRoot(actions)
-
-    //when
-    val result = shallowRender(<(codeGalaxyRoot.userStackComp)()())
-
-    //then
-    import codeGalaxyRoot._
-    
-    assertNativeComponent(result,
-      <(UserStack.Navigator)(^.initialRouteName := "Profile")(
-        <(UserStack.Screen)(^.name := "Profile", ^.component := userController())()
-      )
-    )
-  }
-
   it should "dispatch actions and render LoginScreen if not logged-in" in {
     //given
     val dispatch = mockFunction[Any, Any]
     val actions = mock[CodeGalaxyActions]
+    val state = mock[CodeGalaxyStateDef]
     val onAppReady = mockFunction[Unit]
     val codeGalaxyRoot = new CodeGalaxyRoot(actions)
-    val props = CodeGalaxyRootProps(dispatch, actions, UserState(None), onAppReady = onAppReady)
+    val props = CodeGalaxyRootProps(dispatch, actions, state, onAppReady = onAppReady)
+    (state.userState _).expects().returning(UserState(None)).twice()
 
     val profileAction = UserLoginAction(FutureTask("Fetching Profile", Future.successful(None)))
 
@@ -98,20 +50,16 @@ class CodeGalaxyRootSpec extends AsyncTestSpec
     import codeGalaxyRoot._
 
     eventually {
-      TestRenderer.act { () =>
-        renderer.update(<(codeGalaxyRoot())(^.wrapped := props)())
-      }
-
       val result = renderer.root.children(0)
       assertNativeComponent(result, <.NavigationContainer()(), { children: List[TestInstance] =>
         val List(navigator) = children
         assertNativeComponent(navigator,
-          <(Stack.Navigator)(
+          <(LoginStack.Navigator)(
             ^.screenOptions := new StackScreenOptions {
               override val headerShown = false
             }
           )(
-            <(Stack.Screen)(^.name := "Login", ^.component := loginController())()
+            <(LoginStack.Screen)(^.name := "Login", ^.component := loginController())()
           )
         )
       })
@@ -122,10 +70,12 @@ class CodeGalaxyRootSpec extends AsyncTestSpec
     //given
     val dispatch = mockFunction[Any, Any]
     val actions = mock[CodeGalaxyActions]
+    val state = mock[CodeGalaxyStateDef]
     val onAppReady = mockFunction[Unit]
     val codeGalaxyRoot = new CodeGalaxyRoot(actions)
     val profile = Some(mock[ProfileEntity])
-    val props = CodeGalaxyRootProps(dispatch, actions, UserState(profile), onAppReady = onAppReady)
+    val props = CodeGalaxyRootProps(dispatch, actions, state, onAppReady = onAppReady)
+    (state.userState _).expects().returning(UserState(profile)).twice()
 
     val profileAction = UserLoginAction(FutureTask("Fetching Profile", Future.successful(profile)))
     val fetchTopicsAction = TopicsFetchAction(FutureTask("Fetching Topics", Future.successful(Nil)))
@@ -147,19 +97,164 @@ class CodeGalaxyRootSpec extends AsyncTestSpec
     } yield ()
 
     resultF.map { _ =>
-      TestRenderer.act { () =>
-        renderer.update(<(codeGalaxyRoot())(^.wrapped := props)())
-      }
+      import codeGalaxyRoot._
 
       val result = renderer.root.children(0)
-      assertCodeGalaxyRoot(result, codeGalaxyRoot)
+      assertNativeComponent(result, <.NavigationContainer()(), { children: List[TestInstance] =>
+        val List(navigator) = children
+        assertNativeComponent(navigator,
+          <(AppStack.Navigator)()(
+            <(AppStack.Screen)(
+              ^.name := "Home",
+              ^.options := new StackScreenOptions {
+                override val title = "CodeGalaxy"
+              },
+              ^.component := homeTabComp
+            )(),
+            <(AppStack.Screen)(^.name := "Quiz", ^.component := chapterListController())(),
+            <(AppStack.Screen)(^.name := "Question", ^.component := questionController())()
+          )
+        )
+      })
     }
   }
 
-  private def assertCodeGalaxyRoot(result: TestInstance, codeGalaxyRoot: CodeGalaxyRoot): Assertion = {
+  it should "render dynamic app stack screens titles" in {
+    //given
+    val dispatch = mockFunction[Any, Any]
+    val actions = mock[CodeGalaxyActions]
+    val state = mock[CodeGalaxyStateDef]
+    val onAppReady = mockFunction[Unit]
+    val codeGalaxyRoot = new CodeGalaxyRoot(actions)
+    val profile = Some(mock[ProfileEntity])
+    val props = CodeGalaxyRootProps(dispatch, actions, state, onAppReady = onAppReady)
+    (state.userState _).expects().returning(UserState(profile)).twice()
+
+    val profileAction = UserLoginAction(FutureTask("Fetching Profile", Future.successful(None)))
+    (actions.userProfileFetch _).expects(dispatch).returning(profileAction)
+    (actions.fetchTopics _).expects(*, *).never()
+    dispatch.expects(profileAction)
+    onAppReady.expects()
+
+    val renderer = createTestRenderer(<(codeGalaxyRoot())(^.wrapped := props)())
+    import codeGalaxyRoot._
+    val prepareF = eventually {
+      val result = renderer.root.children(0)
+      findComponents(result, AppStack.Navigator) should not be empty
+    }
+
+    prepareF.map { _ =>
+      val result = renderer.root.children(0)
+      val List(appStackNav) = findComponents(result, AppStack.Navigator)
+      val topic = "test_topic"
+      val chapter = "test_chapter"
+
+      def navProps(route: String): js.Dynamic = {
+        js.Dynamic.literal(
+          "navigation" -> js.Dynamic.literal(),
+          "route" -> js.Dynamic.literal(
+            "name" -> route,
+            "params" -> js.Dynamic.literal(
+              "topic" -> topic,
+              "chapter" -> chapter
+            )
+          )
+        )
+      }
+
+      //then
+      (state.topicState _).expects().returning(TopicState(Seq(TopicEntity(
+        id = 1,
+        alias = topic,
+        name = "Test Topic",
+        lang = "en",
+        numQuestions = 1,
+        numPaid = 2,
+        numLearners = 3,
+        numChapters = 4,
+        svgIcon = Some("test svg"),
+        progress = None
+      ))))
+      (state.chapterState _).expects().returning(ChapterState(Some(topic), Seq(ChapterEntity(
+        id = 1,
+        topic = topic,
+        alias = chapter,
+        name = "Test Chapter",
+        numQuestions = 1,
+        numPaid = 2,
+        numLearners = 3,
+        numChapters = 4,
+        progress = 5
+      ))))
+
+      //when & then
+      inside(appStackNav.props.screenOptions(navProps("Quiz"))) { case opts =>
+        opts.headerBackTitleVisible shouldBe false
+        opts.title shouldBe "Test Topic"
+      }
+      //when & then
+      inside(appStackNav.props.screenOptions(navProps("Question"))) { case opts =>
+        opts.headerBackTitleVisible shouldBe false
+        opts.title shouldBe "Test Chapter"
+      }
+      //when & then
+      inside(appStackNav.props.screenOptions(navProps("otherRoute"))) { case opts =>
+        opts.headerBackTitleVisible shouldBe false
+        opts.title shouldBe "otherRoute"
+      }
+    }
+  }
+
+  it should "render initial empty component" in {
+    //given
+    val dispatch = mockFunction[Any, Any]
+    val actions = mock[CodeGalaxyActions]
+    val state = mock[CodeGalaxyStateDef]
+    val codeGalaxyRoot = new CodeGalaxyRoot(actions)
+    val props = CodeGalaxyRootProps(dispatch, actions, state, onAppReady = () => ())
+    (state.userState _).expects().returning(UserState(None))
+
+    //when
+    val result = shallowRender(<(codeGalaxyRoot())(^.wrapped := props)())
+
+    //then
+    assertNativeComponent(result, <.>()())
+  }
+
+  it should "render home tab component" in {
+    //give
+    val actions = mock[CodeGalaxyActions]
+    val codeGalaxyRoot = new CodeGalaxyRoot(actions)
+
+    //when
+    val result = shallowRender(<(codeGalaxyRoot.homeTabComp)()())
+
+    //then
+    assertHomeTabComp(result, codeGalaxyRoot)
+  }
+
+  it should "render user stack component" in {
+    //given
+    val actions = mock[CodeGalaxyActions]
+    val codeGalaxyRoot = new CodeGalaxyRoot(actions)
+
+    //when
+    val result = shallowRender(<(codeGalaxyRoot.userStackComp)()())
+
+    //then
     import codeGalaxyRoot._
 
-    def renderIcon(tab: TestInstance, size: Int, color: String): TestInstance = {
+    assertNativeComponent(result,
+      <(UserStack.Navigator)(^.initialRouteName := "Profile")(
+        <(UserStack.Screen)(^.name := "Profile", ^.component := userController())()
+      )
+    )
+  }
+
+  private def assertHomeTabComp(result: ShallowInstance, codeGalaxyRoot: CodeGalaxyRoot): Assertion = {
+    import codeGalaxyRoot._
+
+    def renderIcon(tab: ShallowInstance, size: Int, color: String): ShallowInstance = {
       val iconComp = tab.props.options.tabBarIcon(js.Dynamic.literal("size" -> size, "color" -> color))
 
       val wrapper = new FunctionComponent[Unit] {
@@ -168,35 +263,30 @@ class CodeGalaxyRootSpec extends AsyncTestSpec
         }
       }
 
-      testRender(<(wrapper()).empty)
+      shallowRender(<(wrapper()).empty)
     }
 
-    assertNativeComponent(result, <.NavigationContainer()(), { children: List[TestInstance] =>
-      val List(navigator) = children
-      assertNativeComponent(navigator,
-        <(Tab.Navigator)(
-          ^.initialRouteName := "Quizzes",
-          ^.tabBarOptions := new TabBarOptions {
-            override val labelPosition = LabelPosition.`below-icon`
-          }
-        )()
-        , { children: List[TestInstance] =>
-          val List(tab1, tab2) = children
-          
-          assertNativeComponent(tab1,
-            <(Tab.Screen)(^.name := "Quizzes", ^.component := topicStackComp)()
-          )
-          assertNativeComponent(renderIcon(tab1, 16, "green"),
-            <(CodeGalaxyIcons.FontAwesome5)(^.name := "list", ^.rnSize := 16, ^.color := "green")()
-          )
+    assertNativeComponent(result, <(HomeTab.Navigator)(
+      ^.initialRouteName := "Quizzes",
+      ^.tabBarOptions := new TabBarOptions {
+        override val labelPosition = LabelPosition.`below-icon`
+      }
+    )(), { children: List[ShallowInstance] =>
+      val List(tab1, tab2) = children
 
-          assertNativeComponent(tab2,
-            <(Tab.Screen)(^.name := "Me", ^.component := userStackComp)()
-          )
-          assertNativeComponent(renderIcon(tab2, 32, "red"),
-            <(CodeGalaxyIcons.FontAwesome5)(^.name := "user", ^.rnSize := 32, ^.color := "red")()
-          )
-        })
+      assertNativeComponent(tab1,
+        <(HomeTab.Screen)(^.name := "Quizzes", ^.component := topicListController())()
+      )
+      assertNativeComponent(renderIcon(tab1, 16, "green"),
+        <(CodeGalaxyIcons.FontAwesome5)(^.name := "list", ^.rnSize := 16, ^.color := "green")()
+      )
+
+      assertNativeComponent(tab2,
+        <(HomeTab.Screen)(^.name := "Me", ^.component := userStackComp)()
+      )
+      assertNativeComponent(renderIcon(tab2, 32, "red"),
+        <(CodeGalaxyIcons.FontAwesome5)(^.name := "user", ^.rnSize := 32, ^.color := "red")()
+      )
     })
   }
 }
