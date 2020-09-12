@@ -11,12 +11,12 @@ class ChapterRespDataSpec extends FlatSpec with Matchers {
     chapter = ChapterData(
       alias = "test_chapter",
       name = "Test Chapter Name",
-      info = InfoData(
+      info = Some(InfoData(
         numberOfQuestions = 1,
         numberOfPaid = 2,
         numberOfLearners = 3,
         numberOfChapters = 4
-      )
+      ))
     ),
     stats = StatsData(
       progressAll = 100

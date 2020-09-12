@@ -1,6 +1,5 @@
 package io.codegalaxy.app
 
-import io.codegalaxy.app.user.UserState
 import io.github.shogowada.scalajs.reactjs.redux.Redux.Dispatch
 import scommons.react.navigation.Navigation
 import scommons.react.test.TestSpec
@@ -23,11 +22,8 @@ class CodeGalaxyRootControllerSpec extends TestSpec {
     val onAppReady = mockFunction[Unit]
     val controller = new CodeGalaxyRootController(onAppReady, actions)
     val state = mock[CodeGalaxyStateDef]
-    val userState = mock[UserState]
     val nav = mock[Navigation]
 
-    (state.userState _).expects().returning(userState)
-    
     //when
     val result = controller.mapStateAndRouteToProps(dispatch, state, nav)
     
@@ -36,7 +32,7 @@ class CodeGalaxyRootControllerSpec extends TestSpec {
       case CodeGalaxyRootProps(resDispatch, resActions, resState, resOnAppReady) =>
         resDispatch shouldBe dispatch
         resActions shouldBe actions
-        resState shouldBe userState
+        resState shouldBe state
         resOnAppReady shouldBe onAppReady
     }
   }

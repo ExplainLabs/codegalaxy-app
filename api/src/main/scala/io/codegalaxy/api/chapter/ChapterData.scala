@@ -5,7 +5,7 @@ import play.api.libs.json._
 
 case class ChapterData(alias: String,
                        name: String,
-                       info: InfoData)
+                       info: Option[InfoData])
 
 object ChapterData {
 

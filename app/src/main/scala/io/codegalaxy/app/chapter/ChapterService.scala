@@ -1,6 +1,7 @@
 package io.codegalaxy.app.chapter
 
 import io.codegalaxy.api.chapter._
+import io.codegalaxy.api.data.InfoData
 import io.codegalaxy.app.chapter.ChapterService._
 import io.codegalaxy.domain.ChapterEntity
 import io.codegalaxy.domain.dao.ChapterDao
@@ -48,15 +49,18 @@ object ChapterService {
   private def convertToChapterEntity(topic: String,
                                      data: ChapterData,
                                      progress: Int): ChapterEntity = {
+    
+    val info = data.info.getOrElse(InfoData())
+    
     ChapterEntity(
       id = -1,
       topic = topic,
       alias = data.alias,
       name = data.name,
-      numQuestions = data.info.numberOfQuestions,
-      numPaid = data.info.numberOfPaid,
-      numLearners = data.info.numberOfLearners,
-      numChapters = data.info.numberOfChapters,
+      numQuestions = info.numberOfQuestions,
+      numPaid = info.numberOfPaid,
+      numLearners = info.numberOfLearners,
+      numChapters = info.numberOfChapters,
       progress = progress
     )
   }
