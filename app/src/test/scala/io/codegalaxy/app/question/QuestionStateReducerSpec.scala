@@ -12,12 +12,16 @@ class QuestionStateReducerSpec extends BaseStateReducerSpec(
   reduce = QuestionStateReducer.apply
 ) {
 
-  it should "set topic, chapter and reset question when QuestionFetchAction" in {
+  it should "update state if topic is changed when QuestionFetchAction" in {
     //given
-    val topic = "test_topic"
+    val topic = "new_topic"
     val chapter = "test_chapter"
     val data = mock[QuestionData]
-    val state = QuestionState(question = Some(data))
+    val state = QuestionState(
+      topic = Some("test_topic"),
+      chapter = Some(chapter),
+      question = Some(data)
+    )
     val task = FutureTask("Fetching...", Future.successful(data))
 
     //when & then
@@ -28,7 +32,43 @@ class QuestionStateReducerSpec extends BaseStateReducerSpec(
     )
   }
   
-  it should "set topic, chapter and question when QuestionFetchedAction" in {
+  it should "update state if chapter is changed when QuestionFetchAction" in {
+    //given
+    val topic = "test_topic"
+    val chapter = "new_chapter"
+    val data = mock[QuestionData]
+    val state = QuestionState(
+      topic = Some(topic),
+      chapter = Some("test_chapter"),
+      question = Some(data)
+    )
+    val task = FutureTask("Fetching...", Future.successful(data))
+
+    //when & then
+    reduce(Some(state), QuestionFetchAction(topic, chapter, task)) shouldBe QuestionState(
+      topic = Some(topic),
+      chapter = Some(chapter),
+      question = None
+    )
+  }
+  
+  it should "not update state if data is not changed when QuestionFetchAction" in {
+    //given
+    val topic = "test_topic"
+    val chapter = "test_chapter"
+    val data = mock[QuestionData]
+    val state = QuestionState(
+      topic = Some(topic),
+      chapter = Some(chapter),
+      question = Some(data)
+    )
+    val task = FutureTask("Fetching...", Future.successful(data))
+
+    //when & then
+    reduce(Some(state), QuestionFetchAction(topic, chapter, task)) shouldBe theSameInstanceAs(state)
+  }
+  
+  it should "update state when QuestionFetchedAction" in {
     //given
     val topic = "test_topic"
     val chapter = "test_chapter"

@@ -4,6 +4,7 @@ import io.codegalaxy.app.topic.TopicParams
 import io.github.shogowada.scalajs.reactjs.redux.Redux.Dispatch
 import scommons.react._
 import scommons.react.hooks._
+import scommons.reactnative.ScrollView._
 import scommons.reactnative._
 
 case class QuestionScreenProps(dispatch: Dispatch,
@@ -28,13 +29,19 @@ object QuestionScreen extends FunctionComponent[QuestionScreenProps] {
     props.data.question match {
       case None => <.Text()("Loading...")
       case Some(question) =>
-        <.Text()(
-          s"""text: ${question.text}
-             |
-             |answerType: ${question.answerType}
-             |
-             |choices: ${question.choices.mkString("\n")}
-             |""".stripMargin
+        <.ScrollView(
+          ^.keyboardShouldPersistTaps := KeyboardShouldPersistTaps.always
+        )(
+          <(QuestionText())(^.wrapped := QuestionTextProps(question.text))(),
+          <.Text()(
+            s"""
+               |text: ${question.text}
+               |
+               |answerType: ${question.answerType}
+               |
+               |choices: ${question.choices.mkString("\n")}
+               |""".stripMargin
+          )
         )
     }
   }
