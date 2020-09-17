@@ -8,6 +8,7 @@ import org.scalatest.Succeeded
 import scommons.nodejs.test.AsyncTestSpec
 import scommons.react.redux.task.FutureTask
 import scommons.react.test._
+import scommons.reactnative.ScrollView._
 import scommons.reactnative._
 
 import scala.concurrent.Future
@@ -110,13 +111,19 @@ class QuestionScreenSpec extends AsyncTestSpec
 
     //then
     assertNativeComponent(result,
-      <.Text()(
-        s"""text: ${question.text}
-           |
-           |answerType: ${question.answerType}
-           |
-           |choices: ${question.choices.mkString("\n")}
-           |""".stripMargin
+      <.ScrollView(
+        ^.keyboardShouldPersistTaps := KeyboardShouldPersistTaps.always
+      )(
+        <(QuestionText())(^.wrapped := QuestionTextProps(question.text))(),
+        <.Text()(
+          s"""
+             |text: ${question.text}
+             |
+               |answerType: ${question.answerType}
+             |
+               |choices: ${question.choices.mkString("\n")}
+             |""".stripMargin
+        )
       )
     )
   }
