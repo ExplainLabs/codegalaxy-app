@@ -27,6 +27,8 @@ class QuestionTextSpec extends TestSpec
     )
     val code = "some java code"
     
+    (siblingNode1.data _).expects().returning("siblingNode1 text")
+    (siblingNode2.data _).expects().returning("siblingNode2 text")
     (preNode.name _).expects().returning("pre")
     (preNode.children _).expects().returning(js.Array(codeNode.asInstanceOf[HTMLViewNode]))
     (codeNode.name _).expects().returning("code")
@@ -46,7 +48,7 @@ class QuestionTextSpec extends TestSpec
     //then
     assertNativeComponent(renderNodeResult(result),
       <.>(^.key := "1")(
-        "\n",
+        "\n\n",
         <.SyntaxHighlighter(
           ^.PreTag := <.Text.reactClass,
           ^.CodeTag := <.Text.reactClass,
@@ -56,7 +58,7 @@ class QuestionTextSpec extends TestSpec
           ^.highlighterStyle := getHighlightJsStyle("github")
             .getOrElse(HighlightJsStyles.defaultStyle)
         )(code.trim),
-        "\n"
+        "\n\n"
       )
     )
   }
@@ -139,11 +141,38 @@ class QuestionTextSpec extends TestSpec
     )
   }
   
+  it should "return Text for text node when renderNode" in {
+    //given
+    val textNode = mock[HTMLViewNodeMock]
+    val text = "\n\n some test\ntext \n\n"
+    
+    (textNode.name _).expects().returning(js.undefined)
+    (textNode.`type` _).expects().returning("text")
+    (textNode.data _).expects().returning(text)
+    
+    //when
+    val result = QuestionText.renderNode(
+      node = textNode.asInstanceOf[HTMLViewNode],
+      index = 1,
+      siblings = js.Array[HTMLViewNode](),
+      parent = js.undefined,
+      defaultRenderer = null
+    )
+    
+    //then
+    assertNativeComponent(renderNodeResult(result),
+      <.Text(^.key := "1")(
+        " some test\ntext "
+      )
+    )
+  }
+  
   it should "return undefined for all other nodes when renderNode" in {
     //given
     val node = mock[HTMLViewNodeMock]
     
     (node.name _).expects().returning("div")
+    (node.`type` _).expects().returning("tag")
     
     //when
     val result = QuestionText.renderNode(
@@ -158,9 +187,17 @@ class QuestionTextSpec extends TestSpec
     result shouldBe js.undefined
   }
   
-  it should "render component" in {
+  it should "render component with normalized html" in {
     //given
-    val props = QuestionTextProps("some question text")
+    val style = new Style {}
+    val props = QuestionTextProps(
+      """ <code>1</code>  <code class="java">
+        |  if (1 < 2) ...
+        |</code> <br> 
+        | test
+        | """.stripMargin,
+      Some(style)
+    )
     val component = <(QuestionText())(^.wrapped := props)()
     
     //when
@@ -169,8 +206,12 @@ class QuestionTextSpec extends TestSpec
     //then
     assertNativeComponent(result,
       <.HTMLView(
-        ^.rnStyle := styles.container,
-        ^.value := s"<div>${props.textHtml}</div>"
+        ^.rnStyle := style,
+        ^.value :=
+          """<div><code>1</code>  <code class="java">
+            |  if (1 < 2) ...
+            |</code>
+            |test</div>""".stripMargin
       )()
     )
   }
@@ -191,6 +232,7 @@ object QuestionTextSpec {
   @JSExportAll
   trait HTMLViewNodeMock {
 
+    def `type`: String
     def name: js.UndefOr[String]
     def data: js.UndefOr[String]
     def attribs: js.Dynamic

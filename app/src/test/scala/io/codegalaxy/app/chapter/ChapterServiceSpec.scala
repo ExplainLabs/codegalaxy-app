@@ -18,7 +18,10 @@ class ChapterServiceSpec extends BaseDBContextSpec {
     val service = new ChapterService(api, dao)
     val topic = "test_topic"
     val c1 = getChapterRespData("chapter1")
-    val c2 = getChapterRespData("chapter2")
+    val c2 = {
+      val data = getChapterRespData("chapter2")
+      data.copy(chapter = data.chapter.copy(info = None))
+    }
 
     (api.getChapters _).expects(topic).returning(Future.successful(List(c1, c2)))
 
