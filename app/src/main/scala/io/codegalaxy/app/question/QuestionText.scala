@@ -7,7 +7,8 @@ import scommons.reactnative.htmlview._
 
 import scala.scalajs.js
 
-case class QuestionTextProps(textHtml: String)
+case class QuestionTextProps(textHtml: String,
+                             style: Option[Style] = None)
 
 object QuestionText extends FunctionComponent[QuestionTextProps] {
 
@@ -26,9 +27,13 @@ object QuestionText extends FunctionComponent[QuestionTextProps] {
     val tagName = node.name.getOrElse("")
     val codeData =
       if (tagName == "pre") {
-        val preIndex = siblings.indexOf(node)
-        val newLineBefore = preIndex > 0
-        val newLineAfter = preIndex < (siblings.length - 1)
+        val idx = siblings.indexOf(node)
+        val newLineBefore = {
+          (idx - 1) >= 0 && siblings(idx - 1).data.getOrElse("").trim.nonEmpty
+        }
+        val newLineAfter = {
+          (idx + 1) < siblings.length && siblings(idx + 1).data.getOrElse("").trim.nonEmpty
+        }
         
         node.children.find(_.name.getOrElse("") == "code")
           .flatMap(getCodeData).map((newLineBefore, newLineAfter, _))
@@ -39,7 +44,7 @@ object QuestionText extends FunctionComponent[QuestionTextProps] {
     codeData match {
       case Some((newLineBefore, newLineAfter, (code, language))) =>
         <.>(^.key := s"$index")(
-          if (newLineBefore) Some("\n")
+          if (newLineBefore) Some("\n\n")
           else None,
           
           <.SyntaxHighlighter(
@@ -52,9 +57,20 @@ object QuestionText extends FunctionComponent[QuestionTextProps] {
               .getOrElse(HighlightJsStyles.defaultStyle)
           )(entities.decodeHTML(code.trim)),
           
-          if (newLineAfter) Some("\n")
+          if (newLineAfter) Some("\n\n")
           else None
         )
+      case _ if node.`type` == "text" =>
+        val text = {
+          // trim line breaks at the beginning and at the end of text
+          val text = node.data.getOrElse("")
+          text.slice(
+            text.indexWhere(_ != '\n'),
+            text.lastIndexWhere(_ != '\n') + 1
+          )
+        }
+        
+        <.Text(^.key := s"$index")(entities.decodeHTML(text))
       case _ => ()
     }
   }
@@ -62,24 +78,20 @@ object QuestionText extends FunctionComponent[QuestionTextProps] {
   protected def render(compProps: Props): ReactElement = {
     val props = compProps.wrapped
     
+    // normalize line breaks
+    val text = brTagRegex.replaceAllIn(props.textHtml.trim, "\n")
+    
     <.HTMLView(
-      ^.rnStyle := styles.container,
+      props.style.map(^.rnStyle := _),
       ^.renderNode := renderNode,
-      ^.value := s"<div>${props.textHtml}</div>"
+      ^.value := s"<div>$text</div>"
     )()
   }
+  
+  private lazy val brTagRegex = """\s*<br>\s*""".r
 
   private[question] val codeBlockStyle = new js.Object {
     val margin = 0
     val padding = 0
-  }
-
-  private[question] lazy val styles = StyleSheet.create(new Styles)
-  private[question] class Styles extends js.Object {
-
-    val container: Style = new ViewStyle {
-      override val margin = 5
-      override val padding = 5
-    }
   }
 }
