@@ -8,7 +8,7 @@ import scommons.reactnative.htmlview._
 import scala.scalajs.js
 
 case class QuestionTextProps(textHtml: String,
-                             style: Option[Style] = None)
+                             style: Option[js.Array[Style]] = None)
 
 object QuestionText extends FunctionComponent[QuestionTextProps] {
 
@@ -44,7 +44,7 @@ object QuestionText extends FunctionComponent[QuestionTextProps] {
     codeData match {
       case Some((newLineBefore, newLineAfter, (code, language))) =>
         <.>(^.key := s"$index")(
-          if (newLineBefore) Some("\n\n")
+          if (newLineBefore) Some("\n")
           else None,
           
           <.SyntaxHighlighter(
@@ -57,20 +57,9 @@ object QuestionText extends FunctionComponent[QuestionTextProps] {
               .getOrElse(HighlightJsStyles.defaultStyle)
           )(entities.decodeHTML(code.trim)),
           
-          if (newLineAfter) Some("\n\n")
+          if (newLineAfter) Some("\n")
           else None
         )
-      case _ if node.`type` == "text" =>
-        val text = {
-          // trim line breaks at the beginning and at the end of text
-          val text = node.data.getOrElse("")
-          text.slice(
-            text.indexWhere(_ != '\n'),
-            text.lastIndexWhere(_ != '\n') + 1
-          )
-        }
-        
-        <.Text(^.key := s"$index")(entities.decodeHTML(text))
       case _ => ()
     }
   }
@@ -78,8 +67,7 @@ object QuestionText extends FunctionComponent[QuestionTextProps] {
   protected def render(compProps: Props): ReactElement = {
     val props = compProps.wrapped
     
-    // normalize line breaks
-    val text = brTagRegex.replaceAllIn(props.textHtml.trim, "\n")
+    val text = props.textHtml.trim
     
     <.HTMLView(
       props.style.map(^.rnStyle := _),
@@ -88,8 +76,6 @@ object QuestionText extends FunctionComponent[QuestionTextProps] {
     )()
   }
   
-  private lazy val brTagRegex = """\s*<br>\s*""".r
-
   private[question] val codeBlockStyle = new js.Object {
     val margin = 0
     val padding = 0

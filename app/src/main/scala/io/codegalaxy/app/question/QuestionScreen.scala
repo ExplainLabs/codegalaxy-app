@@ -3,6 +3,7 @@ package io.codegalaxy.app.question
 import io.codegalaxy.api.question.ChoiceData
 import io.codegalaxy.app.topic.TopicParams
 import io.github.shogowada.scalajs.reactjs.redux.Redux.Dispatch
+import scommons.expo._
 import scommons.react._
 import scommons.react.hooks._
 import scommons.reactnative.ScrollView._
@@ -19,6 +20,34 @@ case class QuestionScreenProps(dispatch: Dispatch,
 object QuestionScreen extends FunctionComponent[QuestionScreenProps] {
 
   private[question] lazy val choiceGroupComp = new ChoiceGroup[Int, ChoiceData]
+  
+  private def renderButton(text: String, onPress: js.Function0[Unit]): ReactElement = {
+    <.TouchableOpacity(
+      ^.rnStyle := styles.button,
+      ^.onPress := onPress
+    )(
+      <.Text(^.rnStyle := styles.buttonText)(text),
+      <(VectorIcons.Ionicons)(
+        ^.name := "ios-arrow-forward",
+        ^.rnSize := 24,
+        ^.color := Style.Color.dodgerblue
+      )()
+    )
+  }
+  
+  private def renderAnswerIcon(correct: Boolean): ReactElement = {
+    <(VectorIcons.Ionicons)(
+      ^.name := {
+        if (correct) "ios-checkmark"
+        else "ios-close"
+      },
+      ^.rnSize := 24,
+      ^.color := {
+        if (correct) Style.Color.green
+        else Style.Color.red
+      }
+    )()
+  }
   
   protected def render(compProps: Props): ReactElement = {
     val props = compProps.wrapped
@@ -37,6 +66,7 @@ object QuestionScreen extends FunctionComponent[QuestionScreenProps] {
       case None => <.Text()("Loading...")
       case Some(question) =>
         val multiSelect = question.answerType != "SINGLE_CHOICE"
+        val answered = question.correct.isDefined
         
         <.ScrollView(
           ^.rnStyle := styles.container,
@@ -47,38 +77,86 @@ object QuestionScreen extends FunctionComponent[QuestionScreenProps] {
           <(choiceGroupComp())(^.wrapped := new ChoiceGroupProps[Int, ChoiceData](
             items = question.choices,
             keyExtractor = _.id,
-            iconRenderer = ChoiceGroupProps.defaultIconRenderer(multiSelect),
+            iconRenderer = {
+              if (!answered) ChoiceGroupProps.defaultIconRenderer(multiSelect)
+              else { _ => null }
+            },
             labelRenderer = { data =>
-              <(QuestionText())(^.wrapped := QuestionTextProps(
-                textHtml = data.choiceText,
-                style = Some(styles.choiceLabel)
-              ))()
+              val selected = selectedIds.contains(data.id)
+              <.>()(
+                if (answered) Some(renderAnswerIcon(data.correct.getOrElse(false)))
+                else None,
+                <(QuestionText())(^.wrapped := QuestionTextProps(
+                  textHtml = data.choiceText,
+                  style = Some(
+                    if (answered && !selected) js.Array(styles.choiceLabel, styles.choiceNotSelected)
+                    else js.Array(styles.choiceLabel)
+                  )
+                ))()
+              )
             },
             selectedIds = selectedIds,
-            onSelectChange = setSelectedIds,
+            onSelectChange = { ids =>
+              if (!answered) {
+                setSelectedIds(ids)
+              }
+            },
             multiSelect = multiSelect,
             style = Some(styles.choiceGroup)
           ))(),
 
-          <.Text()(
-            s"""
-               |text: ${question.text}
-               |
-               |answerType: ${question.answerType}
-               |
-               |choices: ${question.choices.mkString("\n")}
-               |""".stripMargin
-          )
+          question.correct.map {
+            case false => <.Text(^.rnStyle := styles.wrongAnswer)("Oops! This is the wrong answer.")
+            case true => <.Text(^.rnStyle := styles.rightAnswer)("Well done! Right answer.")
+          },
+
+          question.rules.map { rule =>
+            <.>()(
+              <.Text(^.rnStyle := styles.ruleTitle)(rule.title),
+              <(QuestionText())(^.wrapped := QuestionTextProps(
+                textHtml = rule.text,
+                style = Some(js.Array(styles.ruleText))
+              ))()
+            )
+          },
+
+          question.explanation.collect { case explanation if explanation.trim.nonEmpty =>
+            <.>()(
+              <.Text(^.rnStyle := styles.ruleTitle)("Explanation"),
+              <(QuestionText())(^.wrapped := QuestionTextProps(
+                textHtml = explanation,
+                style = Some(js.Array(styles.ruleText))
+              ))()
+            )
+          },
+
+          if (!answered) {
+            renderButton("Continue", { () =>
+              val data = question.copy(choices = question.choices.map { choice =>
+                val selected = selectedIds.contains(choice.id)
+                choice.copy(selected = if (selected) Some(true) else Some(false))
+              })
+              props.dispatch(props.actions.submitAnswer(props.dispatch, topic, chapter, data))
+            })
+          }
+          else {
+            renderButton("Next", { () =>
+              props.dispatch(props.actions.fetchQuestion(props.dispatch, topic, chapter))
+              setSelectedIds(Set.empty)
+            })
+          }
         )
     }
   }
 
   private[question] lazy val styles = StyleSheet.create(new Styles)
   private[question] class Styles extends js.Object {
+    import TextStyle._
     import ViewStyle._
 
     val container: Style = new ViewStyle {
       override val margin = 5
+      override val marginLeft = 10
       override val padding = 5
     }
     val choiceGroup: Style = new ViewStyle {
@@ -93,6 +171,44 @@ object QuestionScreen extends FunctionComponent[QuestionScreenProps] {
       override val paddingHorizontal = 5
       override val borderBottomWidth = 1
       override val borderBottomColor = Style.Color.gray
+    }
+    val choiceNotSelected = new ViewStyle {
+      val opacity = 0.5
+    }
+    val rightAnswer: Style = new TextStyle {
+      override val marginVertical = 5
+      override val textAlign = TextAlign.center
+      override val fontWeight = FontWeight.bold
+      override val color = Style.Color.green
+      override val backgroundColor = Style.Color.lightcyan
+    }
+    val wrongAnswer: Style = new TextStyle {
+      override val marginVertical = 5
+      override val textAlign = TextAlign.center
+      override val fontWeight = FontWeight.bold
+      override val color = Style.Color.red
+      override val backgroundColor = Style.Color.lightpink
+    }
+    val ruleTitle: Style = new TextStyle {
+      override val textAlign = TextAlign.center
+      override val fontWeight = FontWeight.bold
+      override val marginVertical = 5
+    }
+    val ruleText: Style = new ViewStyle {
+      override val marginVertical = 5
+    }
+    val button: Style = new ViewStyle {
+      override val alignSelf = AlignSelf.center
+      override val flexDirection = FlexDirection.row
+      override val alignItems = AlignItems.center
+      override val marginTop = 5
+      override val marginBottom = 25
+    }
+    val buttonText: Style = new TextStyle {
+      override val fontWeight = FontWeight.bold
+      override val fontSize = 18
+      override val color = Style.Color.dodgerblue
+      override val marginRight = 5
     }
   }
 }

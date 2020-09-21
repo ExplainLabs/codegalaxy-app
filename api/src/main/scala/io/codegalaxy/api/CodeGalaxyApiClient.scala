@@ -91,4 +91,8 @@ class CodeGalaxyApiClient(client: ApiHttpClient)
   def getNextQuestion(topic: String, chapter: String): Future[QuestionData] = {
     client.execGet[QuestionData](s"/v1/topics/$topic/modules/$chapter/question")
   }
+
+  def submitAnswer(topic: String, chapter: String, data: QuestionData): Future[QuestionData] = {
+    client.execPost[QuestionData, QuestionData](s"/v1/topics/$topic/modules/$chapter/question", data)
+  }
 }
