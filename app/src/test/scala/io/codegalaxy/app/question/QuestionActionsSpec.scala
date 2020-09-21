@@ -35,6 +35,31 @@ class QuestionActionsSpec extends AsyncTestSpec {
       resp shouldBe data
     }
   }
+  
+  it should "dispatch QuestionFetchedAction when submitAnswer" in {
+    //given
+    val api = mock[QuestionApi]
+    val actions = new QuestionActionsTest(api)
+    val dispatch = mockFunction[Any, Any]
+    val topic = "test_topic"
+    val chapter = "test_chapter"
+    val data = mock[QuestionData]
+    val respData = mock[QuestionData]
+
+    //then
+    (api.submitAnswer _).expects(topic, chapter, data).returning(Future.successful(respData))
+    dispatch.expects(QuestionFetchedAction(topic, chapter, respData))
+
+    //when
+    val AnswerSubmitAction(FutureTask(message, future)) =
+      actions.submitAnswer(dispatch, topic, chapter, data)
+
+    //then
+    message shouldBe "Submitting Answer"
+    future.map { resp =>
+      resp shouldBe respData
+    }
+  }
 }
 
 object QuestionActionsSpec {

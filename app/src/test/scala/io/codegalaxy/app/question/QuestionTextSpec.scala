@@ -48,7 +48,7 @@ class QuestionTextSpec extends TestSpec
     //then
     assertNativeComponent(renderNodeResult(result),
       <.>(^.key := "1")(
-        "\n\n",
+        "\n",
         <.SyntaxHighlighter(
           ^.PreTag := <.Text.reactClass,
           ^.CodeTag := <.Text.reactClass,
@@ -58,7 +58,7 @@ class QuestionTextSpec extends TestSpec
           ^.highlighterStyle := getHighlightJsStyle("github")
             .getOrElse(HighlightJsStyles.defaultStyle)
         )(code.trim),
-        "\n\n"
+        "\n"
       )
     )
   }
@@ -141,38 +141,11 @@ class QuestionTextSpec extends TestSpec
     )
   }
   
-  it should "return Text for text node when renderNode" in {
-    //given
-    val textNode = mock[HTMLViewNodeMock]
-    val text = "\n\n some test\ntext \n\n"
-    
-    (textNode.name _).expects().returning(js.undefined)
-    (textNode.`type` _).expects().returning("text")
-    (textNode.data _).expects().returning(text)
-    
-    //when
-    val result = QuestionText.renderNode(
-      node = textNode.asInstanceOf[HTMLViewNode],
-      index = 1,
-      siblings = js.Array[HTMLViewNode](),
-      parent = js.undefined,
-      defaultRenderer = null
-    )
-    
-    //then
-    assertNativeComponent(renderNodeResult(result),
-      <.Text(^.key := "1")(
-        " some test\ntext "
-      )
-    )
-  }
-  
   it should "return undefined for all other nodes when renderNode" in {
     //given
     val node = mock[HTMLViewNodeMock]
     
     (node.name _).expects().returning("div")
-    (node.`type` _).expects().returning("tag")
     
     //when
     val result = QuestionText.renderNode(
@@ -189,7 +162,7 @@ class QuestionTextSpec extends TestSpec
   
   it should "render component with normalized html" in {
     //given
-    val style = new Style {}
+    val style = js.Array(new Style {})
     val props = QuestionTextProps(
       """ <code>1</code>  <code class="java">
         |  if (1 < 2) ...
@@ -210,8 +183,8 @@ class QuestionTextSpec extends TestSpec
         ^.value :=
           """<div><code>1</code>  <code class="java">
             |  if (1 < 2) ...
-            |</code>
-            |test</div>""".stripMargin
+            |</code> <br> 
+            | test</div>""".stripMargin
       )()
     )
   }
@@ -232,7 +205,6 @@ object QuestionTextSpec {
   @JSExportAll
   trait HTMLViewNodeMock {
 
-    def `type`: String
     def name: js.UndefOr[String]
     def data: js.UndefOr[String]
     def attribs: js.Dynamic

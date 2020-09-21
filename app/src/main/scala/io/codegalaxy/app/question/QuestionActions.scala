@@ -20,10 +20,20 @@ trait QuestionActions {
 
     QuestionFetchAction(topic, chapter, FutureTask("Fetching Question", resultF))
   }
+  
+  def submitAnswer(dispatch: Dispatch, topic: String, chapter: String, data: QuestionData): AnswerSubmitAction = {
+    val resultF = client.submitAnswer(topic, chapter, data).andThen {
+      case Success(resp) => dispatch(QuestionFetchedAction(topic, chapter, resp))
+    }
+
+    AnswerSubmitAction(FutureTask("Submitting Answer", resultF))
+  }
 }
 
 object QuestionActions {
 
   case class QuestionFetchAction(topic: String, chapter: String, task: FutureTask[QuestionData]) extends TaskAction
   case class QuestionFetchedAction(topic: String, chapter: String, data: QuestionData) extends Action
+  
+  case class AnswerSubmitAction(task: FutureTask[QuestionData]) extends TaskAction
 }
