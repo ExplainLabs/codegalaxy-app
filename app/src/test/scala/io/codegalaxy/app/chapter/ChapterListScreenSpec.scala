@@ -15,6 +15,8 @@ import scommons.react.redux.task.FutureTask
 import scommons.react.test._
 import scommons.reactnative.FlatList.FlatListData
 import scommons.reactnative._
+import scommons.reactnative.safearea.SafeArea._
+import scommons.reactnative.safearea._
 
 import scala.concurrent.Future
 import scala.scalajs.js
@@ -87,18 +89,11 @@ class ChapterListScreenSpec extends AsyncTestSpec
     dispatch.expects(fetchAction)
 
     //when
-    val result = testRender(<(ChapterListScreen())(^.wrapped := props)())
+    testRender(<(ChapterListScreen())(^.wrapped := props)())
 
     //then
     fetchAction.task.future.map { _ =>
-      assertNativeComponent(result,
-        <.View(^.rnStyle := styles.container)(
-          <.FlatList(
-            ^.refreshing := false,
-            ^.flatListData := js.Array(props.data.chapters: _*)
-          )()
-        )
-      )
+      Succeeded
     }
   }
 
@@ -172,7 +167,10 @@ class ChapterListScreenSpec extends AsyncTestSpec
 
     //then
     assertNativeComponent(result,
-      <.View(^.rnStyle := styles.container)(
+      <.SafeAreaView(
+        ^.rnStyle := styles.container,
+        ^.edges := List(SafeAreaEdge.left, SafeAreaEdge.bottom, SafeAreaEdge.right)
+      )(
         <.FlatList(
           ^.refreshing := false,
           ^.flatListData := js.Array(props.data.chapters: _*)

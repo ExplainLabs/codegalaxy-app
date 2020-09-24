@@ -9,6 +9,8 @@ import scommons.react._
 import scommons.react.hooks._
 import scommons.reactnative.FlatList.FlatListData
 import scommons.reactnative._
+import scommons.reactnative.safearea.SafeArea._
+import scommons.reactnative.safearea._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.scalajs.js
@@ -53,7 +55,10 @@ object ChapterListScreen extends FunctionComponent[ChapterListScreenProps] {
       )
     }
 
-    <.View(^.rnStyle := styles.container)(
+    <.SafeAreaView(
+      ^.rnStyle := styles.container,
+      ^.edges := List(SafeAreaEdge.left, SafeAreaEdge.bottom, SafeAreaEdge.right)
+    )(
       <.FlatList(
         ^.refreshing := refreshing,
         ^.onRefresh := { () =>

@@ -8,6 +8,8 @@ import scommons.react._
 import scommons.react.hooks._
 import scommons.reactnative.ScrollView._
 import scommons.reactnative._
+import scommons.reactnative.safearea.SafeArea._
+import scommons.reactnative.safearea._
 import scommons.reactnative.ui._
 
 import scala.scalajs.js
@@ -62,16 +64,16 @@ object QuestionScreen extends FunctionComponent[QuestionScreenProps] {
       ()
     }, Nil)
 
-    props.data.question match {
+    <.SafeAreaView(
+      ^.rnStyle := styles.container,
+      ^.edges := List(SafeAreaEdge.left, SafeAreaEdge.bottom, SafeAreaEdge.right)
+    )(props.data.question match {
       case None => <.Text()("Loading...")
       case Some(question) =>
         val multiSelect = question.answerType != "SINGLE_CHOICE"
         val answered = question.correct.isDefined
         
-        <.ScrollView(
-          ^.rnStyle := styles.container,
-          ^.keyboardShouldPersistTaps := KeyboardShouldPersistTaps.always
-        )(
+        <.ScrollView(^.keyboardShouldPersistTaps := KeyboardShouldPersistTaps.always)(
           <(QuestionText())(^.wrapped := QuestionTextProps(question.text))(),
 
           <(choiceGroupComp())(^.wrapped := new ChoiceGroupProps[Int, ChoiceData](
@@ -146,7 +148,7 @@ object QuestionScreen extends FunctionComponent[QuestionScreenProps] {
             })
           }
         )
-    }
+    })
   }
 
   private[question] lazy val styles = StyleSheet.create(new Styles)
@@ -155,9 +157,11 @@ object QuestionScreen extends FunctionComponent[QuestionScreenProps] {
     import ViewStyle._
 
     val container: Style = new ViewStyle {
+      override val flex = 1
       override val margin = 5
-      override val marginLeft = 10
       override val padding = 5
+      override val marginBottom = 0
+      override val paddingBottom = 0
     }
     val choiceGroup: Style = new ViewStyle {
       override val alignSelf = AlignSelf.center
@@ -201,8 +205,7 @@ object QuestionScreen extends FunctionComponent[QuestionScreenProps] {
       override val alignSelf = AlignSelf.center
       override val flexDirection = FlexDirection.row
       override val alignItems = AlignItems.center
-      override val marginTop = 5
-      override val marginBottom = 25
+      override val marginVertical = 10
     }
     val buttonText: Style = new TextStyle {
       override val fontWeight = FontWeight.bold

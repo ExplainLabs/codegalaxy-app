@@ -10,9 +10,9 @@ import scommons.react._
 import scommons.react.hooks._
 import scommons.react.navigation._
 import scommons.react.navigation.stack._
-import scommons.react.navigation.tab.TabBarOptions.LabelPosition
 import scommons.react.navigation.tab._
 import scommons.reactnative._
+import scommons.reactnative.safearea._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -45,10 +45,13 @@ class CodeGalaxyRoot(actions: CodeGalaxyActions) extends FunctionComponent[CodeG
     }
     
     def getScreenTitle(navProps: NavigationProps): String = {
-      val routeName = navProps.route.name
+      val routeName = getFocusedRouteNameFromRoute(navProps.route)
+        .getOrElse(navProps.route.name)
+      
       routeName match {
         case "Quiz" => findTopicName(getParams(navProps).topic).getOrElse(routeName)
         case "Question" => findChapterName(getParams(navProps).getChapter).getOrElse(routeName)
+        case "Home" => "Quizzes"
         case _ => routeName
       }
     }
@@ -77,38 +80,34 @@ class CodeGalaxyRoot(actions: CodeGalaxyActions) extends FunctionComponent[CodeG
 
     if (!isReady) <.>()() //Loading...
     else {
-      <.NavigationContainer()(
-        if (showLogin) {
-          <(LoginStack.Navigator)(
-            ^.screenOptions := new StackScreenOptions {
-              override val headerShown = false
-            }
-          )(
-            <(LoginStack.Screen)(^.name := "Login", ^.component := loginController())()
-          )
-        }
-        else {
-          <(AppStack.Navigator)(
-            ^.screenOptions := { navProps =>
-              val screenTitle = getScreenTitle(navProps)
-              val options = new StackScreenOptions {
-                val headerBackTitleVisible = false
-                override val title = screenTitle
+      <.SafeAreaProvider()(
+        <.NavigationContainer()(
+          if (showLogin) {
+            <(LoginStack.Navigator)(
+              ^.screenOptions := new StackScreenOptions {
+                override val headerShown = false
               }
-              options
-            }
-          )(
-            <(AppStack.Screen)(
-              ^.name := "Home",
-              ^.options := new StackScreenOptions {
-                override val title = "CodeGalaxy"
-              },
-              ^.component := homeTabComp
-            )(),
-            <(AppStack.Screen)(^.name := "Quiz", ^.component := chapterListController())(),
-            <(AppStack.Screen)(^.name := "Question", ^.component := questionController())()
-          )
-        }
+            )(
+              <(LoginStack.Screen)(^.name := "Login", ^.component := loginController())()
+            )
+          }
+          else {
+            <(AppStack.Navigator)(
+              ^.screenOptions := { navProps =>
+                val screenTitle = getScreenTitle(navProps)
+                val options = new StackScreenOptions {
+                  val headerBackTitleVisible = false
+                  override val title = screenTitle
+                }
+                options
+              }
+            )(
+              <(AppStack.Screen)(^.name := "Home", ^.component := homeTabComp)(),
+              <(AppStack.Screen)(^.name := "Quiz", ^.component := chapterListController())(),
+              <(AppStack.Screen)(^.name := "Question", ^.component := questionController())()
+            )
+          }
+        )
       )
     }
   }
@@ -128,7 +127,7 @@ class CodeGalaxyRoot(actions: CodeGalaxyActions) extends FunctionComponent[CodeG
       <(HomeTab.Navigator)(
         ^.initialRouteName := "Quizzes",
         ^.tabBarOptions := new TabBarOptions {
-          override val labelPosition = LabelPosition.`below-icon`
+          override val showLabel = false
         }
       )(
         <(HomeTab.Screen)(

@@ -13,6 +13,8 @@ import scommons.react.redux.task.FutureTask
 import scommons.react.test._
 import scommons.reactnative.ScrollView._
 import scommons.reactnative._
+import scommons.reactnative.safearea.SafeArea._
+import scommons.reactnative.safearea._
 import scommons.reactnative.ui._
 
 import scala.concurrent.Future
@@ -225,7 +227,12 @@ class QuestionScreenSpec extends AsyncTestSpec
 
     //then
     assertNativeComponent(result,
-      <.Text()("Loading...")
+      <.SafeAreaView(
+        ^.rnStyle := styles.container,
+        ^.edges := List(SafeAreaEdge.left, SafeAreaEdge.bottom, SafeAreaEdge.right)
+      )(
+        <.Text()("Loading...")
+      )
     )
   }
 
@@ -432,24 +439,32 @@ class QuestionScreenSpec extends AsyncTestSpec
     }
     
     assertNativeComponent(result,
-      <.ScrollView(
-        ^.keyboardShouldPersistTaps := KeyboardShouldPersistTaps.always
+      <.SafeAreaView(
+        ^.rnStyle := styles.container,
+        ^.edges := List(SafeAreaEdge.left, SafeAreaEdge.bottom, SafeAreaEdge.right)
       )(),
       { children: List[ShallowInstance] =>
-        children match {
-          case List(text, choice, continue) if !answered =>
-            assertComponents(text, choice, continue, None, None, None)
-          case List(text, choice, status, next) if {
-            question.rules.isEmpty && question.explanation.isEmpty
-          } =>
-            assertComponents(text, choice, next, Some(status), None, None)
-          case List(text, choice, status, rule, explanation, next) if {
-            question.rules.nonEmpty && question.explanation.nonEmpty
-          } =>
-            assertComponents(text, choice, next, Some(status), Some(rule), Some(explanation))
-        }
-      }
-    )
+        val List(scroll) = children
+        assertNativeComponent(scroll,
+          <.ScrollView(
+            ^.keyboardShouldPersistTaps := KeyboardShouldPersistTaps.always
+          )(),
+          { children: List[ShallowInstance] =>
+            children match {
+              case List(text, choice, continue) if !answered =>
+                assertComponents(text, choice, continue, None, None, None)
+              case List(text, choice, status, next) if {
+                question.rules.isEmpty && question.explanation.isEmpty
+              } =>
+                assertComponents(text, choice, next, Some(status), None, None)
+              case List(text, choice, status, rule, explanation, next) if {
+                question.rules.nonEmpty && question.explanation.nonEmpty
+              } =>
+                assertComponents(text, choice, next, Some(status), Some(rule), Some(explanation))
+            }
+          }
+        )
+      })
   }
 
   private def wrapAndRender(element: ReactElement): ShallowInstance = {

@@ -11,11 +11,11 @@ import scommons.nodejs.test.AsyncTestSpec
 import scommons.react._
 import scommons.react.navigation._
 import scommons.react.navigation.stack._
-import scommons.react.navigation.tab.TabBarOptions.LabelPosition
 import scommons.react.navigation.tab._
 import scommons.react.redux.task.FutureTask
 import scommons.react.test._
 import scommons.reactnative._
+import scommons.reactnative.safearea._
 
 import scala.concurrent.Future
 import scala.scalajs.js
@@ -51,17 +51,20 @@ class CodeGalaxyRootSpec extends AsyncTestSpec
 
     eventually {
       val result = renderer.root.children(0)
-      assertNativeComponent(result, <.NavigationContainer()(), { children: List[TestInstance] =>
-        val List(navigator) = children
-        assertNativeComponent(navigator,
-          <(LoginStack.Navigator)(
-            ^.screenOptions := new StackScreenOptions {
-              override val headerShown = false
-            }
-          )(
-            <(LoginStack.Screen)(^.name := "Login", ^.component := loginController())()
+      assertNativeComponent(result, <.SafeAreaProvider()(), { children: List[TestInstance] =>
+        val List(navContainer) = children
+        assertNativeComponent(navContainer, <.NavigationContainer()(), { children: List[TestInstance] =>
+          val List(navigator) = children
+          assertNativeComponent(navigator,
+            <(LoginStack.Navigator)(
+              ^.screenOptions := new StackScreenOptions {
+                override val headerShown = false
+              }
+            )(
+              <(LoginStack.Screen)(^.name := "Login", ^.component := loginController())()
+            )
           )
-        )
+        })
       })
     }
   }
@@ -100,21 +103,18 @@ class CodeGalaxyRootSpec extends AsyncTestSpec
       import codeGalaxyRoot._
 
       val result = renderer.root.children(0)
-      assertNativeComponent(result, <.NavigationContainer()(), { children: List[TestInstance] =>
-        val List(navigator) = children
-        assertNativeComponent(navigator,
-          <(AppStack.Navigator)()(
-            <(AppStack.Screen)(
-              ^.name := "Home",
-              ^.options := new StackScreenOptions {
-                override val title = "CodeGalaxy"
-              },
-              ^.component := homeTabComp
-            )(),
-            <(AppStack.Screen)(^.name := "Quiz", ^.component := chapterListController())(),
-            <(AppStack.Screen)(^.name := "Question", ^.component := questionController())()
+      assertNativeComponent(result, <.SafeAreaProvider()(), { children: List[TestInstance] =>
+        val List(navContainer) = children
+        assertNativeComponent(navContainer, <.NavigationContainer()(), { children: List[TestInstance] =>
+          val List(navigator) = children
+          assertNativeComponent(navigator,
+            <(AppStack.Navigator)()(
+              <(AppStack.Screen)(^.name := "Home", ^.component := homeTabComp)(),
+              <(AppStack.Screen)(^.name := "Quiz", ^.component := chapterListController())(),
+              <(AppStack.Screen)(^.name := "Question", ^.component := questionController())()
+            )
           )
-        )
+        })
       })
     }
   }
@@ -198,6 +198,11 @@ class CodeGalaxyRootSpec extends AsyncTestSpec
         opts.title shouldBe "Test Chapter"
       }
       //when & then
+      inside(appStackNav.props.screenOptions(navProps("Home"))) { case opts =>
+        opts.headerBackTitleVisible shouldBe false
+        opts.title shouldBe "Quizzes"
+      }
+      //when & then
       inside(appStackNav.props.screenOptions(navProps("otherRoute"))) { case opts =>
         opts.headerBackTitleVisible shouldBe false
         opts.title shouldBe "otherRoute"
@@ -269,7 +274,7 @@ class CodeGalaxyRootSpec extends AsyncTestSpec
     assertNativeComponent(result, <(HomeTab.Navigator)(
       ^.initialRouteName := "Quizzes",
       ^.tabBarOptions := new TabBarOptions {
-        override val labelPosition = LabelPosition.`below-icon`
+        override val showLabel = false
       }
     )(), { children: List[ShallowInstance] =>
       val List(tab1, tab2) = children
