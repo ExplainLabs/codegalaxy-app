@@ -2,7 +2,7 @@ package io.codegalaxy.app.chapter
 
 import io.codegalaxy.app.chapter.ChapterActions._
 import io.codegalaxy.app.chapter.ChapterActionsSpec._
-import io.codegalaxy.domain.ChapterEntity
+import io.codegalaxy.domain.{Chapter, ChapterEntity, ChapterStats}
 import scommons.nodejs.test.AsyncTestSpec
 import scommons.react.redux.task.FutureTask
 
@@ -16,16 +16,25 @@ class ChapterActionsSpec extends AsyncTestSpec {
     val actions = new ChapterActionsTest(chapterService)
     val dispatch = mockFunction[Any, Any]
     val topic = "test_topic"
-    val chapter = ChapterEntity(
-      id = 1,
-      topic = topic,
-      alias = "test_chapter",
-      name = "Test Chapter",
-      numQuestions = 1,
-      numPaid = 2,
-      numLearners = 3,
-      numChapters = 4,
-      progress = 5
+    val chapter = Chapter(
+      entity = ChapterEntity(
+        id = 1,
+        topic = topic,
+        alias = "test_chapter",
+        name = "Test Chapter",
+        numQuestions = 1,
+        numPaid = 2,
+        numLearners = 3,
+        numChapters = 4
+      ),
+      stats = Some(ChapterStats(
+        id = 1,
+        progress = 10,
+        progressOnce = 20,
+        progressAll = 100,
+        freePercent = 30,
+        paid = 40
+      ))
     )
     val dataList = List(chapter)
     val refresh = true

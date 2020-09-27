@@ -1,7 +1,7 @@
 package io.codegalaxy.app.chapter
 
 import io.codegalaxy.app.chapter.ChapterActions._
-import io.codegalaxy.domain.ChapterEntity
+import io.codegalaxy.domain.Chapter
 import io.github.shogowada.scalajs.reactjs.redux.Action
 import io.github.shogowada.scalajs.reactjs.redux.Redux.Dispatch
 import scommons.react.redux.task.{FutureTask, TaskAction}
@@ -27,6 +27,6 @@ trait ChapterActions {
 
 object ChapterActions {
 
-  case class ChaptersFetchAction(topic: String, task: FutureTask[Seq[ChapterEntity]]) extends TaskAction
-  case class ChaptersFetchedAction(topic: String, dataList: Seq[ChapterEntity]) extends Action
+  case class ChaptersFetchAction(topic: String, task: FutureTask[Seq[Chapter]]) extends TaskAction
+  case class ChaptersFetchedAction(topic: String, dataList: Seq[Chapter]) extends Action
 }

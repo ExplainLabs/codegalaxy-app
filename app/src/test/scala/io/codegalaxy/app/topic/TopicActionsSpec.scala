@@ -2,7 +2,7 @@ package io.codegalaxy.app.topic
 
 import io.codegalaxy.app.topic.TopicActions._
 import io.codegalaxy.app.topic.TopicActionsSpec._
-import io.codegalaxy.domain.TopicEntity
+import io.codegalaxy.domain.{Topic, TopicEntity}
 import scommons.nodejs.test.AsyncTestSpec
 import scommons.react.redux.task.FutureTask
 
@@ -15,17 +15,19 @@ class TopicActionsSpec extends AsyncTestSpec {
     val topicService = mock[TopicService]
     val actions = new TopicActionsTest(topicService)
     val dispatch = mockFunction[Any, Any]
-    val topic = TopicEntity(
-      id = 1,
-      alias = "test",
-      name = "Test",
-      lang = "en",
-      numQuestions = 1,
-      numPaid = 2,
-      numLearners = 3,
-      numChapters = 4,
-      svgIcon = Some("test svg"),
-      progress = None
+    val topic = Topic(
+      entity = TopicEntity(
+        id = 1,
+        alias = "test",
+        name = "Test",
+        lang = "en",
+        numQuestions = 1,
+        numPaid = 2,
+        numLearners = 3,
+        numChapters = 4,
+        svgIcon = Some("test svg")
+      ),
+      stats = None
     )
     val dataList = List(topic)
     val refresh = true

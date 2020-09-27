@@ -3,7 +3,7 @@ package io.codegalaxy.app.chapter
 import io.codegalaxy.app.CodeGalaxyIcons
 import io.codegalaxy.app.info._
 import io.codegalaxy.app.topic.TopicParams
-import io.codegalaxy.domain.ChapterEntity
+import io.codegalaxy.domain.Chapter
 import io.github.shogowada.scalajs.reactjs.redux.Redux.Dispatch
 import scommons.react._
 import scommons.react.hooks._
@@ -35,20 +35,20 @@ object ChapterListScreen extends FunctionComponent[ChapterListScreenProps] {
       ()
     }, Nil)
 
-    def renderItem(data: ChapterEntity): ReactElement = {
+    def renderItem(data: Chapter): ReactElement = {
       <.TouchableWithoutFeedback(^.onPress := { () =>
-        props.navigate(data.alias)
+        props.navigate(data.entity.alias)
       })(
         <.View(^.rnStyle := styles.rowContainer)(
           <.View(^.rnStyle := styles.itemContainer)(
-            <.Text(^.rnStyle := styles.itemTitle)(data.name),
+            <.Text(^.rnStyle := styles.itemTitle)(data.entity.name),
             <.View(^.rnStyle := styles.itemInfoContainer)(
               <(CodeGalaxyIcons.FontAwesome5)(^.rnStyle := styles.itemInfo, ^.name := "file-code", ^.rnSize := 16)(),
-              <.Text(^.rnStyle := styles.itemInfo)(s" : ${data.numQuestions}")
+              <.Text(^.rnStyle := styles.itemInfo)(s" : ${data.entity.numQuestions}")
             )
           ),
           <(ListItemNavIcon())(^.wrapped := ListItemNavIconProps(
-            progress = data.progress,
+            progress = data.stats.map(_.progress).getOrElse(0),
             showLabel = false
           ))()
         )
@@ -73,11 +73,11 @@ object ChapterListScreen extends FunctionComponent[ChapterListScreenProps] {
           }
         },
         ^.flatListData := js.Array(props.data.chapters: _*),
-        ^.renderItem := { data: FlatListData[ChapterEntity] =>
+        ^.renderItem := { data: FlatListData[Chapter] =>
           renderItem(data.item)
         },
-        ^.keyExtractor := { item: ChapterEntity =>
-          item.alias
+        ^.keyExtractor := { item: Chapter =>
+          item.entity.alias
         }
       )()
     )

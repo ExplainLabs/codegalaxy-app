@@ -9,6 +9,7 @@ import org.scalatest.{Assertion, Succeeded}
 import scommons.expo._
 import scommons.nodejs.test.AsyncTestSpec
 import scommons.react._
+import scommons.react.navigation._
 import scommons.react.redux.task.FutureTask
 import scommons.react.test._
 import scommons.reactnative.ScrollView._
@@ -318,6 +319,7 @@ class QuestionScreenSpec extends AsyncTestSpec
   }
   
   private def assertQuestionScreen(result: ShallowInstance, props: QuestionScreenProps): Assertion = {
+    implicit val theme: Theme = DefaultTheme
     val Some(question) = props.data.question
     val answered = question.correct.isDefined
     
@@ -338,11 +340,11 @@ class QuestionScreenSpec extends AsyncTestSpec
           items shouldBe question.choices
           keyExtractor(question.choices.head) shouldBe 1
           
-          if (!answered) iconRenderer(false) should not be null
-          else iconRenderer(false) shouldBe null
+          if (!answered) iconRenderer(false, theme) should not be null
+          else iconRenderer(false, theme) shouldBe null
 
           val data = items.head
-          assertNativeComponent(wrapAndRender(labelRenderer(data)), <.>()(), { children: List[ShallowInstance] =>
+          assertNativeComponent(wrapAndRender(labelRenderer(data, theme)), <.>()(), { children: List[ShallowInstance] =>
             val (maybeIcon, choiceLabel) = children match {
               case List(label) if !answered => (None, label)
               case List(icon, label) => (Some(icon), label)

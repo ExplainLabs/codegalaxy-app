@@ -5,7 +5,7 @@ import io.codegalaxy.app.topic.TopicActions.TopicsFetchAction
 import io.codegalaxy.app.topic.TopicState
 import io.codegalaxy.app.user.UserActions.UserLoginAction
 import io.codegalaxy.app.user._
-import io.codegalaxy.domain.{ChapterEntity, ProfileEntity, TopicEntity}
+import io.codegalaxy.domain._
 import org.scalatest.Assertion
 import scommons.nodejs.test.AsyncTestSpec
 import scommons.react._
@@ -163,28 +163,39 @@ class CodeGalaxyRootSpec extends AsyncTestSpec
       }
 
       //then
-      (state.topicState _).expects().returning(TopicState(Seq(TopicEntity(
-        id = 1,
-        alias = topic,
-        name = "Test Topic",
-        lang = "en",
-        numQuestions = 1,
-        numPaid = 2,
-        numLearners = 3,
-        numChapters = 4,
-        svgIcon = Some("test svg"),
-        progress = None
+      (state.topicState _).expects().returning(TopicState(Seq(Topic(
+        entity = TopicEntity(
+          id = 1,
+          alias = topic,
+          name = "Test Topic",
+          lang = "en",
+          numQuestions = 1,
+          numPaid = 2,
+          numLearners = 3,
+          numChapters = 4,
+          svgIcon = Some("test svg")
+        ),
+        stats = None
       ))))
-      (state.chapterState _).expects().returning(ChapterState(Some(topic), Seq(ChapterEntity(
-        id = 1,
-        topic = topic,
-        alias = chapter,
-        name = "Test Chapter",
-        numQuestions = 1,
-        numPaid = 2,
-        numLearners = 3,
-        numChapters = 4,
-        progress = 5
+      (state.chapterState _).expects().returning(ChapterState(Some(topic), Seq(Chapter(
+        entity = ChapterEntity(
+          id = 1,
+          topic = topic,
+          alias = chapter,
+          name = "Test Chapter",
+          numQuestions = 1,
+          numPaid = 2,
+          numLearners = 3,
+          numChapters = 4
+        ),
+        stats = Some(ChapterStats(
+          id = 1,
+          progress = 10,
+          progressOnce = 20,
+          progressAll = 100,
+          freePercent = 30,
+          paid = 40
+        ))
       ))))
 
       //when & then

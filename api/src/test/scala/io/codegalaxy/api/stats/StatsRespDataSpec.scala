@@ -10,7 +10,11 @@ class StatsRespDataSpec extends FlatSpec with Matchers {
       alias = "test_topic"
     ),
     statistics = StatsData(
-      progressAll = 88
+      progress = 10,
+      progressOnce = 20,
+      progressAll = 100,
+      freePercent = 30,
+      paid = 40
     )
   ))
 
@@ -20,7 +24,11 @@ class StatsRespDataSpec extends FlatSpec with Matchers {
        |    "alias" : "test_topic"
        |  },
        |  "statistics" : {
-       |    "progressAll" : 88
+       |    "progress": 10,
+       |    "progressOnce": 20,
+       |    "progressAll": 100,
+       |    "freePercent": 30,
+       |    "paid": 40
        |  }
        |}]""".stripMargin
   ))

@@ -1,7 +1,7 @@
 package io.codegalaxy.app.topic
 
 import io.codegalaxy.app.topic.TopicActions._
-import io.codegalaxy.domain.TopicEntity
+import io.codegalaxy.domain.Topic
 import io.github.shogowada.scalajs.reactjs.redux.Action
 import io.github.shogowada.scalajs.reactjs.redux.Redux.Dispatch
 import scommons.react.redux.task.{FutureTask, TaskAction}
@@ -24,6 +24,6 @@ trait TopicActions {
 
 object TopicActions {
 
-  case class TopicsFetchAction(task: FutureTask[Seq[TopicEntity]]) extends TaskAction
-  case class TopicsFetchedAction(dataList: Seq[TopicEntity]) extends Action
+  case class TopicsFetchAction(task: FutureTask[Seq[Topic]]) extends TaskAction
+  case class TopicsFetchedAction(dataList: Seq[Topic]) extends Action
 }

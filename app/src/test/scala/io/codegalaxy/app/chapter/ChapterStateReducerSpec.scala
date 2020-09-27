@@ -2,7 +2,7 @@ package io.codegalaxy.app.chapter
 
 import io.codegalaxy.app.BaseStateReducerSpec
 import io.codegalaxy.app.chapter.ChapterActions._
-import io.codegalaxy.domain.ChapterEntity
+import io.codegalaxy.domain.Chapter
 import scommons.react.redux.task.FutureTask
 
 import scala.concurrent.Future
@@ -15,7 +15,7 @@ class ChapterStateReducerSpec extends BaseStateReducerSpec(
   it should "set topic and reset chapters when ChaptersFetchAction" in {
     //given
     val topic = "test_topic"
-    val dataList = Seq(mock[ChapterEntity])
+    val dataList = Seq(mock[Chapter])
     val state = ChapterState(chapters = dataList)
     val task = FutureTask("Fetching...", Future.successful(dataList))
 
@@ -29,7 +29,7 @@ class ChapterStateReducerSpec extends BaseStateReducerSpec(
   it should "set topic and chapters when ChaptersFetchedAction" in {
     //given
     val topic = "test_topic"
-    val dataList = List(mock[ChapterEntity])
+    val dataList = List(mock[Chapter])
 
     //when & then
     reduce(Some(ChapterState()), ChaptersFetchedAction(topic, dataList)) shouldBe ChapterState(

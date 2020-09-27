@@ -81,9 +81,9 @@ object QuestionScreen extends FunctionComponent[QuestionScreenProps] {
             keyExtractor = _.id,
             iconRenderer = {
               if (!answered) ChoiceGroupProps.defaultIconRenderer(multiSelect)
-              else { _ => null }
+              else { (_, _) => null }
             },
-            labelRenderer = { data =>
+            labelRenderer = { (data, _) =>
               val selected = selectedIds.contains(data.id)
               <.>()(
                 if (answered) Some(renderAnswerIcon(data.correct.getOrElse(false)))

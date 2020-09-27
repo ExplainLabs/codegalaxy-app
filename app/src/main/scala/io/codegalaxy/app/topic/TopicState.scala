@@ -1,9 +1,9 @@
 package io.codegalaxy.app.topic
 
 import io.codegalaxy.app.topic.TopicActions._
-import io.codegalaxy.domain.TopicEntity
+import io.codegalaxy.domain.Topic
 
-case class TopicState(topics: Seq[TopicEntity] = Nil)
+case class TopicState(topics: Seq[Topic] = Nil)
 
 object TopicStateReducer {
 

@@ -2,9 +2,10 @@ package io.codegalaxy.app.topic
 
 import io.codegalaxy.api.stats._
 import io.codegalaxy.api.topic._
+import io.codegalaxy.app.stats.StatsService
 import io.codegalaxy.app.topic.TopicService._
-import io.codegalaxy.domain.TopicEntity
 import io.codegalaxy.domain.dao.TopicDao
+import io.codegalaxy.domain.{Topic, TopicEntity}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -12,11 +13,11 @@ import scala.concurrent.Future
 class TopicService(api: TopicApi with StatsApi,
                    dao: TopicDao) {
 
-  def getByAlias(alias: String): Future[Option[TopicEntity]] = {
+  def getByAlias(alias: String): Future[Option[Topic]] = {
     dao.getByAlias(alias)
   }
   
-  def fetch(refresh: Boolean = false): Future[Seq[TopicEntity]] = {
+  def fetch(refresh: Boolean = false): Future[Seq[Topic]] = {
     for {
       existing <-
         if (refresh) Future.successful(Nil)
@@ -26,16 +27,15 @@ class TopicService(api: TopicApi with StatsApi,
         else {
           for {
             dataList <- getTopicsData
-            res <- dao.upsertMany(dataList.map {
-              case (data, icon, progress) =>
-                convertToTopicEntity(data, icon, progress)
+            res <- dao.saveAll(dataList.map { case (data, icon, stats) =>
+                convertToTopic(data, icon, stats)
             })
           } yield res
         }
     } yield res
   }
   
-  private def getTopicsData: Future[List[(TopicWithInfoData, Option[String], Option[Int])]] = {
+  private def getTopicsData: Future[List[(TopicWithInfoData, Option[String], Option[StatsData])]] = {
     for {
       dataList <- api.getTopics
       dataAndIconList <- Future.sequence(dataList.map { data =>
@@ -46,11 +46,11 @@ class TopicService(api: TopicApi with StatsApi,
       statsList <- api.getStats
     } yield {
       dataAndIconList.map { case (data, icon) =>
-        val maybeProgress = statsList
+        val maybeStats = statsList
           .find(_.topic.alias == data.alias)
-          .map(_.statistics.progressAll)
+          .map(_.statistics)
         
-        (data, icon, maybeProgress)
+        (data, icon, maybeStats)
       }
     }
   }
@@ -58,9 +58,16 @@ class TopicService(api: TopicApi with StatsApi,
 
 object TopicService {
 
-  private def convertToTopicEntity(data: TopicWithInfoData,
-                                   maybeIcon: Option[String],
-                                   maybeProgress: Option[Int]): TopicEntity = {
+  private def convertToTopic(data: TopicWithInfoData,
+                             maybeIcon: Option[String],
+                             stats: Option[StatsData]): Topic = {
+    Topic(
+      entity = convertToTopicEntity(data, maybeIcon),
+      stats = stats.map(StatsService.convertToTopicStats)
+    )
+  }
+  
+  private def convertToTopicEntity(data: TopicWithInfoData, maybeIcon: Option[String]): TopicEntity = {
     TopicEntity(
       id = -1,
       alias = data.alias,
@@ -70,8 +77,7 @@ object TopicService {
       numPaid = data.info.numberOfPaid,
       numLearners = data.info.numberOfLearners,
       numChapters = data.info.numberOfChapters,
-      svgIcon = maybeIcon,
-      progress = maybeProgress
+      svgIcon = maybeIcon
     )
   }
 }

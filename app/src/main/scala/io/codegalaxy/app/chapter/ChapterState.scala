@@ -1,10 +1,10 @@
 package io.codegalaxy.app.chapter
 
 import io.codegalaxy.app.chapter.ChapterActions._
-import io.codegalaxy.domain.ChapterEntity
+import io.codegalaxy.domain.Chapter
 
 case class ChapterState(topic: Option[String] = None,
-                        chapters: Seq[ChapterEntity] = Nil)
+                        chapters: Seq[Chapter] = Nil)
 
 object ChapterStateReducer {
 

@@ -2,7 +2,7 @@ package io.codegalaxy.app.topic
 
 import io.codegalaxy.app.CodeGalaxyIcons
 import io.codegalaxy.app.info._
-import io.codegalaxy.domain.TopicEntity
+import io.codegalaxy.domain.Topic
 import io.github.shogowada.scalajs.reactjs.redux.Redux.Dispatch
 import scommons.react._
 import scommons.react.hooks._
@@ -31,29 +31,29 @@ object TopicListScreen extends FunctionComponent[TopicListScreenProps] {
       ()
     }, Nil)
 
-    def renderItem(data: TopicEntity): ReactElement = {
+    def renderItem(data: Topic): ReactElement = {
       <.TouchableWithoutFeedback(^.onPress := { () =>
-        props.navigate(data.alias)
+        props.navigate(data.entity.alias)
       })(
         <.View(^.rnStyle := styles.rowContainer)(
           <.View(^.rnStyle := js.Array(styles.iconContainer, styles.icon))(
-            data.svgIcon.map { svgXml =>
+            data.entity.svgIcon.map { svgXml =>
               <.SvgCss(^.rnStyle := styles.icon, ^.xml := svgXml)()
             }
           ),
           <.View(^.rnStyle := styles.itemContainer)(
-            <.Text(^.rnStyle := styles.itemTitle)(data.name),
+            <.Text(^.rnStyle := styles.itemTitle)(data.entity.name),
             <.View(^.rnStyle := styles.itemInfoContainer)(
               <(CodeGalaxyIcons.FontAwesome5)(^.rnStyle := styles.itemInfo, ^.name := "language", ^.rnSize := 16)(),
-              <.Text(^.rnStyle := styles.itemInfo)(s" : ${data.lang}  "),
+              <.Text(^.rnStyle := styles.itemInfo)(s" : ${data.entity.lang}  "),
               <(CodeGalaxyIcons.FontAwesome5)(^.rnStyle := styles.itemInfo, ^.name := "file-code", ^.rnSize := 16)(),
-              <.Text(^.rnStyle := styles.itemInfo)(s" : ${data.numQuestions}  "),
+              <.Text(^.rnStyle := styles.itemInfo)(s" : ${data.entity.numQuestions}  "),
               <(CodeGalaxyIcons.FontAwesome5)(^.rnStyle := styles.itemInfo, ^.name := "users", ^.rnSize := 16)(),
-              <.Text(^.rnStyle := styles.itemInfo)(s" : ${data.numLearners}")
+              <.Text(^.rnStyle := styles.itemInfo)(s" : ${data.entity.numLearners}")
             )
           ),
           <(ListItemNavIcon())(^.wrapped := ListItemNavIconProps(
-            progress = data.progress.getOrElse(0),
+            progress = data.stats.map(_.progress).getOrElse(0),
             showLabel = true
           ))()
         )
@@ -75,11 +75,11 @@ object TopicListScreen extends FunctionComponent[TopicListScreenProps] {
           }
         },
         ^.flatListData := js.Array(props.data.topics: _*),
-        ^.renderItem := { data: FlatListData[TopicEntity] =>
+        ^.renderItem := { data: FlatListData[Topic] =>
           renderItem(data.item)
         },
-        ^.keyExtractor := { item: TopicEntity =>
-          item.alias
+        ^.keyExtractor := { item: Topic =>
+          item.entity.alias
         }
       )()
     )

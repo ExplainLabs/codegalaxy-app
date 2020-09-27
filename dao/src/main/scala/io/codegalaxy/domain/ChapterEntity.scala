@@ -7,8 +7,7 @@ case class ChapterEntity(id: Int,
                          numQuestions: Int,
                          numPaid: Int,
                          numLearners: Int,
-                         numChapters: Int,
-                         progress: Int)
+                         numChapters: Int)
 
 //noinspection TypeAnnotation
 trait ChapterSchema {

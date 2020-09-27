@@ -6,7 +6,7 @@ import io.codegalaxy.app.chapter.ChapterListScreen._
 import io.codegalaxy.app.chapter.ChapterListScreenSpec.FlatListDataMock
 import io.codegalaxy.app.info._
 import io.codegalaxy.app.topic.TopicParams
-import io.codegalaxy.domain.ChapterEntity
+import io.codegalaxy.domain.{Chapter, ChapterEntity, ChapterStats}
 import io.github.shogowada.scalajs.reactjs.redux.Redux.Dispatch
 import org.scalatest.{Assertion, Succeeded}
 import scommons.nodejs.test.AsyncTestSpec
@@ -36,7 +36,7 @@ class ChapterListScreenSpec extends AsyncTestSpec
     val List(touchable) = findComponents(comp, <.TouchableWithoutFeedback.reactClass)
 
     //then
-    navigate.expects(item.alias)
+    navigate.expects(item.entity.alias)
 
     //when
     touchable.props.onPress()
@@ -123,14 +123,14 @@ class ChapterListScreenSpec extends AsyncTestSpec
     val result = flatList.props.keyExtractor(item.asInstanceOf[js.Any])
 
     //then
-    result shouldBe item.alias
+    result shouldBe item.entity.alias
   }
 
   it should "render item component with Start action" in {
     //given
     val props = getChapterListScreenProps()
     val item = props.data.chapters.head
-    item.progress shouldBe 0
+    item.stats.map(_.progress).getOrElse(0) shouldBe 0
     
     //when
     val result = renderItem(props, item)
@@ -144,11 +144,11 @@ class ChapterListScreenSpec extends AsyncTestSpec
     val props = {
       val props = getChapterListScreenProps()
       props.copy(data = props.data.copy(
-        chapters = props.data.chapters.map(_.copy(progress = 99))
+        chapters = props.data.chapters.map(c => c.copy(stats = Some(c.stats.get.copy(progress = 99))))
       ))
     }
     val item = props.data.chapters.head
-    item.progress should be > 0
+    item.stats.map(_.progress).getOrElse(0) should be > 0
     
     //when
     val result = renderItem(props, item)
@@ -183,16 +183,25 @@ class ChapterListScreenSpec extends AsyncTestSpec
                                         actions: ChapterActions = mock[ChapterActions],
                                         data: ChapterState = ChapterState(
                                           topic = Some("test_topic"),
-                                          chapters = List(ChapterEntity(
-                                            id = 1,
-                                            topic = "test_topic",
-                                            alias = "test_chapter",
-                                            name = "Test Chapter",
-                                            numQuestions = 1,
-                                            numPaid = 2,
-                                            numLearners = 3,
-                                            numChapters = 4,
-                                            progress = 0
+                                          chapters = List(Chapter(
+                                            entity = ChapterEntity(
+                                              id = 1,
+                                              topic = "test_topic",
+                                              alias = "test_chapter",
+                                              name = "Test Chapter",
+                                              numQuestions = 1,
+                                              numPaid = 2,
+                                              numLearners = 3,
+                                              numChapters = 4
+                                            ),
+                                            stats = Some(ChapterStats(
+                                              id = 1,
+                                              progress = 0,
+                                              progressOnce = 0,
+                                              progressAll = 0,
+                                              freePercent = 0,
+                                              paid = 0
+                                            ))
                                           ))
                                         ),
                                         params: TopicParams = TopicParams("test_topic"),
@@ -206,7 +215,7 @@ class ChapterListScreenSpec extends AsyncTestSpec
     )
   }
 
-  private def renderItem(props: ChapterListScreenProps, data: ChapterEntity): ShallowInstance = {
+  private def renderItem(props: ChapterListScreenProps, data: Chapter): ShallowInstance = {
     val comp = shallowRender(<(ChapterListScreen())(^.wrapped := props)())
     val List(flatList) = findComponents(comp, <.FlatList.reactClass)
 
@@ -215,7 +224,7 @@ class ChapterListScreenSpec extends AsyncTestSpec
 
     val wrapper = new FunctionComponent[Unit] {
       protected def render(compProps: Props): ReactElement = {
-        val result = flatList.props.renderItem(listData.asInstanceOf[FlatListData[ChapterEntity]])
+        val result = flatList.props.renderItem(listData.asInstanceOf[FlatListData[Chapter]])
         result.asInstanceOf[ReactElement]
       }
     }
@@ -223,7 +232,7 @@ class ChapterListScreenSpec extends AsyncTestSpec
     shallowRender(<(wrapper())()())
   }
 
-  private def assertItem(result: ShallowInstance, data: ChapterEntity): Assertion = {
+  private def assertItem(result: ShallowInstance, data: Chapter): Assertion = {
     assertNativeComponent(result, <.TouchableWithoutFeedback()(), { children: List[ShallowInstance] =>
       val List(container) = children
       
@@ -232,15 +241,15 @@ class ChapterListScreenSpec extends AsyncTestSpec
         
         assertNativeComponent(info,
           <.View(^.rnStyle := styles.itemContainer)(
-            <.Text(^.rnStyle := styles.itemTitle)(data.name),
+            <.Text(^.rnStyle := styles.itemTitle)(data.entity.name),
             <.View(^.rnStyle := styles.itemInfoContainer)(
               <(CodeGalaxyIcons.FontAwesome5)(^.rnStyle := styles.itemInfo, ^.name := "file-code", ^.rnSize := 16)(),
-              <.Text(^.rnStyle := styles.itemInfo)(s" : ${data.numQuestions}")
+              <.Text(^.rnStyle := styles.itemInfo)(s" : ${data.entity.numQuestions}")
             )
           )
         )
         assertComponent(action, ListItemNavIcon) { case ListItemNavIconProps(progress, showLabel) =>
-          progress shouldBe data.progress
+          progress shouldBe data.stats.map(_.progress).getOrElse(0)
           showLabel shouldBe false
         }
       })
@@ -252,6 +261,6 @@ object ChapterListScreenSpec {
 
   @JSExportAll
   trait FlatListDataMock {
-    def item: ChapterEntity
+    def item: Chapter
   }
 }
