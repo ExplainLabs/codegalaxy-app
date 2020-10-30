@@ -37,11 +37,11 @@ class CodeGalaxyRoot(actions: CodeGalaxyActions) extends FunctionComponent[CodeG
     }
     
     def findTopicName(alias: String): Option[String] = {
-      props.state.topicState.topics.find(_.alias == alias).map(_.name)
+      props.state.topicState.topics.find(_.entity.alias == alias).map(_.entity.name)
     }
 
     def findChapterName(alias: String): Option[String] = {
-      props.state.chapterState.chapters.find(_.alias == alias).map(_.name)
+      props.state.chapterState.chapters.find(_.entity.alias == alias).map(_.entity.name)
     }
     
     def getScreenTitle(navProps: NavigationProps): String = {

@@ -4,8 +4,8 @@ import io.codegalaxy.api.chapter._
 import io.codegalaxy.api.data.InfoData
 import io.codegalaxy.api.stats._
 import io.codegalaxy.app.BaseDBContextSpec
-import io.codegalaxy.domain.ChapterEntity
 import io.codegalaxy.domain.dao.ChapterDao
+import io.codegalaxy.domain.{Chapter, ChapterEntity, ChapterStats}
 
 import scala.concurrent.Future
 
@@ -17,9 +17,9 @@ class ChapterServiceSpec extends BaseDBContextSpec {
     val dao = new ChapterDao(ctx)
     val service = new ChapterService(api, dao)
     val topic = "test_topic"
-    val c1 = getChapterRespData("chapter1")
+    val c1 = getChapterRespData("chapter1", multiplier = 1)
     val c2 = {
-      val data = getChapterRespData("chapter2")
+      val data = getChapterRespData("chapter2", multiplier = 2)
       data.copy(chapter = data.chapter.copy(info = None))
     }
 
@@ -39,8 +39,8 @@ class ChapterServiceSpec extends BaseDBContextSpec {
     } yield {
       resList shouldBe chaptersList
       resList shouldBe Seq(
-        toChapterEntity(topic, c1).copy(id = 1),
-        toChapterEntity(topic, c2).copy(id = 2)
+        toChapter(topic, c1, id = 1),
+        toChapter(topic, c2, id = 2)
       )
     }
   }
@@ -51,17 +51,20 @@ class ChapterServiceSpec extends BaseDBContextSpec {
     val dao = new ChapterDao(ctx)
     val service = new ChapterService(api, dao)
     val topic = "test_topic"
-    val c1 = getChapterRespData("chapter1")
-    val c2 = getChapterRespData("chapter2")
-    val newChapter = getChapterRespData("newChapter")
+    val c0 = getChapterRespData("chapter0", multiplier = 10)
+    val c1 = getChapterRespData("chapter1", multiplier = 1)
+    val c2 = getChapterRespData("chapter2", multiplier = 2)
+    val newChapter = getChapterRespData("newChapter", multiplier = 3)
 
     (api.getChapters _).expects(topic).returning(Future.successful(List(c1, newChapter)))
 
+    val otherTopic = "other_topic"
     val beforeF = for {
       _ <- dao.deleteAll()
-      _ <- dao.upsertMany(topic, Seq(
-        toChapterEntity(topic, c1),
-        toChapterEntity(topic, c2)
+      _ <- dao.saveAll(otherTopic, Seq(toChapter(otherTopic, c0)))
+      _ <- dao.saveAll(topic, Seq(
+        toChapter(topic, c1),
+        toChapter(topic, c2)
       ))
       Some(existing) <- service.getByAlias(topic, c1.chapter.alias)
     } yield existing
@@ -76,11 +79,13 @@ class ChapterServiceSpec extends BaseDBContextSpec {
     for {
       (existing, resList) <- resultF
       chaptersList <- dao.list(topic)
+      other <- service.getByAlias(otherTopic, c0.chapter.alias)
     } yield {
+      other shouldBe Some(toChapter(otherTopic, c0, id = 1))
       resList shouldBe chaptersList
       resList shouldBe Seq(
         existing,
-        toChapterEntity(topic, newChapter).copy(id = 3)
+        toChapter(topic, newChapter, id = 3)
       )
     }
   }
@@ -91,16 +96,16 @@ class ChapterServiceSpec extends BaseDBContextSpec {
     val dao = new ChapterDao(ctx)
     val service = new ChapterService(api, dao)
     val topic = "test_topic"
-    val c1 = getChapterRespData("chapter1")
-    val c2 = getChapterRespData("chapter2")
+    val c1 = getChapterRespData("chapter1", multiplier = 1)
+    val c2 = getChapterRespData("chapter2", multiplier = 2)
 
     (api.getChapters _).expects(*).never()
 
     val beforeF = for {
       _ <- dao.deleteAll()
-      _ <- dao.upsertMany(topic, Seq(
-        toChapterEntity(topic, c1),
-        toChapterEntity(topic, c2)
+      _ <- dao.saveAll(topic, Seq(
+        toChapter(topic, c1),
+        toChapter(topic, c2)
       ))
     } yield ()
 
@@ -117,13 +122,13 @@ class ChapterServiceSpec extends BaseDBContextSpec {
     } yield {
       resList shouldBe chaptersList
       resList shouldBe Seq(
-        toChapterEntity(topic, c1).copy(id = 1),
-        toChapterEntity(topic, c2).copy(id = 2)
+        toChapter(topic, c1, id = 1),
+        toChapter(topic, c2, id = 2)
       )
     }
   }
   
-  private def getChapterRespData(alias: String): ChapterRespData = {
+  private def getChapterRespData(alias: String, multiplier: Int): ChapterRespData = {
     ChapterRespData(
       chapter = ChapterData(
         alias = alias,
@@ -136,25 +141,38 @@ class ChapterServiceSpec extends BaseDBContextSpec {
         ))
       ),
       stats = StatsData(
-        progressAll = 99
+        progress = multiplier * 10,
+        progressOnce = multiplier * 20,
+        progressAll = multiplier * 30,
+        freePercent = multiplier * 40,
+        paid = multiplier * 50
       )
     )
   }
 
-  private def toChapterEntity(topic: String, resp: ChapterRespData): ChapterEntity = {
+  private def toChapter(topic: String, resp: ChapterRespData, id: Int = -1): Chapter = {
     val data = resp.chapter
     val info = data.info.getOrElse(InfoData())
     
-    ChapterEntity(
-      id = -1,
-      topic = topic,
-      alias = data.alias,
-      name = data.name,
-      numQuestions = info.numberOfQuestions,
-      numPaid = info.numberOfPaid,
-      numLearners = info.numberOfLearners,
-      numChapters = info.numberOfChapters,
-      progress = resp.stats.progressAll
+    Chapter(
+      entity = ChapterEntity(
+        id = id,
+        topic = topic,
+        alias = data.alias,
+        name = data.name,
+        numQuestions = info.numberOfQuestions,
+        numPaid = info.numberOfPaid,
+        numLearners = info.numberOfLearners,
+        numChapters = info.numberOfChapters
+      ),
+      stats = Some(ChapterStats(
+        id = id,
+        progress = resp.stats.progress,
+        progressOnce = resp.stats.progressOnce,
+        progressAll = resp.stats.progressAll,
+        freePercent = resp.stats.freePercent,
+        paid = resp.stats.paid
+      ))
     )
   }
 }

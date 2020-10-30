@@ -2,7 +2,7 @@ package io.codegalaxy.app.topic
 
 import io.codegalaxy.app.BaseStateReducerSpec
 import io.codegalaxy.app.topic.TopicActions.TopicsFetchedAction
-import io.codegalaxy.domain.TopicEntity
+import io.codegalaxy.domain.Topic
 
 class TopicStateReducerSpec extends BaseStateReducerSpec(
   createState = TopicState(),
@@ -11,7 +11,7 @@ class TopicStateReducerSpec extends BaseStateReducerSpec(
 
   it should "set topics when TopicsFetchedAction" in {
     //given
-    val dataList = List(mock[TopicEntity])
+    val dataList = List(mock[Topic])
 
     //when & then
     reduce(Some(TopicState()), TopicsFetchedAction(dataList)) shouldBe TopicState(

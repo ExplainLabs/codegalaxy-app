@@ -5,8 +5,8 @@ import io.codegalaxy.api.stats._
 import io.codegalaxy.api.topic._
 import io.codegalaxy.app.BaseDBContextSpec
 import io.codegalaxy.app.topic.TopicServiceSpec._
-import io.codegalaxy.domain.TopicEntity
 import io.codegalaxy.domain.dao.TopicDao
+import io.codegalaxy.domain.{Topic, TopicEntity, TopicStats}
 
 import scala.concurrent.Future
 
@@ -19,7 +19,7 @@ class TopicServiceSpec extends BaseDBContextSpec {
     val service = new TopicService(api, dao)
     val (t1, svg1) = (getTopicData("topic1"), "test svg1")
     val (t2, svg2) = (getTopicData("topic2"), "test svg2")
-    val stats = getStatsRespData("topic1")
+    val stats = getStatsRespData("topic1", multiplier = 1)
 
     (api.getTopics _).expects().returning(Future.successful(List(t1, t2)))
     (api.getTopicIcon _).expects(t1.alias).returning(Future.successful(Some(svg1)))
@@ -40,8 +40,8 @@ class TopicServiceSpec extends BaseDBContextSpec {
     } yield {
       resList shouldBe topicsList
       resList shouldBe Seq(
-        toTopicEntity(t1, Some(svg1), Some(stats.statistics.progressAll)).copy(id = 1),
-        toTopicEntity(t2, Some(svg2), None).copy(id = 2)
+        toTopic(t1, Some(svg1), Some(stats.statistics), id = 1),
+        toTopic(t2, Some(svg2), None, id = 2)
       )
     }
   }
@@ -53,10 +53,10 @@ class TopicServiceSpec extends BaseDBContextSpec {
     val service = new TopicService(api, dao)
     val (t1, svg1) = (getTopicData("topic1"), "test svg1")
     val (t2, svg2) = (getTopicData("topic2"), "test svg2")
-    val stats = getStatsRespData("topic1")
+    val stats = getStatsRespData("topic1", multiplier = 1)
     val newTopic = getTopicData("newTopic")
     val newSvg = "new svg"
-    val newStats = getStatsRespData("newTopic")
+    val newStats = getStatsRespData("newTopic", multiplier = 2)
 
     (api.getTopics _).expects().returning(Future.successful(List(t1, newTopic)))
     (api.getTopicIcon _).expects(t1.alias).returning(Future.successful(Some(svg1)))
@@ -65,9 +65,9 @@ class TopicServiceSpec extends BaseDBContextSpec {
 
     val beforeF = for {
       _ <- dao.deleteAll()
-      _ <- dao.upsertMany(Seq(
-        toTopicEntity(t1, Some(svg1), Some(stats.statistics.progressAll)),
-        toTopicEntity(t2, Some(svg2), None)
+      _ <- dao.saveAll(Seq(
+        toTopic(t1, Some(svg1), Some(stats.statistics)),
+        toTopic(t2, Some(svg2), None)
       ))
       Some(existing) <- service.getByAlias(t1.alias)
     } yield existing
@@ -85,8 +85,8 @@ class TopicServiceSpec extends BaseDBContextSpec {
     } yield {
       resList shouldBe topicsList
       resList shouldBe Seq(
-        existing.copy(progress = None),
-        toTopicEntity(newTopic, Some(newSvg), Some(newStats.statistics.progressAll)).copy(id = 3)
+        existing.copy(stats = None),
+        toTopic(newTopic, Some(newSvg), Some(newStats.statistics), id = 2)
       )
     }
   }
@@ -98,7 +98,7 @@ class TopicServiceSpec extends BaseDBContextSpec {
     val service = new TopicService(api, dao)
     val (t1, svg1) = (getTopicData("topic1"), "test svg1")
     val (t2, svg2) = (getTopicData("topic2"), "test svg2")
-    val stats = getStatsRespData("topic1")
+    val stats = getStatsRespData("topic1", multiplier = 1)
 
     (api.getTopics _).expects().never()
     (api.getTopicIcon _).expects(*).never()
@@ -106,9 +106,9 @@ class TopicServiceSpec extends BaseDBContextSpec {
 
     val beforeF = for {
       _ <- dao.deleteAll()
-      _ <- dao.upsertMany(Seq(
-        toTopicEntity(t1, Some(svg1), Some(stats.statistics.progressAll)),
-        toTopicEntity(t2, Some(svg2), None)
+      _ <- dao.saveAll(Seq(
+        toTopic(t1, Some(svg1), Some(stats.statistics)),
+        toTopic(t2, Some(svg2), None)
       ))
     } yield ()
 
@@ -125,8 +125,8 @@ class TopicServiceSpec extends BaseDBContextSpec {
     } yield {
       resList shouldBe topicsList
       resList shouldBe Seq(
-        toTopicEntity(t1, Some(svg1), Some(stats.statistics.progressAll)).copy(id = 1),
-        toTopicEntity(t2, Some(svg2), None).copy(id = 2)
+        toTopic(t1, Some(svg1), Some(stats.statistics), id = 1),
+        toTopic(t2, Some(svg2), None, id = 2)
       )
     }
   }
@@ -145,31 +145,47 @@ class TopicServiceSpec extends BaseDBContextSpec {
     )
   }
 
-  private def getStatsRespData(alias: String): StatsRespData = {
+  private def getStatsRespData(alias: String, multiplier: Int): StatsRespData = {
     StatsRespData(
       topic = StatsTopicData(
         alias = alias
       ),
       statistics = StatsData(
-        progressAll = 88
+        progress = multiplier * 1,
+        progressOnce = multiplier * 2,
+        progressAll = multiplier * 3,
+        freePercent = multiplier * 4,
+        paid = multiplier * 5
       )
     )
   }
 
-  private def toTopicEntity(data: TopicWithInfoData,
-                            maybeIcon: Option[String],
-                            maybeProgress: Option[Int]): TopicEntity = {
-    TopicEntity(
-      id = -1,
-      alias = data.alias,
-      name = data.name,
-      lang = data.language,
-      numQuestions = data.info.numberOfQuestions,
-      numPaid = data.info.numberOfPaid,
-      numLearners = data.info.numberOfLearners,
-      numChapters = data.info.numberOfChapters,
-      svgIcon = maybeIcon,
-      progress = maybeProgress
+  private def toTopic(data: TopicWithInfoData,
+                      maybeIcon: Option[String],
+                      maybeStats: Option[StatsData],
+                      id: Int = -1): Topic = {
+    Topic(
+      entity = TopicEntity(
+        id = id,
+        alias = data.alias,
+        name = data.name,
+        lang = data.language,
+        numQuestions = data.info.numberOfQuestions,
+        numPaid = data.info.numberOfPaid,
+        numLearners = data.info.numberOfLearners,
+        numChapters = data.info.numberOfChapters,
+        svgIcon = maybeIcon
+      ),
+      stats = maybeStats.map { stats =>
+        TopicStats(
+          id = id,
+          progress = stats.progress,
+          progressOnce = stats.progressOnce,
+          progressAll = stats.progressAll,
+          freePercent = stats.freePercent,
+          paid = stats.paid
+        )
+      }
     )
   }
 }

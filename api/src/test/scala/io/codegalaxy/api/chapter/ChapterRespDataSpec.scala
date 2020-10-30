@@ -19,7 +19,11 @@ class ChapterRespDataSpec extends FlatSpec with Matchers {
       ))
     ),
     stats = StatsData(
-      progressAll = 100
+      progress = 10,
+      progressOnce = 20,
+      progressAll = 100,
+      freePercent = 30,
+      paid = 40
     )
   ))
 

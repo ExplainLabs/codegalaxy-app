@@ -6,60 +6,103 @@ import scommons.websql.quill.dao.CommonDao
 import scala.concurrent.Future
 
 class ChapterDao(val ctx: CodeGalaxyDBContext) extends CommonDao
-  with ChapterSchema {
+  with ChapterSchema
+  with ChapterStatsSchema {
 
   import ctx._
 
-  def getByAlias(topic: String, alias: String): Future[Option[ChapterEntity]] = {
-    getOne("getByAlias", ctx.performIO(ctx.run(chapters
-      .filter { r =>
-        r.topic == lift(topic) &&
-          r.alias == lift(alias)
+  def getByAlias(topic: String, alias: String): Future[Option[Chapter]] = {
+    val q = for {
+      results <- ctx.run(chapters.leftJoin(chaptersStats).on(_.id == _.id)
+        .filter { case (r, _) =>
+          r.topic == lift(topic) &&
+            r.alias == lift(alias)
+        }
+      )
+    } yield {
+      results.map { case (entity, maybeStats) =>
+        Chapter(entity, maybeStats)
       }
-    )))
+    }
+    
+    getOne("getByAlias", ctx.performIO(q))
   }
 
-  def list(topic: String): Future[Seq[ChapterEntity]] = {
+  def list(topic: String): Future[Seq[Chapter]] = {
     ctx.performIO(listQuery(topic))
   }
 
-  private def listQuery(topic: String): IO[Seq[ChapterEntity], Effect.Read] = {
-    ctx.run(chapters
-      .filter(r => r.topic == lift(topic))
-      .sortBy(_.id)
-    )
+  private def listQuery(topic: String): IO[Seq[Chapter], Effect.Read] = {
+    for {
+      results <- ctx.run(chapters.leftJoin(chaptersStats).on(_.id == _.id)
+        .filter { case (r, _) =>
+          r.topic == lift(topic)
+        }
+        .sortBy { case (r, _) => r.id }
+      )
+    } yield {
+      results.map { case (entity, maybeStats) =>
+        Chapter(entity, maybeStats)
+      }
+    }
   }
 
-  def upsertMany(topic: String, data: Seq[ChapterEntity]): Future[Seq[ChapterEntity]] = {
+  def saveAll(topic: String, data: Seq[Chapter]): Future[Seq[Chapter]] = {
     val q = for {
-      existing <- getExistingQuery(topic)
-      (toUpdate, toInsert, idsToDelete) = {
-        val (toUpdate, toInsert) = data.map { r =>
-          val id = existing.find(_._2 == r.alias).map(_._1).getOrElse(-1)
-          r.copy(id = id)
-        }.partition(_.id != -1)
-        
-        (toUpdate, toInsert, existing.collect {
-          case r if !toUpdate.exists(_.id == r._1) => r._1
-        })
+      idsToDelete <- getExistingIdsQuery(topic)
+      _ <- deleteStatsAction(idsToDelete)
+      _ <- deleteChaptersAction(idsToDelete)
+      ids <- insertChaptersAction(data.map(_.entity))
+      topicsStats = data.zip(ids).flatMap { case (Chapter(_, stats), id) =>
+        stats.map(_.copy(id = id))
       }
-      _ <- updateManyAction(toUpdate)
-      _ <- insertManyAction(toInsert)
-      _ <- deleteManyAction(idsToDelete)
+      _ <- insertStatsAction(topicsStats)
       res <- listQuery(topic)
     } yield res
     
     ctx.performIO(q)
   }
 
-  private def getExistingQuery(topic: String): IO[Seq[(Int, String)], Effect.Read] = {
+  def saveStats(topic: String, alias: String, stats: ChapterStats): Future[Option[ChapterStats]] = {
+    val q = for {
+      ids <- ctx.run(chapters
+        .filter { r =>
+          r.topic == lift(topic) &&
+            r.alias == lift(alias)
+        }
+        .map(r => r.id)
+      )
+      res <- ids.headOption match {
+        case None => ctx.IO.successful(None)
+        case Some(chapterId) =>
+          saveStatsAction(stats.copy(id = chapterId))
+            .map(Some(_))
+      }
+    } yield res
+
+    ctx.performIO(q)
+  }
+
+  private def saveStatsAction(stats: ChapterStats): IO[ChapterStats, Effect.Write] = {
+    for {
+      updatedCount <- ctx.run(chaptersStats
+        .filter(_.id == lift(stats.id))
+        .update(lift(stats))
+      )
+      _ <-
+        if (updatedCount == 0) ctx.run(chaptersStats.insert(lift(stats)))
+        else ctx.IO.successful(())
+    } yield stats
+  }
+
+  private def getExistingIdsQuery(topic: String): IO[Seq[Int], Effect.Read] = {
     ctx.run(chapters
       .filter(r => r.topic == lift(topic))
-      .map(r => (r.id, r.alias))
+      .map(r => r.id)
     )
   }
   
-  private def insertManyAction(list: Seq[ChapterEntity]): IO[Seq[Long], Effect.Write] = {
+  private def insertChaptersAction(list: Seq[ChapterEntity]): IO[Seq[Int], Effect.Write] = {
     val q = quote {
       liftQuery(list).foreach { entity =>
         chapters
@@ -68,34 +111,39 @@ class ChapterDao(val ctx: CodeGalaxyDBContext) extends CommonDao
       }
     }
 
-    ctx.run(q)
+    ctx.run(q).map(_.map(_.toInt))
   }
 
-  private def updateManyAction(list: Seq[ChapterEntity]): IO[Seq[Long], Effect.Write] = {
+  private def insertStatsAction(list: Seq[ChapterStats]): IO[Seq[Long], Effect.Write] = {
     val q = quote {
       liftQuery(list).foreach { entity =>
-        chapters
-          .filter(_.id == entity.id)
-          .update(entity)
+        chaptersStats.insert(entity)
       }
     }
 
     ctx.run(q)
   }
 
-  private def deleteManyAction(ids: Seq[Int]): IO[Seq[Long], Effect.Write] = {
-    val q = quote {
-      liftQuery(ids).foreach { id =>
-        chapters
-          .filter(_.id == id)
-          .delete
-      }
-    }
-
-    ctx.run(q)
+  private def deleteChaptersAction(ids: Seq[Int]): IO[Long, Effect.Write] = {
+    ctx.run(chapters
+      .filter(c => liftQuery(ids).contains(c.id))
+      .delete
+    )
+  }
+  
+  private def deleteStatsAction(ids: Seq[Int]): IO[Long, Effect.Write] = {
+    ctx.run(chaptersStats
+      .filter(c => liftQuery(ids).contains(c.id))
+      .delete
+    )
   }
 
-  def deleteAll(): Future[Long] = {
-    ctx.performIO(ctx.run(chapters.delete))
+  def deleteAll(): Future[Unit] = {
+    val q = for {
+      _ <- ctx.run(chaptersStats.delete)
+      _ <- ctx.run(chapters.delete)
+    } yield ()
+
+    ctx.performIO(q)
   }
 }
