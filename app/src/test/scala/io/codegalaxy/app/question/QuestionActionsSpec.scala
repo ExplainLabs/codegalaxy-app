@@ -3,6 +3,9 @@ package io.codegalaxy.app.question
 import io.codegalaxy.api.question._
 import io.codegalaxy.app.question.QuestionActions._
 import io.codegalaxy.app.question.QuestionActionsSpec._
+import io.codegalaxy.app.stats.StatsActions.StatsFetchedAction
+import io.codegalaxy.app.stats.StatsService
+import io.codegalaxy.domain.{ChapterStats, TopicStats}
 import scommons.nodejs.test.AsyncTestSpec
 import scommons.react.redux.task.FutureTask
 
@@ -13,7 +16,8 @@ class QuestionActionsSpec extends AsyncTestSpec {
   it should "dispatch QuestionFetchedAction when fetchQuestion" in {
     //given
     val api = mock[QuestionApi]
-    val actions = new QuestionActionsTest(api)
+    val statsService = mock[StatsService]
+    val actions = new QuestionActionsTest(api, statsService)
     val dispatch = mockFunction[Any, Any]
     val topic = "test_topic"
     val chapter = "test_chapter"
@@ -36,19 +40,25 @@ class QuestionActionsSpec extends AsyncTestSpec {
     }
   }
   
-  it should "dispatch QuestionFetchedAction when submitAnswer" in {
+  it should "dispatch QuestionFetchedAction and StatsFetchedAction when submitAnswer" in {
     //given
     val api = mock[QuestionApi]
-    val actions = new QuestionActionsTest(api)
+    val statsService = mock[StatsService]
+    val actions = new QuestionActionsTest(api, statsService)
     val dispatch = mockFunction[Any, Any]
     val topic = "test_topic"
     val chapter = "test_chapter"
     val data = mock[QuestionData]
     val respData = mock[QuestionData]
+    val topicStats = mock[TopicStats]
+    val chapterStats = mock[ChapterStats]
+    val stats = (topicStats, chapterStats)
 
     //then
     (api.submitAnswer _).expects(topic, chapter, data).returning(Future.successful(respData))
+    (statsService.updateStats _).expects(topic, chapter).returning(Future.successful(stats))
     dispatch.expects(QuestionFetchedAction(topic, chapter, respData))
+    dispatch.expects(StatsFetchedAction(stats))
 
     //when
     val AnswerSubmitAction(FutureTask(message, future)) =
@@ -64,9 +74,10 @@ class QuestionActionsSpec extends AsyncTestSpec {
 
 object QuestionActionsSpec {
 
-  private class QuestionActionsTest(api: QuestionApi)
+  private class QuestionActionsTest(api: QuestionApi, stats: StatsService)
     extends QuestionActions {
 
     protected def client: QuestionApi = api
+    protected def statsService: StatsService = stats
   }
 }
