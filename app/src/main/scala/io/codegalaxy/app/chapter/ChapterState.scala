@@ -1,6 +1,7 @@
 package io.codegalaxy.app.chapter
 
 import io.codegalaxy.app.chapter.ChapterActions._
+import io.codegalaxy.app.stats.StatsActions.StatsFetchedAction
 import io.codegalaxy.domain.Chapter
 
 case class ChapterState(topic: Option[String] = None,
@@ -21,6 +22,10 @@ object ChapterStateReducer {
       topic = Some(topic),
       chapters = dataList
     )
+    case StatsFetchedAction((_, stats)) => state.copy(chapters = state.chapters.map {
+      case t if t.entity.id == stats.id => t.copy(stats = Some(stats))
+      case t => t
+    })
     case _ => state
   }
 }
