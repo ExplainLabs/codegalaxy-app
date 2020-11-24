@@ -1,6 +1,7 @@
 package io.codegalaxy.app.question
 
 import scommons.react._
+import scommons.react.navigation._
 import scommons.reactnative._
 import scommons.reactnative.highlighter._
 import scommons.reactnative.htmlview._
@@ -12,11 +13,11 @@ case class QuestionTextProps(textHtml: String,
 
 object QuestionText extends FunctionComponent[QuestionTextProps] {
 
-  def renderNode(node: HTMLViewNode,
-                 index: Int,
-                 siblings: js.Array[HTMLViewNode],
-                 parent: js.UndefOr[HTMLViewNode],
-                 defaultRenderer: DefaultRendererFn): js.Any = {
+  def renderNode(dark: Boolean)(node: HTMLViewNode,
+                                index: Int,
+                                siblings: js.Array[HTMLViewNode],
+                                parent: js.UndefOr[HTMLViewNode],
+                                defaultRenderer: DefaultRendererFn): js.Any = {
 
     def getCodeData(node: HTMLViewNode): Option[(String, Option[String])] = {
       node.children.headOption.flatMap(_.data.toOption).map { code =>
@@ -53,8 +54,13 @@ object QuestionText extends FunctionComponent[QuestionTextProps] {
             language.map(^.language := _),
             ^.customStyle := codeBlockStyle,
             ^.highlighter := "hljs",
-            ^.highlighterStyle := getHighlightJsStyle("github")
-              .getOrElse(HighlightJsStyles.defaultStyle)
+            ^.highlighterStyle := {
+              val hlStyle =
+                if (dark) getHighlightJsStyle("dark")
+                else getHighlightJsStyle("github")
+              
+              hlStyle.getOrElse(HighlightJsStyles.defaultStyle)
+            }
           )(entities.decodeHTML(code.trim)),
           
           if (newLineAfter) Some("\n")
@@ -65,13 +71,22 @@ object QuestionText extends FunctionComponent[QuestionTextProps] {
   }
   
   protected def render(compProps: Props): ReactElement = {
+    implicit val theme: Theme = useTheme()
     val props = compProps.wrapped
     
     val text = props.textHtml.trim
     
+    val textProps = ^.textComponentProps := {
+      val attrs = new js.Object {
+        val style = themeTextStyle
+      }
+      attrs
+    }
+
     <.HTMLView(
       props.style.map(^.rnStyle := _),
-      ^.renderNode := renderNode,
+      textProps,
+      ^.renderNode := renderNode(theme.dark),
       ^.value := s"<div>$text</div>"
     )()
   }

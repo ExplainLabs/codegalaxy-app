@@ -81,7 +81,7 @@ class CodeGalaxyRoot(actions: CodeGalaxyActions) extends FunctionComponent[CodeG
     if (!isReady) <.>()() //Loading...
     else {
       <.SafeAreaProvider()(
-        <.NavigationContainer()(
+        <.NavigationContainer(^.theme := DefaultTheme)( //DarkTheme
           if (showLogin) {
             <(LoginStack.Navigator)(
               ^.screenOptions := new StackScreenOptions {

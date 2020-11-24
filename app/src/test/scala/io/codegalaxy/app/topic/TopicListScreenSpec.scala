@@ -10,6 +10,7 @@ import io.github.shogowada.scalajs.reactjs.redux.Redux.Dispatch
 import org.scalatest.{Assertion, Succeeded}
 import scommons.nodejs.test.AsyncTestSpec
 import scommons.react._
+import scommons.react.navigation._
 import scommons.react.redux.task.FutureTask
 import scommons.react.test._
 import scommons.reactnative.FlatList.FlatListData
@@ -229,6 +230,8 @@ class TopicListScreenSpec extends AsyncTestSpec
   }
 
   private def assertItem(result: ShallowInstance, data: Topic): Assertion = {
+    implicit val theme: Theme = DefaultTheme
+    
     assertNativeComponent(result, <.TouchableWithoutFeedback()(), { children: List[ShallowInstance] =>
       val List(container) = children
       
@@ -244,14 +247,14 @@ class TopicListScreenSpec extends AsyncTestSpec
         )
         assertNativeComponent(info,
           <.View(^.rnStyle := styles.itemContainer)(
-            <.Text(^.rnStyle := styles.itemTitle)(data.entity.name),
+            <.Text(themeStyle(styles.itemTitle, themeTextStyle))(data.entity.name),
             <.View(^.rnStyle := styles.itemInfoContainer)(
-              <(CodeGalaxyIcons.FontAwesome5)(^.rnStyle := styles.itemInfo, ^.name := "language", ^.rnSize := 16)(),
-              <.Text(^.rnStyle := styles.itemInfo)(s" : ${data.entity.lang}  "),
-              <(CodeGalaxyIcons.FontAwesome5)(^.rnStyle := styles.itemInfo, ^.name := "file-code", ^.rnSize := 16)(),
-              <.Text(^.rnStyle := styles.itemInfo)(s" : ${data.entity.numQuestions}  "),
-              <(CodeGalaxyIcons.FontAwesome5)(^.rnStyle := styles.itemInfo, ^.name := "users", ^.rnSize := 16)(),
-              <.Text(^.rnStyle := styles.itemInfo)(s" : ${data.entity.numLearners}")
+              <(CodeGalaxyIcons.FontAwesome5)(themeStyle(styles.itemInfo, styles.itemInfoDark), ^.name := "language", ^.rnSize := 16)(),
+              <.Text(themeStyle(styles.itemInfo, styles.itemInfoDark))(s" : ${data.entity.lang}  "),
+              <(CodeGalaxyIcons.FontAwesome5)(themeStyle(styles.itemInfo, styles.itemInfoDark), ^.name := "file-code", ^.rnSize := 16)(),
+              <.Text(themeStyle(styles.itemInfo, styles.itemInfoDark))(s" : ${data.entity.numQuestions}  "),
+              <(CodeGalaxyIcons.FontAwesome5)(themeStyle(styles.itemInfo, styles.itemInfoDark), ^.name := "users", ^.rnSize := 16)(),
+              <.Text(themeStyle(styles.itemInfo, styles.itemInfoDark))(s" : ${data.entity.numLearners}")
             )
           )
         )

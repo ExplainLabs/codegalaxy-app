@@ -7,6 +7,7 @@ import io.codegalaxy.domain.Chapter
 import io.github.shogowada.scalajs.reactjs.redux.Redux.Dispatch
 import scommons.react._
 import scommons.react.hooks._
+import scommons.react.navigation._
 import scommons.reactnative.FlatList.FlatListData
 import scommons.reactnative._
 import scommons.reactnative.safearea.SafeArea._
@@ -24,6 +25,7 @@ case class ChapterListScreenProps(dispatch: Dispatch,
 object ChapterListScreen extends FunctionComponent[ChapterListScreenProps] {
 
   protected def render(compProps: Props): ReactElement = {
+    implicit val theme: Theme = useTheme()
     val (refreshing, setRefreshing) = useState(false)
     val props = compProps.wrapped
     val topic = props.params.topic
@@ -41,10 +43,10 @@ object ChapterListScreen extends FunctionComponent[ChapterListScreenProps] {
       })(
         <.View(^.rnStyle := styles.rowContainer)(
           <.View(^.rnStyle := styles.itemContainer)(
-            <.Text(^.rnStyle := styles.itemTitle)(data.entity.name),
+            <.Text(themeStyle(styles.itemTitle, themeTextStyle))(data.entity.name),
             <.View(^.rnStyle := styles.itemInfoContainer)(
-              <(CodeGalaxyIcons.FontAwesome5)(^.rnStyle := styles.itemInfo, ^.name := "file-code", ^.rnSize := 16)(),
-              <.Text(^.rnStyle := styles.itemInfo)(s" : ${data.entity.numQuestions}")
+              <(CodeGalaxyIcons.FontAwesome5)(themeStyle(styles.itemInfo, styles.itemInfoDark), ^.name := "file-code", ^.rnSize := 16)(),
+              <.Text(themeStyle(styles.itemInfo, styles.itemInfoDark))(s" : ${data.entity.numQuestions}")
             )
           ),
           <(ListItemNavIcon())(^.wrapped := ListItemNavIconProps(
@@ -113,6 +115,9 @@ object ChapterListScreen extends FunctionComponent[ChapterListScreenProps] {
     }
     val itemInfo: Style = new TextStyle {
       override val color = "rgba(0, 0, 0, .5)"
+    }
+    val itemInfoDark: Style = new TextStyle {
+      override val color = "rgba(255, 255, 255, .5)"
     }
   }
 }

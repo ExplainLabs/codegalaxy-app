@@ -6,6 +6,7 @@ import io.github.shogowada.scalajs.reactjs.redux.Redux.Dispatch
 import scommons.expo._
 import scommons.react._
 import scommons.react.hooks._
+import scommons.react.navigation._
 import scommons.reactnative.ScrollView._
 import scommons.reactnative._
 import scommons.reactnative.safearea.SafeArea._
@@ -52,6 +53,7 @@ object QuestionScreen extends FunctionComponent[QuestionScreenProps] {
   }
   
   protected def render(compProps: Props): ReactElement = {
+    implicit val theme: Theme = useTheme()
     val props = compProps.wrapped
     val topic = props.params.topic
     val chapter = props.params.getChapter
@@ -68,7 +70,7 @@ object QuestionScreen extends FunctionComponent[QuestionScreenProps] {
       ^.rnStyle := styles.container,
       ^.edges := List(SafeAreaEdge.left, SafeAreaEdge.bottom, SafeAreaEdge.right)
     )(props.data.question match {
-      case None => <.Text()("Loading...")
+      case None => <.Text(^.rnStyle := themeTextStyle)("Loading...")
       case Some(question) =>
         val multiSelect = question.answerType != "SINGLE_CHOICE"
         val answered = question.correct.isDefined
@@ -114,7 +116,7 @@ object QuestionScreen extends FunctionComponent[QuestionScreenProps] {
 
           question.rules.map { rule =>
             <.>()(
-              <.Text(^.rnStyle := styles.ruleTitle)(rule.title),
+              <.Text(themeStyle(styles.ruleTitle, themeTextStyle))(rule.title),
               <(QuestionText())(^.wrapped := QuestionTextProps(
                 textHtml = rule.text,
                 style = Some(js.Array(styles.ruleText))
@@ -124,7 +126,7 @@ object QuestionScreen extends FunctionComponent[QuestionScreenProps] {
 
           question.explanation.collect { case explanation if explanation.trim.nonEmpty =>
             <.>()(
-              <.Text(^.rnStyle := styles.ruleTitle)("Explanation"),
+              <.Text(themeStyle(styles.ruleTitle, themeTextStyle))("Explanation"),
               <(QuestionText())(^.wrapped := QuestionTextProps(
                 textHtml = explanation,
                 style = Some(js.Array(styles.ruleText))
