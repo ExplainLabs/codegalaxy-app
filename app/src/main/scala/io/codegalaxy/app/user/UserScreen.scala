@@ -2,6 +2,7 @@ package io.codegalaxy.app.user
 
 import io.github.shogowada.scalajs.reactjs.redux.Redux.Dispatch
 import scommons.react._
+import scommons.react.navigation._
 import scommons.reactnative._
 
 import scala.scalajs.js
@@ -13,15 +14,16 @@ case class UserScreenProps(dispatch: Dispatch,
 object UserScreen extends FunctionComponent[UserScreenProps] {
   
   protected def render(compProps: Props): ReactElement = {
+    implicit val theme: Theme = useTheme()
     val props = compProps.wrapped
 
     def renderField(name: String, value: Option[String]): ReactElement = {
       <.View(^.rnStyle := styles.fieldRow)(
         <.View(^.rnStyle := styles.fieldContainer)(
-          <.Text(^.rnStyle := styles.fieldName)(s"$name:")
+          <.Text(themeStyle(styles.fieldName, themeTextStyle))(s"$name:")
         ),
         <.View(^.rnStyle := styles.valueContainer)(
-          <.Text(^.rnStyle := styles.fieldValue)(s"${value.getOrElse("")}")
+          <.Text(themeStyle(styles.fieldValue, themeTextStyle))(s"${value.getOrElse("")}")
         )
       )
     }

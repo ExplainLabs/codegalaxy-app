@@ -53,7 +53,7 @@ class CodeGalaxyRootSpec extends AsyncTestSpec
       val result = renderer.root.children(0)
       assertNativeComponent(result, <.SafeAreaProvider()(), { children: List[TestInstance] =>
         val List(navContainer) = children
-        assertNativeComponent(navContainer, <.NavigationContainer()(), { children: List[TestInstance] =>
+        assertNativeComponent(navContainer, <.NavigationContainer(^.theme := DefaultTheme)(), { children: List[TestInstance] =>
           val List(navigator) = children
           assertNativeComponent(navigator,
             <(LoginStack.Navigator)(
@@ -105,7 +105,7 @@ class CodeGalaxyRootSpec extends AsyncTestSpec
       val result = renderer.root.children(0)
       assertNativeComponent(result, <.SafeAreaProvider()(), { children: List[TestInstance] =>
         val List(navContainer) = children
-        assertNativeComponent(navContainer, <.NavigationContainer()(), { children: List[TestInstance] =>
+        assertNativeComponent(navContainer, <.NavigationContainer(^.theme := DefaultTheme)(), { children: List[TestInstance] =>
           val List(navigator) = children
           assertNativeComponent(navigator,
             <(AppStack.Navigator)()(

@@ -2,6 +2,7 @@ package io.codegalaxy.app.info
 
 import io.codegalaxy.app.info.ListItemNavIcon._
 import scommons.react._
+import scommons.react.navigation._
 import scommons.react.test._
 import scommons.reactnative._
 import scommons.reactnative.svg._
@@ -54,12 +55,13 @@ class ListItemNavIconSpec extends TestSpec with ShallowRendererUtils {
     val result = shallowRender(component)
 
     //then
+    implicit val theme: Theme = DefaultTheme
     assertNativeComponent(result,
       <.View(^.rnStyle := styles.statsContainer)(
         <.>()(
           <.Text(^.rnStyle := styles.statsLabel)("Open"),
           <.View(^.rnStyle := styles.statsProgress)(
-            <.Text()(s"${props.progress}")
+            <.Text(^.rnStyle := themeTextStyle)(s"${props.progress}")
           )
         )
       )
@@ -75,11 +77,12 @@ class ListItemNavIconSpec extends TestSpec with ShallowRendererUtils {
     val result = shallowRender(component)
 
     //then
+    implicit val theme: Theme = DefaultTheme
     assertNativeComponent(result,
       <.View(^.rnStyle := styles.statsContainer)(
         <.>()(
           <.View(^.rnStyle := styles.statsProgress)(
-            <.Text()(s"${props.progress}")
+            <.Text(^.rnStyle := themeTextStyle)(s"${props.progress}")
           )
         )
       )

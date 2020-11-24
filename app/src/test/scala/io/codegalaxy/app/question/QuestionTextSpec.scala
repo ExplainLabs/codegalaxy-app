@@ -3,6 +3,7 @@ package io.codegalaxy.app.question
 import io.codegalaxy.app.question.QuestionText._
 import io.codegalaxy.app.question.QuestionTextSpec._
 import scommons.react._
+import scommons.react.navigation._
 import scommons.react.test._
 import scommons.reactnative._
 import scommons.reactnative.highlighter._
@@ -14,6 +15,8 @@ import scala.scalajs.js.annotation.JSExportAll
 class QuestionTextSpec extends TestSpec
   with BaseTestSpec
   with ShallowRendererUtils {
+
+  private implicit val theme: Theme = DefaultTheme
 
   it should "return SyntaxHighlighter for pre.code tag with line breaks when renderNode" in {
     //given
@@ -37,7 +40,7 @@ class QuestionTextSpec extends TestSpec
     (textNode.data _).expects().returning(code)
     
     //when
-    val result = QuestionText.renderNode(
+    val result = QuestionText.renderNode(theme.dark)(
       node = preNode.asInstanceOf[HTMLViewNode],
       index = 1,
       siblings = js.Array(siblingNode1, preNode, siblingNode2).map(_.asInstanceOf[HTMLViewNode]),
@@ -79,7 +82,7 @@ class QuestionTextSpec extends TestSpec
     (textNode.data _).expects().returning(s" $code\n")
     
     //when
-    val result = QuestionText.renderNode(
+    val result = QuestionText.renderNode(theme.dark)(
       node = preNode.asInstanceOf[HTMLViewNode],
       index = 1,
       siblings = js.Array(preNode).map(_.asInstanceOf[HTMLViewNode]),
@@ -117,7 +120,7 @@ class QuestionTextSpec extends TestSpec
     (textNode.data _).expects().returning(s" $code\n")
     
     //when
-    val result = QuestionText.renderNode(
+    val result = QuestionText.renderNode(theme.dark)(
       node = codeNode.asInstanceOf[HTMLViewNode],
       index = 1,
       siblings = js.Array[HTMLViewNode](),
@@ -141,6 +144,45 @@ class QuestionTextSpec extends TestSpec
     )
   }
   
+  it should "return SyntaxHighlighter with dark theme when renderNode" in {
+    //given
+    val codeNode = mock[HTMLViewNodeMock]
+    val textNode = mock[HTMLViewNodeMock]
+    val attribs = js.Dynamic.literal(
+      "class" -> "scala"
+    )
+    val code = "some scala code"
+    
+    (codeNode.name _).expects().returning("code")
+    (codeNode.attribs _).expects().returning(attribs)
+    (codeNode.children _).expects().returning(js.Array(textNode.asInstanceOf[HTMLViewNode]))
+    (textNode.data _).expects().returning(s" $code\n")
+    
+    //when
+    val result = QuestionText.renderNode(dark = true)(
+      node = codeNode.asInstanceOf[HTMLViewNode],
+      index = 1,
+      siblings = js.Array[HTMLViewNode](),
+      parent = js.undefined,
+      defaultRenderer = null
+    )
+    
+    //then
+    assertNativeComponent(renderNodeResult(result),
+      <.>(^.key := "1")(
+        <.SyntaxHighlighter(
+          ^.PreTag := <.Text.reactClass,
+          ^.CodeTag := <.Text.reactClass,
+          ^.language := "scala",
+          ^.customStyle := codeBlockStyle,
+          ^.highlighter := "hljs",
+          ^.highlighterStyle := getHighlightJsStyle("dark")
+            .getOrElse(HighlightJsStyles.defaultStyle)
+        )(code.trim)
+      )
+    )
+  }
+  
   it should "return undefined for all other nodes when renderNode" in {
     //given
     val node = mock[HTMLViewNodeMock]
@@ -148,7 +190,7 @@ class QuestionTextSpec extends TestSpec
     (node.name _).expects().returning("div")
     
     //when
-    val result = QuestionText.renderNode(
+    val result = QuestionText.renderNode(theme.dark)(
       node = node.asInstanceOf[HTMLViewNode],
       index = 0,
       siblings = js.Array[HTMLViewNode](),
@@ -177,9 +219,16 @@ class QuestionTextSpec extends TestSpec
     val result = shallowRender(component)
     
     //then
+    val textProps = ^.textComponentProps := {
+      val attrs = new js.Object {
+        val style = themeTextStyle
+      }
+      attrs
+    }
     assertNativeComponent(result,
       <.HTMLView(
         ^.rnStyle := style,
+        textProps,
         ^.value :=
           """<div><code>1</code>  <code class="java">
             |  if (1 < 2) ...

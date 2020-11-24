@@ -5,6 +5,7 @@ import io.codegalaxy.app.user.UserScreen._
 import io.codegalaxy.domain.ProfileEntity
 import io.github.shogowada.scalajs.reactjs.redux.Redux.Dispatch
 import scommons.react._
+import scommons.react.navigation._
 import scommons.react.redux.task.FutureTask
 import scommons.react.test._
 import scommons.reactnative._
@@ -81,14 +82,15 @@ class UserScreenSpec extends TestSpec with ShallowRendererUtils {
   }
   
   private def assertUserScreen(result: ShallowInstance, props: UserScreenProps): Unit = {
+    implicit val theme: Theme = DefaultTheme
     
     def renderField(name: String, value: Option[String]): ReactElement = {
       <.View(^.rnStyle := styles.fieldRow)(
         <.View(^.rnStyle := styles.fieldContainer)(
-          <.Text(^.rnStyle := styles.fieldName)(s"$name:")
+          <.Text(themeStyle(styles.fieldName, themeTextStyle))(s"$name:")
         ),
         <.View(^.rnStyle := styles.valueContainer)(
-          <.Text(^.rnStyle := styles.fieldValue)(s"${value.getOrElse("")}")
+          <.Text(themeStyle(styles.fieldValue, themeTextStyle))(s"${value.getOrElse("")}")
         )
       )
     }

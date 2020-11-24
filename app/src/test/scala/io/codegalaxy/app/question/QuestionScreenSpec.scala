@@ -227,12 +227,13 @@ class QuestionScreenSpec extends AsyncTestSpec
     val result = shallowRender(<(QuestionScreen())(^.wrapped := props)())
 
     //then
+    implicit val theme: Theme = DefaultTheme
     assertNativeComponent(result,
       <.SafeAreaView(
         ^.rnStyle := styles.container,
         ^.edges := List(SafeAreaEdge.left, SafeAreaEdge.bottom, SafeAreaEdge.right)
       )(
-        <.Text()("Loading...")
+        <.Text(^.rnStyle := themeTextStyle)("Loading...")
       )
     )
   }
@@ -399,7 +400,7 @@ class QuestionScreenSpec extends AsyncTestSpec
         assertNativeComponent(ruleComp, <.>()(), { children: List[ShallowInstance] =>
           val List(title, text) = children
           assertNativeComponent(title,
-            <.Text(^.rnStyle := styles.ruleTitle)(rule.title)
+            <.Text(themeStyle(styles.ruleTitle, themeTextStyle))(rule.title)
           )
           assertComponent(text, QuestionText) {
             case QuestionTextProps(textHtml, labelStyle) =>
@@ -415,7 +416,7 @@ class QuestionScreenSpec extends AsyncTestSpec
         assertNativeComponent(explanationComp, <.>()(), { children: List[ShallowInstance] =>
           val List(title, text) = children
           assertNativeComponent(title,
-            <.Text(^.rnStyle := styles.ruleTitle)("Explanation")
+            <.Text(themeStyle(styles.ruleTitle, themeTextStyle))("Explanation")
           )
           assertComponent(text, QuestionText) {
             case QuestionTextProps(textHtml, labelStyle) =>

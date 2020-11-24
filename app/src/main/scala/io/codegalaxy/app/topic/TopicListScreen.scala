@@ -6,6 +6,7 @@ import io.codegalaxy.domain.Topic
 import io.github.shogowada.scalajs.reactjs.redux.Redux.Dispatch
 import scommons.react._
 import scommons.react.hooks._
+import scommons.react.navigation._
 import scommons.reactnative.FlatList.FlatListData
 import scommons.reactnative._
 import scommons.reactnative.svg._
@@ -21,6 +22,7 @@ case class TopicListScreenProps(dispatch: Dispatch,
 object TopicListScreen extends FunctionComponent[TopicListScreenProps] {
 
   protected def render(compProps: Props): ReactElement = {
+    implicit val theme: Theme = useTheme()
     val (refreshing, setRefreshing) = useState(false)
     val props = compProps.wrapped
     
@@ -42,14 +44,14 @@ object TopicListScreen extends FunctionComponent[TopicListScreenProps] {
             }
           ),
           <.View(^.rnStyle := styles.itemContainer)(
-            <.Text(^.rnStyle := styles.itemTitle)(data.entity.name),
+            <.Text(themeStyle(styles.itemTitle, themeTextStyle))(data.entity.name),
             <.View(^.rnStyle := styles.itemInfoContainer)(
-              <(CodeGalaxyIcons.FontAwesome5)(^.rnStyle := styles.itemInfo, ^.name := "language", ^.rnSize := 16)(),
-              <.Text(^.rnStyle := styles.itemInfo)(s" : ${data.entity.lang}  "),
-              <(CodeGalaxyIcons.FontAwesome5)(^.rnStyle := styles.itemInfo, ^.name := "file-code", ^.rnSize := 16)(),
-              <.Text(^.rnStyle := styles.itemInfo)(s" : ${data.entity.numQuestions}  "),
-              <(CodeGalaxyIcons.FontAwesome5)(^.rnStyle := styles.itemInfo, ^.name := "users", ^.rnSize := 16)(),
-              <.Text(^.rnStyle := styles.itemInfo)(s" : ${data.entity.numLearners}")
+              <(CodeGalaxyIcons.FontAwesome5)(themeStyle(styles.itemInfo, styles.itemInfoDark), ^.name := "language", ^.rnSize := 16)(),
+              <.Text(themeStyle(styles.itemInfo, styles.itemInfoDark))(s" : ${data.entity.lang}  "),
+              <(CodeGalaxyIcons.FontAwesome5)(themeStyle(styles.itemInfo, styles.itemInfoDark), ^.name := "file-code", ^.rnSize := 16)(),
+              <.Text(themeStyle(styles.itemInfo, styles.itemInfoDark))(s" : ${data.entity.numQuestions}  "),
+              <(CodeGalaxyIcons.FontAwesome5)(themeStyle(styles.itemInfo, styles.itemInfoDark), ^.name := "users", ^.rnSize := 16)(),
+              <.Text(themeStyle(styles.itemInfo, styles.itemInfoDark))(s" : ${data.entity.numLearners}")
             )
           ),
           <(ListItemNavIcon())(^.wrapped := ListItemNavIconProps(
@@ -125,6 +127,9 @@ object TopicListScreen extends FunctionComponent[TopicListScreenProps] {
     }
     val itemInfo: Style = new TextStyle {
       override val color = "rgba(0, 0, 0, .5)"
+    }
+    val itemInfoDark: Style = new TextStyle {
+      override val color = "rgba(255, 255, 255, .5)"
     }
   }
 }

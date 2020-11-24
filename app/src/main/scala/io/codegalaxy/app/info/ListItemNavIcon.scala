@@ -1,6 +1,7 @@
 package io.codegalaxy.app.info
 
 import scommons.react._
+import scommons.react.navigation._
 import scommons.reactnative._
 import scommons.reactnative.svg._
 
@@ -12,6 +13,7 @@ case class ListItemNavIconProps(progress: Int,
 object ListItemNavIcon extends FunctionComponent[ListItemNavIconProps] {
 
   protected def render(compProps: Props): ReactElement = {
+    implicit val theme: Theme = useTheme()
     val props = compProps.wrapped
     
     <.View(^.rnStyle := styles.statsContainer)(
@@ -19,7 +21,7 @@ object ListItemNavIcon extends FunctionComponent[ListItemNavIconProps] {
         if (props.showLabel) Some(<.Text(^.rnStyle := styles.statsLabel)("Open"))
         else None,
         <.View(^.rnStyle := styles.statsProgress)(
-          <.Text()(s"${props.progress}")
+          <.Text(^.rnStyle := themeTextStyle)(s"${props.progress}")
         )
       )
       else <.>()(
