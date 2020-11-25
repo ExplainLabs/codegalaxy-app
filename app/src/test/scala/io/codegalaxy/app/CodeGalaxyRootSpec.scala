@@ -50,8 +50,9 @@ class CodeGalaxyRootSpec extends AsyncTestSpec
     import codeGalaxyRoot._
 
     eventually {
-      val result = renderer.root.children(0)
-      assertNativeComponent(result, <.SafeAreaProvider()(), { children: List[TestInstance] =>
+      val List(statusBar, safeAreaProv) = renderer.root.children.toList
+      assertNativeComponent(statusBar, <.StatusBar(^.barStyle := StatusBar.BarStyle.`dark-content`)())
+      assertNativeComponent(safeAreaProv, <.SafeAreaProvider()(), { children: List[TestInstance] =>
         val List(navContainer) = children
         assertNativeComponent(navContainer, <.NavigationContainer(^.theme := DefaultTheme)(), { children: List[TestInstance] =>
           val List(navigator) = children
@@ -78,7 +79,7 @@ class CodeGalaxyRootSpec extends AsyncTestSpec
     val codeGalaxyRoot = new CodeGalaxyRoot(actions)
     val profile = Some(mock[ProfileEntity])
     val props = CodeGalaxyRootProps(dispatch, actions, state, onAppReady = onAppReady)
-    (state.userState _).expects().returning(UserState(profile)).twice()
+    (state.userState _).expects().returning(UserState(profile, darkTheme = true)).twice()
 
     val profileAction = UserLoginAction(FutureTask("Fetching Profile", Future.successful(profile)))
     val fetchTopicsAction = TopicsFetchAction(FutureTask("Fetching Topics", Future.successful(Nil)))
@@ -102,10 +103,11 @@ class CodeGalaxyRootSpec extends AsyncTestSpec
     resultF.map { _ =>
       import codeGalaxyRoot._
 
-      val result = renderer.root.children(0)
-      assertNativeComponent(result, <.SafeAreaProvider()(), { children: List[TestInstance] =>
+      val List(statusBar, safeAreaProv) = renderer.root.children.toList
+      assertNativeComponent(statusBar, <.StatusBar(^.barStyle := StatusBar.BarStyle.`light-content`)())
+      assertNativeComponent(safeAreaProv, <.SafeAreaProvider()(), { children: List[TestInstance] =>
         val List(navContainer) = children
-        assertNativeComponent(navContainer, <.NavigationContainer(^.theme := DefaultTheme)(), { children: List[TestInstance] =>
+        assertNativeComponent(navContainer, <.NavigationContainer(^.theme := DarkTheme)(), { children: List[TestInstance] =>
           val List(navigator) = children
           assertNativeComponent(navigator,
             <(AppStack.Navigator)()(
@@ -139,12 +141,12 @@ class CodeGalaxyRootSpec extends AsyncTestSpec
     val renderer = createTestRenderer(<(codeGalaxyRoot())(^.wrapped := props)())
     import codeGalaxyRoot._
     val prepareF = eventually {
-      val result = renderer.root.children(0)
+      val result = renderer.root.children(1)
       findComponents(result, AppStack.Navigator) should not be empty
     }
 
     prepareF.map { _ =>
-      val result = renderer.root.children(0)
+      val result = renderer.root.children(1)
       val List(appStackNav) = findComponents(result, AppStack.Navigator)
       val topic = "test_topic"
       val chapter = "test_chapter"

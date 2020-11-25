@@ -80,33 +80,43 @@ class CodeGalaxyRoot(actions: CodeGalaxyActions) extends FunctionComponent[CodeG
 
     if (!isReady) <.>()() //Loading...
     else {
-      <.SafeAreaProvider()(
-        <.NavigationContainer(^.theme := DefaultTheme)( //DarkTheme
-          if (showLogin) {
-            <(LoginStack.Navigator)(
-              ^.screenOptions := new StackScreenOptions {
-                override val headerShown = false
-              }
-            )(
-              <(LoginStack.Screen)(^.name := "Login", ^.component := loginController())()
-            )
-          }
-          else {
-            <(AppStack.Navigator)(
-              ^.screenOptions := { navProps =>
-                val screenTitle = getScreenTitle(navProps)
-                val options = new StackScreenOptions {
-                  val headerBackTitleVisible = false
-                  override val title = screenTitle
+      <.>()(
+        <.StatusBar(^.barStyle := {
+          if (userState.darkTheme) StatusBar.BarStyle.`light-content`
+          else StatusBar.BarStyle.`dark-content`
+        })(),
+
+        <.SafeAreaProvider()(
+          <.NavigationContainer(^.theme := {
+            if (userState.darkTheme) DarkTheme
+            else DefaultTheme
+          })(
+            if (showLogin) {
+              <(LoginStack.Navigator)(
+                ^.screenOptions := new StackScreenOptions {
+                  override val headerShown = false
                 }
-                options
-              }
-            )(
-              <(AppStack.Screen)(^.name := "Home", ^.component := homeTabComp)(),
-              <(AppStack.Screen)(^.name := "Quiz", ^.component := chapterListController())(),
-              <(AppStack.Screen)(^.name := "Question", ^.component := questionController())()
-            )
-          }
+              )(
+                <(LoginStack.Screen)(^.name := "Login", ^.component := loginController())()
+              )
+            }
+            else {
+              <(AppStack.Navigator)(
+                ^.screenOptions := { navProps =>
+                  val screenTitle = getScreenTitle(navProps)
+                  val options = new StackScreenOptions {
+                    val headerBackTitleVisible = false
+                    override val title = screenTitle
+                  }
+                  options
+                }
+              )(
+                <(AppStack.Screen)(^.name := "Home", ^.component := homeTabComp)(),
+                <(AppStack.Screen)(^.name := "Quiz", ^.component := chapterListController())(),
+                <(AppStack.Screen)(^.name := "Question", ^.component := questionController())()
+              )
+            }
+          )
         )
       )
     }

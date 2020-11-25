@@ -1,6 +1,7 @@
 package io.codegalaxy.app.user
 
 import io.codegalaxy.app.BaseStateReducerSpec
+import io.codegalaxy.app.config.ConfigActions.ConfigUpdatedAction
 import io.codegalaxy.app.user.UserActions._
 import io.codegalaxy.domain.ProfileEntity
 
@@ -26,6 +27,13 @@ class UserStateReducerSpec extends BaseStateReducerSpec(
     //when & then
     reduce(Some(UserState(profile = Some(profile))), UserLoggedoutAction()) shouldBe UserState(
       profile = None
+    )
+  }
+  
+  it should "set darkTheme when ConfigUpdatedAction" in {
+    //when & then
+    reduce(Some(UserState()), ConfigUpdatedAction(true)) shouldBe UserState(
+      darkTheme = true
     )
   }
 }
