@@ -2,6 +2,7 @@ package io.codegalaxy.app
 
 import io.codegalaxy.api.CodeGalaxyApiClient
 import io.codegalaxy.app.chapter.{ChapterActions, ChapterService}
+import io.codegalaxy.app.config.ConfigActions
 import io.codegalaxy.app.question.QuestionActions
 import io.codegalaxy.app.stats.StatsService
 import io.codegalaxy.app.topic.{TopicActions, TopicService}
@@ -12,6 +13,7 @@ import scommons.api.http.xhr.XhrApiHttpClient
 
 class CodeGalaxyActions(ctx: CodeGalaxyDBContext)
   extends UserActions
+  with ConfigActions
   with TopicActions
   with ChapterActions
   with QuestionActions {

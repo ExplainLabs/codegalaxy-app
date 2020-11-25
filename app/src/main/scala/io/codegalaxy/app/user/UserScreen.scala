@@ -1,14 +1,16 @@
 package io.codegalaxy.app.user
 
+import io.codegalaxy.app.config.ConfigActions
 import io.github.shogowada.scalajs.reactjs.redux.Redux.Dispatch
 import scommons.react._
 import scommons.react.navigation._
+import scommons.reactnative.Switch._
 import scommons.reactnative._
 
 import scala.scalajs.js
 
 case class UserScreenProps(dispatch: Dispatch,
-                           actions: UserActions,
+                           actions: UserActions with ConfigActions,
                            data: UserState)
 
 object UserScreen extends FunctionComponent[UserScreenProps] {
@@ -18,12 +20,33 @@ object UserScreen extends FunctionComponent[UserScreenProps] {
     val props = compProps.wrapped
 
     def renderField(name: String, value: Option[String]): ReactElement = {
+      renderRow(name, <.Text(themeStyle(styles.fieldValue, themeTextStyle))(
+        s"${value.getOrElse("")}"
+      ))
+    }
+
+    def renderSwitch(name: String, value: Boolean, onChange: Boolean => Unit): ReactElement = {
+      renderRow(name, <.Switch(
+        ^.trackColor := new TrackColor {
+          val `false`: String = "#767577"
+          val `true`: String = "#81b0ff"
+        },
+        ^.thumbColor := {
+          if (value) "#f5dd4b" else "#f4f3f4"
+        },
+        ^("ios_backgroundColor") := "#3e3e3e",
+        ^.switchOnValueChange := onChange,
+        ^.switchValue := value
+      )())
+    }
+
+    def renderRow(name: String, value: ReactElement): ReactElement = {
       <.View(^.rnStyle := styles.fieldRow)(
         <.View(^.rnStyle := styles.fieldContainer)(
           <.Text(themeStyle(styles.fieldName, themeTextStyle))(s"$name:")
         ),
         <.View(^.rnStyle := styles.valueContainer)(
-          <.Text(themeStyle(styles.fieldValue, themeTextStyle))(s"${value.getOrElse("")}")
+          value
         )
       )
     }
@@ -43,6 +66,11 @@ object UserScreen extends FunctionComponent[UserScreenProps] {
           renderField("Email", profile.email),
           renderField("User Name", Some(profile.username)),
           renderField("City", profile.city),
+
+          <.Text(themeStyle(styles.settings, themeTextStyle))("Settings:"),
+          renderSwitch("Dark Theme", props.data.darkTheme, { value =>
+            props.dispatch(props.actions.updateConfig(props.dispatch, profile.id, value))
+          }),
 
           <.Text(^.rnStyle := styles.logoutBtn, ^.onPress := { () =>
             props.dispatch(props.actions.userLogout(props.dispatch))
@@ -90,6 +118,7 @@ object UserScreen extends FunctionComponent[UserScreenProps] {
     }
     val fieldRow: Style = new ViewStyle {
       override val flexDirection = FlexDirection.row
+      override val alignItems = AlignItems.center
       override val marginTop = 10
     }
     val fieldContainer: Style = new ViewStyle {
@@ -111,7 +140,11 @@ object UserScreen extends FunctionComponent[UserScreenProps] {
       override val color = Color.royalblue
       override val fontSize = 18
       override val fontWeight = FontWeight.bold
+      override val marginTop = 50
+    }
+    val settings: Style = new TextStyle {
       override val marginTop = 20
+      override val fontWeight = FontWeight.bold
     }
   }
 }

@@ -1,6 +1,8 @@
 package io.codegalaxy.app.user
 
 import io.codegalaxy.app.CodeGalaxyStateDef
+import io.codegalaxy.app.config.ConfigActions
+import io.codegalaxy.app.user.UserControllerSpec._
 import io.github.shogowada.scalajs.reactjs.redux.Redux.Dispatch
 import scommons.react.navigation.Navigation
 import scommons.react.test.TestSpec
@@ -9,7 +11,7 @@ class UserControllerSpec extends TestSpec {
 
   it should "return component" in {
     //given
-    val actions = mock[UserActions]
+    val actions = mock[UserAndConfigActions]
     val controller = new UserController(actions)
     
     //when & then
@@ -19,7 +21,7 @@ class UserControllerSpec extends TestSpec {
   it should "map state to props" in {
     //given
     val dispatch = mock[Dispatch]
-    val actions = mock[UserActions]
+    val actions = mock[UserAndConfigActions]
     val controller = new UserController(actions)
     val state = mock[CodeGalaxyStateDef]
     val userState = mock[UserState]
@@ -38,4 +40,11 @@ class UserControllerSpec extends TestSpec {
         resData shouldBe userState
     }
   }
+}
+
+object UserControllerSpec {
+
+  private trait UserAndConfigActions
+    extends UserActions
+    with ConfigActions
 }
