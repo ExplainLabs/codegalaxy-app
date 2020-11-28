@@ -38,7 +38,7 @@ class LoginControllerSpec extends TestSpec {
         val email = "test_email"
         val password = "test_password"
         val loginAction = UserLoginAction(
-          FutureTask("Logging-in User", Future.successful(None))
+          FutureTask("Logging-in User", Future.successful((None, None)))
         )
         (actions.userLogin _).expects(dispatch, email, password).returning(loginAction)
 

@@ -35,7 +35,7 @@ class CodeGalaxyRootSpec extends AsyncTestSpec
     val props = CodeGalaxyRootProps(dispatch, actions, state, onAppReady = onAppReady)
     (state.userState _).expects().returning(UserState(None)).twice()
 
-    val profileAction = UserLoginAction(FutureTask("Fetching Profile", Future.successful(None)))
+    val profileAction = UserLoginAction(FutureTask("Fetching Profile", Future.successful((None, None))))
 
     //then
     (actions.userProfileFetch _).expects(dispatch).returning(profileAction)
@@ -79,9 +79,12 @@ class CodeGalaxyRootSpec extends AsyncTestSpec
     val codeGalaxyRoot = new CodeGalaxyRoot(actions)
     val profile = Some(mock[ProfileEntity])
     val props = CodeGalaxyRootProps(dispatch, actions, state, onAppReady = onAppReady)
-    (state.userState _).expects().returning(UserState(profile, darkTheme = true)).twice()
+    val config = ConfigEntity(123, darkTheme = true)
+    (state.userState _).expects()
+      .returning(UserState(profile, Some(config)))
+      .twice()
 
-    val profileAction = UserLoginAction(FutureTask("Fetching Profile", Future.successful(profile)))
+    val profileAction = UserLoginAction(FutureTask("Fetching Profile", Future.successful((profile, Some(config)))))
     val fetchTopicsAction = TopicsFetchAction(FutureTask("Fetching Topics", Future.successful(Nil)))
 
     //then
@@ -95,12 +98,7 @@ class CodeGalaxyRootSpec extends AsyncTestSpec
     val renderer = createTestRenderer(<(codeGalaxyRoot())(^.wrapped := props)())
 
     //then
-    val resultF = for {
-      _ <- profileAction.task.future
-      _ <- fetchTopicsAction.task.future
-    } yield ()
-
-    resultF.map { _ =>
+    eventually {
       import codeGalaxyRoot._
 
       val List(statusBar, safeAreaProv) = renderer.root.children.toList
@@ -132,7 +130,7 @@ class CodeGalaxyRootSpec extends AsyncTestSpec
     val props = CodeGalaxyRootProps(dispatch, actions, state, onAppReady = onAppReady)
     (state.userState _).expects().returning(UserState(profile)).twice()
 
-    val profileAction = UserLoginAction(FutureTask("Fetching Profile", Future.successful(None)))
+    val profileAction = UserLoginAction(FutureTask("Fetching Profile", Future.successful((None, None))))
     (actions.userProfileFetch _).expects(dispatch).returning(profileAction)
     (actions.fetchTopics _).expects(*, *).never()
     dispatch.expects(profileAction)

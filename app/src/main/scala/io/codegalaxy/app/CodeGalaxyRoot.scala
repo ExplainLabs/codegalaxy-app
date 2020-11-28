@@ -58,7 +58,7 @@ class CodeGalaxyRoot(actions: CodeGalaxyActions) extends FunctionComponent[CodeG
 
     useEffect({ () =>
       val initF = for {
-        maybeProfile <- {
+        (maybeProfile, _) <- {
           val action = props.actions.userProfileFetch(props.dispatch)
           props.dispatch(action)
           action.task.future
@@ -82,13 +82,13 @@ class CodeGalaxyRoot(actions: CodeGalaxyActions) extends FunctionComponent[CodeG
     else {
       <.>()(
         <.StatusBar(^.barStyle := {
-          if (userState.darkTheme) StatusBar.BarStyle.`light-content`
+          if (userState.config.exists(_.darkTheme)) StatusBar.BarStyle.`light-content`
           else StatusBar.BarStyle.`dark-content`
         })(),
 
         <.SafeAreaProvider()(
           <.NavigationContainer(^.theme := {
-            if (userState.darkTheme) DarkTheme
+            if (userState.config.exists(_.darkTheme)) DarkTheme
             else DefaultTheme
           })(
             if (showLogin) {
