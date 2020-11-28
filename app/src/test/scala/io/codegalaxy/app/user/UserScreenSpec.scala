@@ -5,7 +5,7 @@ import io.codegalaxy.app.config.ConfigActions.ConfigUpdateAction
 import io.codegalaxy.app.user.UserActions.UserLogoutAction
 import io.codegalaxy.app.user.UserScreen._
 import io.codegalaxy.app.user.UserScreenSpec.UserAndConfigActions
-import io.codegalaxy.domain.ProfileEntity
+import io.codegalaxy.domain.{ConfigEntity, ProfileEntity}
 import io.github.shogowada.scalajs.reactjs.redux.Redux.Dispatch
 import scommons.react._
 import scommons.react.navigation._
@@ -47,18 +47,18 @@ class UserScreenSpec extends TestSpec with ShallowRendererUtils {
     val Some(profile) = props.data.profile
     val comp = shallowRender(<(UserScreen())(^.wrapped := props)())
     val List(switch) = findComponents(comp, <.Switch.reactClass)
-    val darkTheme = true
+    val config = ConfigEntity(profile.id, darkTheme = true)
 
     val updateAction = ConfigUpdateAction(
-      FutureTask("Updating Config", Future.successful(darkTheme))
+      FutureTask("Updating Config", Future.successful(config))
     )
-    (actions.updateConfig _).expects(dispatch, profile.id, darkTheme).returning(updateAction)
+    (actions.updateDarkTheme _).expects(dispatch, profile.id, true).returning(updateAction)
 
     //then
     dispatch.expects(updateAction)
 
     //when
-    switch.props.onValueChange(darkTheme)
+    switch.props.onValueChange(true)
   }
 
   it should "render empty component if no profile data" in {
@@ -90,7 +90,7 @@ class UserScreenSpec extends TestSpec with ShallowRendererUtils {
     //given
     val props = {
       val props = getUserScreenProps()
-      props.copy(data = props.data.copy(darkTheme = true))
+      props.copy(data = props.data.copy(config = Some(ConfigEntity(123, darkTheme = true))))
     }
 
     //when
@@ -174,7 +174,7 @@ class UserScreenSpec extends TestSpec with ShallowRendererUtils {
         renderField("City", profile.city),
 
         <.Text(themeStyle(styles.settings, themeTextStyle))("Settings:"),
-        renderSwitch("Dark Theme", value = props.data.darkTheme),
+        renderSwitch("Dark Theme", value = props.data.config.exists(_.darkTheme)),
 
         <.Text(^.rnStyle := styles.logoutBtn)("Logout")
       )

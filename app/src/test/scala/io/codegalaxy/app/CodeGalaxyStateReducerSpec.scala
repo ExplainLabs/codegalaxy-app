@@ -5,7 +5,7 @@ import io.codegalaxy.app.question.QuestionState
 import io.codegalaxy.app.topic.TopicState
 import io.codegalaxy.app.user.UserActions.UserLoginAction
 import io.codegalaxy.app.user.UserState
-import io.codegalaxy.domain.ProfileEntity
+import io.codegalaxy.domain.{ConfigEntity, ProfileEntity}
 import scommons.react.redux.task.FutureTask
 import scommons.react.test.TestSpec
 
@@ -37,7 +37,7 @@ class CodeGalaxyStateReducerSpec extends TestSpec {
   it should "set currentTask when TaskAction" in {
     //given
     val initialState = CodeGalaxyStateReducer.reduce(None, "")
-    val task = FutureTask("test task", Future.successful(Option(mock[ProfileEntity])))
+    val task = FutureTask("test task", Future.successful((Option.empty[ProfileEntity], Option.empty[ConfigEntity])))
     initialState.currentTask shouldBe None
 
     //when

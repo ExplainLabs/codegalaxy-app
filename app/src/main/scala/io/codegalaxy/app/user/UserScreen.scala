@@ -68,8 +68,8 @@ object UserScreen extends FunctionComponent[UserScreenProps] {
           renderField("City", profile.city),
 
           <.Text(themeStyle(styles.settings, themeTextStyle))("Settings:"),
-          renderSwitch("Dark Theme", props.data.darkTheme, { value =>
-            props.dispatch(props.actions.updateConfig(props.dispatch, profile.id, value))
+          renderSwitch("Dark Theme", props.data.config.exists(_.darkTheme), { value =>
+            props.dispatch(props.actions.updateDarkTheme(props.dispatch, profile.id, value))
           }),
 
           <.Text(^.rnStyle := styles.logoutBtn, ^.onPress := { () =>
