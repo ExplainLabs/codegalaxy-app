@@ -4,6 +4,7 @@ import io.codegalaxy.app.config.ConfigActions
 import io.github.shogowada.scalajs.reactjs.redux.Redux.Dispatch
 import scommons.react._
 import scommons.react.navigation._
+import scommons.reactnative.ScrollView._
 import scommons.reactnative.Switch._
 import scommons.reactnative._
 
@@ -51,32 +52,34 @@ object UserScreen extends FunctionComponent[UserScreenProps] {
       )
     }
     
-    <.View(^.rnStyle := styles.cardContainer)(
-      props.data.profile.map { profile =>
-        <.>()(
-          <.View(^.rnStyle := js.Array(styles.cardImageContainer, styles.cardImage, styles.cardImageContainerShadow))(
-            profile.avatarUrl.map { avatarUrl =>
-              <.Image(^.rnStyle := styles.cardImage, ^.source := new UriResource {
-                override val uri = avatarUrl
-              })()
-            }
-          ),
-
-          renderField("Full Name", profile.fullName),
-          renderField("Email", profile.email),
-          renderField("User Name", Some(profile.username)),
-          renderField("City", profile.city),
-
-          <.Text(themeStyle(styles.settings, themeTextStyle))("Settings:"),
-          renderSwitch("Dark Theme", props.data.config.exists(_.darkTheme), { value =>
-            props.dispatch(props.actions.updateDarkTheme(props.dispatch, profile.id, value))
-          }),
-
-          <.Text(^.rnStyle := styles.logoutBtn, ^.onPress := { () =>
-            props.dispatch(props.actions.userLogout(props.dispatch))
-          })("Logout")
-        )
-      }
+    <.ScrollView(^.keyboardShouldPersistTaps := KeyboardShouldPersistTaps.always)(
+      <.View(^.rnStyle := styles.cardContainer)(
+        props.data.profile.map { profile =>
+          <.>()(
+            <.View(^.rnStyle := js.Array(styles.cardImageContainer, styles.cardImage, styles.cardImageContainerShadow))(
+              profile.avatarUrl.map { avatarUrl =>
+                <.Image(^.rnStyle := styles.cardImage, ^.source := new UriResource {
+                  override val uri = avatarUrl
+                })()
+              }
+            ),
+  
+            renderField("Full Name", profile.fullName),
+            renderField("Email", profile.email),
+            renderField("User Name", Some(profile.username)),
+            renderField("City", profile.city),
+  
+            <.Text(themeStyle(styles.settings, themeTextStyle))("Settings:"),
+            renderSwitch("Dark Theme", props.data.config.exists(_.darkTheme), { value =>
+              props.dispatch(props.actions.updateDarkTheme(props.dispatch, profile.id, value))
+            }),
+  
+            <.Text(^.rnStyle := styles.logoutBtn, ^.onPress := { () =>
+              props.dispatch(props.actions.userLogout(props.dispatch))
+            })("Logout")
+          )
+        }
+      )
     )
   }
 

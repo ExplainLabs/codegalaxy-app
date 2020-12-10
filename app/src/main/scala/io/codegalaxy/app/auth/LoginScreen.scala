@@ -3,6 +3,8 @@ package io.codegalaxy.app.auth
 import io.codegalaxy.app.CodeGalaxyTheme
 import scommons.react._
 import scommons.react.hooks._
+import scommons.reactnative.KeyboardAvoidingView._
+import scommons.reactnative.ScrollView._
 import scommons.reactnative.TextInput._
 import scommons.reactnative._
 
@@ -18,42 +20,53 @@ object LoginScreen extends FunctionComponent[LoginScreenProps] {
     val props = compProps.wrapped
     val disabled = !email.contains('@') || password.isEmpty
 
-    <.View(^.rnStyle := styles.container)(
-      <.Text(^.rnStyle := styles.heading)(
-        "Welcome to CodeGalaxy"
-      ),
-
-      <.TextInput(
-        ^.placeholder := "E-MAIL-ADDRESS",
-        ^.rnStyle := styles.input,
-        ^.keyboardType := KeyboardType.`email-address`,
-        ^.autoCapitalize := AutoCapitalize.none,
-        ^.autoCompleteType := AutoCompleteType.off, // android
-        ^.autoCorrect := false,
-        ^.value := email,
-        ^.onChangeText := setEmail
-      )(),
-
-      <.TextInput(
-        ^.placeholder := "PASSWORD",
-        ^.rnStyle := styles.input,
-        ^.secureTextEntry := true,
-        ^.value := password,
-        ^.onChangeText := setPassword
-      )(),
-
-      <.TouchableOpacity(
-        ^.disabled := disabled,
-        ^.onPress := { () =>
-          props.onLogin(email, password)
-        }
+    <.KeyboardAvoidingView(
+      ^.rnStyle := styles.container,
+      ^.behavior := {
+        if (Platform.OS == Platform.ios) Behavior.padding
+        else Behavior.height
+      }
+    )(
+      <.ScrollView(
+        ^.keyboardDismissMode := KeyboardDismissMode.`on-drag`,
+        ^.keyboardShouldPersistTaps := KeyboardShouldPersistTaps.handled
       )(
-        <.View(^.rnStyle := styles.button)(
-          <.Text(^.rnStyle := js.Array(
-            styles.buttonText,
-            if (disabled) styles.buttonTextDisabled
-            else styles.buttonTextEnabled
-          ))("Login")
+        <.Text(^.rnStyle := styles.heading)(
+          "Welcome to CodeGalaxy"
+        ),
+
+        <.TextInput(
+          ^.placeholder := "E-MAIL-ADDRESS",
+          ^.rnStyle := styles.input,
+          ^.keyboardType := KeyboardType.`email-address`,
+          ^.autoCapitalize := AutoCapitalize.none,
+          ^.autoCompleteType := AutoCompleteType.off, // android
+          ^.autoCorrect := false,
+          ^.value := email,
+          ^.onChangeText := setEmail
+        )(),
+
+        <.TextInput(
+          ^.placeholder := "PASSWORD",
+          ^.rnStyle := styles.input,
+          ^.secureTextEntry := true,
+          ^.value := password,
+          ^.onChangeText := setPassword
+        )(),
+  
+        <.TouchableOpacity(
+          ^.disabled := disabled,
+          ^.onPress := { () =>
+            props.onLogin(email, password)
+          }
+        )(
+          <.View(^.rnStyle := styles.button)(
+            <.Text(^.rnStyle := js.Array(
+              styles.buttonText,
+              if (disabled) styles.buttonTextDisabled
+              else styles.buttonTextEnabled
+            ))("Login")
+          )
         )
       )
     )
@@ -67,9 +80,9 @@ object LoginScreen extends FunctionComponent[LoginScreenProps] {
     val container: Style = new ViewStyle {
       override val backgroundColor = CodeGalaxyTheme.Colors.primary
       override val flex = 1
-      override val justifyContent = JustifyContent.center
     }
     val heading: Style = new ViewStyle with TextStyle {
+      override val marginTop = 50
       override val color = Color.white
       override val fontSize = 40
       override val marginBottom = 10
