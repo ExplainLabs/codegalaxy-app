@@ -11,6 +11,7 @@ import scommons.react._
 import scommons.react.navigation._
 import scommons.react.redux.task.FutureTask
 import scommons.react.test._
+import scommons.reactnative.ScrollView._
 import scommons.reactnative.Switch._
 import scommons.reactnative._
 
@@ -72,7 +73,11 @@ class UserScreenSpec extends TestSpec with ShallowRendererUtils {
     val result = shallowRender(<(UserScreen())(^.wrapped := props)())
 
     //then
-    assertNativeComponent(result, <.View(^.rnStyle := styles.cardContainer)())
+    assertNativeComponent(result,
+      <.ScrollView(^.keyboardShouldPersistTaps := KeyboardShouldPersistTaps.always)(
+        <.View(^.rnStyle := styles.cardContainer)()
+      )
+    )
   }
   
   it should "render profile data" in {
@@ -158,27 +163,31 @@ class UserScreenSpec extends TestSpec with ShallowRendererUtils {
     
     val Some(profile) = props.data.profile
     
-    assertNativeComponent(result, <.View(^.rnStyle := styles.cardContainer)(
-      <.>()(
-        <.View(^.rnStyle := js.Array(styles.cardImageContainer, styles.cardImage, styles.cardImageContainerShadow))(
-          profile.avatarUrl.map { avatarUrl =>
-            <.Image(^.rnStyle := styles.cardImage, ^.source := new UriResource {
-              override val uri = avatarUrl
-            })()
-          }
-        ),
-
-        renderField("Full Name", profile.fullName),
-        renderField("Email", profile.email),
-        renderField("User Name", Some(profile.username)),
-        renderField("City", profile.city),
-
-        <.Text(themeStyle(styles.settings, themeTextStyle))("Settings:"),
-        renderSwitch("Dark Theme", value = props.data.config.exists(_.darkTheme)),
-
-        <.Text(^.rnStyle := styles.logoutBtn)("Logout")
+    assertNativeComponent(result,
+      <.ScrollView(^.keyboardShouldPersistTaps := KeyboardShouldPersistTaps.always)(
+        <.View(^.rnStyle := styles.cardContainer)(
+          <.>()(
+            <.View(^.rnStyle := js.Array(styles.cardImageContainer, styles.cardImage, styles.cardImageContainerShadow))(
+              profile.avatarUrl.map { avatarUrl =>
+                <.Image(^.rnStyle := styles.cardImage, ^.source := new UriResource {
+                  override val uri = avatarUrl
+                })()
+              }
+            ),
+    
+            renderField("Full Name", profile.fullName),
+            renderField("Email", profile.email),
+            renderField("User Name", Some(profile.username)),
+            renderField("City", profile.city),
+    
+            <.Text(themeStyle(styles.settings, themeTextStyle))("Settings:"),
+            renderSwitch("Dark Theme", value = props.data.config.exists(_.darkTheme)),
+    
+            <.Text(^.rnStyle := styles.logoutBtn)("Logout")
+          )
+        )
       )
-    ))
+    )
   }
 }
 
