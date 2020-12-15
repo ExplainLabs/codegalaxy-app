@@ -7,16 +7,19 @@ import io.codegalaxy.domain.{ConfigEntity, ProfileEntity}
 import io.github.shogowada.scalajs.reactjs.redux.Action
 import io.github.shogowada.scalajs.reactjs.redux.Redux.Dispatch
 import scommons.react.redux.task.{FutureTask, TaskAction}
+import scommons.reactnative.Image
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.util.Success
+import scala.util.control.NonFatal
 
 trait UserActions {
 
   protected def client: UserApi
   protected def userService: UserService
   protected def configService: ConfigService
+  protected def image: Image
 
   def userLogin(dispatch: Dispatch, user: String, password: String): UserLoginAction = {
     val future = for {
@@ -44,7 +47,18 @@ trait UserActions {
       maybeProfile <- userService.fetchProfile(refresh)
       maybeConfig <- maybeProfile match {
         case None => Future.successful(None)
-        case Some(profile) => configService.getConfig(profile.id)
+        case Some(profile) =>
+          for {
+            res <- configService.getConfig(profile.id)
+            _ <- profile.avatarUrl match {
+              case None => Future.successful(())
+              case Some(avatarUrl) => image.prefetch(avatarUrl).recover {
+                case NonFatal(ex) => println(s"Failed to prefetch profile image, url: $avatarUrl, error: $ex")
+              }
+            }
+          } yield {
+            res
+          }
       }
     } yield {
       (maybeProfile, maybeConfig)

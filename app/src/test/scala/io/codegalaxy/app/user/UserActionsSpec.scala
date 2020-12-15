@@ -8,6 +8,7 @@ import io.codegalaxy.domain.{ConfigEntity, ProfileEntity}
 import org.scalatest.Succeeded
 import scommons.nodejs.test.AsyncTestSpec
 import scommons.react.redux.task.FutureTask
+import scommons.reactnative.Image
 
 import scala.concurrent.Future
 
@@ -18,20 +19,43 @@ class UserActionsSpec extends AsyncTestSpec {
     val api = mock[UserApi]
     val userService = mock[UserService]
     val configService = mock[ConfigService]
-    val actions = new UserActionsTest(api, userService, configService)
+    val image = mock[Image]
+    val actions = new UserActionsTest(api, userService, configService, image)
     val dispatch = mockFunction[Any, Any]
     val username = "test-username"
     val password = "test-password"
-    val profile = ProfileEntity(
-      id = 123,
-      username = "test_username",
-      email = Some("Test email"),
-      firstName = Some("Test firstName"),
-      lastName = Some("Test lastName"),
-      fullName = Some("Test fullName"),
-      city = Some("Test City"),
-      avatarUrl = Some("Test avatarUrl")
-    )
+    val profile = getProfileEntity
+    val config = mock[ConfigEntity]
+
+    //then
+    (api.authenticate _).expects(username, password).returning(Future.successful(()))
+    (userService.fetchProfile _).expects(true).returning(Future.successful(Some(profile)))
+    (configService.getConfig _).expects(profile.id).returning(Future.successful(Some(config)))
+    (image.prefetch _).expects(profile.avatarUrl.get).returning(Future.successful(()))
+    dispatch.expects(UserLoggedinAction(Some(profile), Some(config)))
+
+    //when
+    val UserLoginAction(FutureTask(message, future)) =
+      actions.userLogin(dispatch, username, password)
+
+    //then
+    message shouldBe "Authenticate User"
+    future.map { resp =>
+      resp shouldBe Some(profile) -> Some(config)
+    }
+  }
+  
+  it should "dispatch UserLoggedinAction if no profile image url when userLogin" in {
+    //given
+    val api = mock[UserApi]
+    val userService = mock[UserService]
+    val configService = mock[ConfigService]
+    val image = mock[Image]
+    val actions = new UserActionsTest(api, userService, configService, image)
+    val dispatch = mockFunction[Any, Any]
+    val username = "test-username"
+    val password = "test-password"
+    val profile = getProfileEntity.copy(avatarUrl = None)
     val config = mock[ConfigEntity]
 
     //then
@@ -51,28 +75,52 @@ class UserActionsSpec extends AsyncTestSpec {
     }
   }
   
+  it should "dispatch UserLoggedinAction if profile image error when userLogin" in {
+    //given
+    val api = mock[UserApi]
+    val userService = mock[UserService]
+    val configService = mock[ConfigService]
+    val image = mock[Image]
+    val actions = new UserActionsTest(api, userService, configService, image)
+    val dispatch = mockFunction[Any, Any]
+    val username = "test-username"
+    val password = "test-password"
+    val profile = getProfileEntity
+    val config = mock[ConfigEntity]
+
+    //then
+    (api.authenticate _).expects(username, password).returning(Future.successful(()))
+    (userService.fetchProfile _).expects(true).returning(Future.successful(Some(profile)))
+    (configService.getConfig _).expects(profile.id).returning(Future.successful(Some(config)))
+    (image.prefetch _).expects(profile.avatarUrl.get).returning(Future.failed(new Exception("test image error")))
+    dispatch.expects(UserLoggedinAction(Some(profile), Some(config)))
+
+    //when
+    val UserLoginAction(FutureTask(message, future)) =
+      actions.userLogin(dispatch, username, password)
+
+    //then
+    message shouldBe "Authenticate User"
+    future.map { resp =>
+      resp shouldBe Some(profile) -> Some(config)
+    }
+  }
+  
   it should "dispatch UserLoggedinAction(Some) if successful when userProfileFetch" in {
     //given
     val api = mock[UserApi]
     val userService = mock[UserService]
     val configService = mock[ConfigService]
-    val actions = new UserActionsTest(api, userService, configService)
+    val image = mock[Image]
+    val actions = new UserActionsTest(api, userService, configService, image)
     val dispatch = mockFunction[Any, Any]
-    val profile = ProfileEntity(
-      id = 123,
-      username = "test_username",
-      email = Some("Test email"),
-      firstName = Some("Test firstName"),
-      lastName = Some("Test lastName"),
-      fullName = Some("Test fullName"),
-      city = Some("Test City"),
-      avatarUrl = Some("Test avatarUrl")
-    )
+    val profile = getProfileEntity
     val config = mock[ConfigEntity]
 
     //then
     (userService.fetchProfile _).expects(false).returning(Future.successful(Some(profile)))
     (configService.getConfig _).expects(profile.id).returning(Future.successful(Some(config)))
+    (image.prefetch _).expects(profile.avatarUrl.get).returning(Future.successful(()))
     dispatch.expects(UserLoggedinAction(Some(profile), Some(config)))
 
     //when
@@ -91,7 +139,8 @@ class UserActionsSpec extends AsyncTestSpec {
     val api = mock[UserApi]
     val userService = mock[UserService]
     val configService = mock[ConfigService]
-    val actions = new UserActionsTest(api, userService, configService)
+    val image = mock[Image]
+    val actions = new UserActionsTest(api, userService, configService, image)
     val dispatch = mockFunction[Any, Any]
 
     //then
@@ -114,7 +163,8 @@ class UserActionsSpec extends AsyncTestSpec {
     val api = mock[UserApi]
     val userService = mock[UserService]
     val configService = mock[ConfigService]
-    val actions = new UserActionsTest(api, userService, configService)
+    val image = mock[Image]
+    val actions = new UserActionsTest(api, userService, configService, image)
     val dispatch = mockFunction[Any, Any]
 
     //then
@@ -132,17 +182,32 @@ class UserActionsSpec extends AsyncTestSpec {
       Succeeded
     }
   }
+
+  private def getProfileEntity: ProfileEntity = {
+    ProfileEntity(
+      id = 123,
+      username = "test_username",
+      email = Some("Test email"),
+      firstName = Some("Test firstName"),
+      lastName = Some("Test lastName"),
+      fullName = Some("Test fullName"),
+      city = Some("Test City"),
+      avatarUrl = Some("Test avatarUrl")
+    )
+  }
 }
 
 object UserActionsSpec {
 
   private class UserActionsTest(api: UserApi,
                                 userServiceMock: UserService,
-                                configServiceMock: ConfigService
+                                configServiceMock: ConfigService,
+                                imageMock: Image
                                ) extends UserActions {
 
     protected def client: UserApi = api
     protected def userService: UserService = userServiceMock
     protected def configService: ConfigService = configServiceMock
+    protected def image: Image = imageMock
   }
 }

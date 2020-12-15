@@ -10,6 +10,7 @@ import io.codegalaxy.app.user.{UserActions, UserService}
 import io.codegalaxy.domain.CodeGalaxyDBContext
 import io.codegalaxy.domain.dao._
 import scommons.api.http.xhr.XhrApiHttpClient
+import scommons.reactnative.Image
 
 class CodeGalaxyActions(ctx: CodeGalaxyDBContext)
   extends UserActions
@@ -21,6 +22,8 @@ class CodeGalaxyActions(ctx: CodeGalaxyDBContext)
   protected val client: CodeGalaxyApiClient = {
     new CodeGalaxyApiClient(new XhrApiHttpClient("https://codegalaxy.io"))
   }
+
+  protected val image: Image = Image
 
   private val configDao = new ConfigDao(ctx)
   private val profileDao = new ProfileDao(ctx)
