@@ -14,7 +14,8 @@ class TopicWithInfoDataSpec extends FlatSpec with Matchers {
       numberOfQuestions = 1,
       numberOfPaid = 2,
       numberOfLearners = 3,
-      numberOfChapters = 4
+      numberOfChapters = 4,
+      numberOfTheory = Some(5)
     )
   ))
 
@@ -27,7 +28,8 @@ class TopicWithInfoDataSpec extends FlatSpec with Matchers {
        |    "numberOfQuestions" : 1,
        |    "numberOfPaid" : 2,
        |    "numberOfLearners" : 3,
-       |    "numberOfChapters" : 4
+       |    "numberOfChapters" : 4,
+       |    "numberOfTheory" : 5
        |  }
        |}]""".stripMargin
   ))

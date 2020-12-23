@@ -11,7 +11,7 @@ import scala.concurrent.Future
 
 class ChapterServiceSpec extends BaseDBContextSpec {
 
-  it should "fetch chapters and save them in DB" in withCtx { ctx =>
+  it should "fetch chapters with statistics and save them in DB" in withCtx { ctx =>
     //given
     val api = mock[ChapterApi]
     val dao = new ChapterDao(ctx)
@@ -23,7 +23,7 @@ class ChapterServiceSpec extends BaseDBContextSpec {
       data.copy(chapter = data.chapter.copy(info = None))
     }
 
-    (api.getChapters _).expects(topic).returning(Future.successful(List(c1, c2)))
+    (api.getChaptersWithStatistics _).expects(topic).returning(Future.successful(List(c1, c2)))
 
     val beforeF = dao.deleteAll()
     
@@ -45,7 +45,7 @@ class ChapterServiceSpec extends BaseDBContextSpec {
     }
   }
   
-  it should "refresh chapters in DB" in withCtx { ctx =>
+  it should "refresh chapters with statistics in DB" in withCtx { ctx =>
     //given
     val api = mock[ChapterApi]
     val dao = new ChapterDao(ctx)
@@ -56,7 +56,7 @@ class ChapterServiceSpec extends BaseDBContextSpec {
     val c2 = getChapterRespData("chapter2", multiplier = 2)
     val newChapter = getChapterRespData("newChapter", multiplier = 3)
 
-    (api.getChapters _).expects(topic).returning(Future.successful(List(c1, newChapter)))
+    (api.getChaptersWithStatistics _).expects(topic).returning(Future.successful(List(c1, newChapter)))
 
     val otherTopic = "other_topic"
     val beforeF = for {
@@ -99,7 +99,7 @@ class ChapterServiceSpec extends BaseDBContextSpec {
     val c1 = getChapterRespData("chapter1", multiplier = 1)
     val c2 = getChapterRespData("chapter2", multiplier = 2)
 
-    (api.getChapters _).expects(*).never()
+    (api.getChaptersWithStatistics _).expects(*).never()
 
     val beforeF = for {
       _ <- dao.deleteAll()
@@ -128,8 +128,8 @@ class ChapterServiceSpec extends BaseDBContextSpec {
     }
   }
   
-  private def getChapterRespData(alias: String, multiplier: Int): ChapterRespData = {
-    ChapterRespData(
+  private def getChapterRespData(alias: String, multiplier: Int): ChapterWithStatisticsRespData = {
+    ChapterWithStatisticsRespData(
       chapter = ChapterData(
         alias = alias,
         name = "Test Chapter",
@@ -137,7 +137,8 @@ class ChapterServiceSpec extends BaseDBContextSpec {
           numberOfQuestions = 1,
           numberOfPaid = 2,
           numberOfLearners = 3,
-          numberOfChapters = 4
+          numberOfChapters = 4,
+          numberOfTheory = Some(5)
         ))
       ),
       stats = StatsData(
@@ -150,7 +151,7 @@ class ChapterServiceSpec extends BaseDBContextSpec {
     )
   }
 
-  private def toChapter(topic: String, resp: ChapterRespData, id: Int = -1): Chapter = {
+  private def toChapter(topic: String, resp: ChapterWithStatisticsRespData, id: Int = -1): Chapter = {
     val data = resp.chapter
     val info = data.info.getOrElse(InfoData())
     
@@ -163,7 +164,8 @@ class ChapterServiceSpec extends BaseDBContextSpec {
         numQuestions = info.numberOfQuestions,
         numPaid = info.numberOfPaid,
         numLearners = info.numberOfLearners,
-        numChapters = info.numberOfChapters
+        numChapters = info.numberOfChapters,
+        numTheory = info.numberOfTheory
       ),
       stats = Some(ChapterStats(
         id = id,

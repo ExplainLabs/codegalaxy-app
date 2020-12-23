@@ -7,7 +7,7 @@ import play.api.libs.json.Json
 
 class ChapterRespDataSpec extends FlatSpec with Matchers {
 
-  private val dataList = List(ChapterRespData(
+  private val dataList = List(ChapterWithStatisticsRespData(
     chapter = ChapterData(
       alias = "test_chapter",
       name = "Test Chapter Name",
@@ -15,7 +15,8 @@ class ChapterRespDataSpec extends FlatSpec with Matchers {
         numberOfQuestions = 1,
         numberOfPaid = 2,
         numberOfLearners = 3,
-        numberOfChapters = 4
+        numberOfChapters = 4,
+        numberOfTheory = Some(5)
       ))
     ),
     stats = StatsData(
@@ -36,7 +37,8 @@ class ChapterRespDataSpec extends FlatSpec with Matchers {
        |      "numberOfQuestions": 1,
        |      "numberOfPaid": 2,
        |      "numberOfLearners": 3,
-       |      "numberOfChapters": 4
+       |      "numberOfChapters": 4,
+       |      "numberOfTheory": 5
        |    }
        |  },
        |  "stats": {
@@ -56,6 +58,6 @@ class ChapterRespDataSpec extends FlatSpec with Matchers {
 
   it should "deserialize data from json" in {
     //when & then
-    Json.parse(expectedJson).as[List[ChapterRespData]] shouldBe dataList
+    Json.parse(expectedJson).as[List[ChapterWithStatisticsRespData]] shouldBe dataList
   }
 }

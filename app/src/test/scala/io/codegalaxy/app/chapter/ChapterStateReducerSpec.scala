@@ -62,7 +62,8 @@ class ChapterStateReducerSpec extends BaseStateReducerSpec(
           numQuestions = 1,
           numPaid = 2,
           numLearners = 3,
-          numChapters = 4
+          numChapters = 4,
+          numTheory = Some(5)
         ),
         stats = None
       ),
@@ -75,7 +76,8 @@ class ChapterStateReducerSpec extends BaseStateReducerSpec(
           numQuestions = 0,
           numPaid = 2,
           numLearners = 5,
-          numChapters = 4
+          numChapters = 4,
+          numTheory = Some(5)
         ),
         stats = Some(ChapterStats(
           id = 2,

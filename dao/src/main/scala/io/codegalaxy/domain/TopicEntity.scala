@@ -8,6 +8,7 @@ case class TopicEntity(id: Int,
                        numPaid: Int,
                        numLearners: Int,
                        numChapters: Int,
+                       numTheory: Option[Int],
                        svgIcon: Option[String])
 
 //noinspection TypeAnnotation

@@ -25,7 +25,8 @@ class ChapterActionsSpec extends AsyncTestSpec {
         numQuestions = 1,
         numPaid = 2,
         numLearners = 3,
-        numChapters = 4
+        numChapters = 4,
+        numTheory = Some(5)
       ),
       stats = Some(ChapterStats(
         id = 1,

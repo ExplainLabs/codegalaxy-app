@@ -22,7 +22,17 @@ sbt "project codegalaxy-app" fastOptJS
 Then start the application locally, in simulator:
 ```bash
 cd app
+npm install
+expo install
 expo start --ios
 #or:
 expo start --android
+```
+
+Reload:
+```bash
+cd app
+rm -rf node_modules
+cd ../
+sbt clean
 ```

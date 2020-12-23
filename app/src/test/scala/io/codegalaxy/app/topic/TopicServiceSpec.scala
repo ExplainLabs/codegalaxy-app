@@ -140,7 +140,8 @@ class TopicServiceSpec extends BaseDBContextSpec {
         numberOfQuestions = 1,
         numberOfPaid = 2,
         numberOfLearners = 3,
-        numberOfChapters = 4
+        numberOfChapters = 4,
+        numberOfTheory = Some(5)
       )
     )
   }
@@ -174,6 +175,7 @@ class TopicServiceSpec extends BaseDBContextSpec {
         numPaid = data.info.numberOfPaid,
         numLearners = data.info.numberOfLearners,
         numChapters = data.info.numberOfChapters,
+        numTheory = data.info.numberOfTheory,
         svgIcon = maybeIcon
       ),
       stats = maybeStats.map { stats =>
