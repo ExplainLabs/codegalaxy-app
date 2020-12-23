@@ -77,6 +77,7 @@ object TopicService {
       numPaid = data.info.numberOfPaid,
       numLearners = data.info.numberOfLearners,
       numChapters = data.info.numberOfChapters,
+      numTheory = data.info.numberOfTheory,
       svgIcon = maybeIcon
     )
   }

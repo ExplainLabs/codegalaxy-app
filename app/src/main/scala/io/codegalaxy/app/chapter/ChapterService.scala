@@ -37,7 +37,7 @@ class ChapterService(api: ChapterApi, dao: ChapterDao) {
   
   private def getChaptersData(topic: String): Future[List[(ChapterData, StatsData)]] = {
     for {
-      dataList <- api.getChapters(topic)
+      dataList <- api.getChaptersWithStatistics(topic)
     } yield {
       dataList.map { data =>
         (data.chapter, data.stats)
@@ -68,7 +68,8 @@ object ChapterService {
       numQuestions = info.numberOfQuestions,
       numPaid = info.numberOfPaid,
       numLearners = info.numberOfLearners,
-      numChapters = info.numberOfChapters
+      numChapters = info.numberOfChapters,
+      numTheory = info.numberOfTheory
     )
   }
 }

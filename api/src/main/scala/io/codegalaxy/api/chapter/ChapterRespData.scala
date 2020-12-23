@@ -1,10 +1,8 @@
 package io.codegalaxy.api.chapter
 
-import io.codegalaxy.api.stats.StatsData
-import play.api.libs.json._
+import play.api.libs.json.{Json, Reads}
 
-case class ChapterRespData(chapter: ChapterData,
-                           stats: StatsData)
+case class ChapterRespData(chapter: ChapterData)
 
 object ChapterRespData {
 

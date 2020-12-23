@@ -174,6 +174,7 @@ class StatsServiceSpec extends BaseDBContextSpec {
         numPaid = 2,
         numLearners = 3,
         numChapters = 4,
+        numTheory = Some(5),
         svgIcon = None
       ),
       stats = stats
@@ -190,7 +191,8 @@ class StatsServiceSpec extends BaseDBContextSpec {
         numQuestions = 11,
         numPaid = 22,
         numLearners = 33,
-        numChapters = 44
+        numChapters = 44,
+        numTheory = Some(55)
       ),
       stats = stats
     )

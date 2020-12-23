@@ -25,6 +25,7 @@ class TopicActionsSpec extends AsyncTestSpec {
         numPaid = 2,
         numLearners = 3,
         numChapters = 4,
+        numTheory = Some(5),
         svgIcon = Some("test svg")
       ),
       stats = None

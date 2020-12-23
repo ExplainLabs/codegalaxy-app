@@ -5,7 +5,8 @@ import play.api.libs.json._
 case class InfoData(numberOfQuestions: Int = 0,
                     numberOfPaid: Int = 0,
                     numberOfLearners: Int = 0,
-                    numberOfChapters: Int = 0)
+                    numberOfChapters: Int = 0,
+                    numberOfTheory: Option[Int] = None)
 
 object InfoData {
 

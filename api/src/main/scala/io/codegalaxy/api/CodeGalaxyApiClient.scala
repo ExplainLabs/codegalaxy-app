@@ -93,6 +93,10 @@ class CodeGalaxyApiClient(client: ApiHttpClient)
     client.execGet[List[ChapterRespData]](s"/v1/topics/$topic/modules")
   }
 
+  def getChaptersWithStatistics(topic: String): Future[List[ChapterWithStatisticsRespData]] = {
+    client.execGet[List[ChapterWithStatisticsRespData]](s"/v1/topics/$topic/modulesWithStats")
+  }
+
   ////////////////////////////////////////////////////////////////////////////////////////
   // question api
 
