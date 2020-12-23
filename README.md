@@ -22,7 +22,7 @@ First, build the application with the following command:
 sbt "project codegalaxy-app" fastOptJS
 ```
 
-Then start the application locally, in simulator:
+First setup:
 ```bash
 cd app
 npm install
@@ -32,10 +32,24 @@ expo start --ios
 expo start --android
 ```
 
-Reload:
+Or re-install:
 ```bash
 cd app
 rm -rf node_modules
 cd ../
 sbt clean
 ```
+
+#### How to Run App with reload workflow
+
+First, build app with reload in sbt
+```bash
+sbt -mem 2048
+sbt> project codegalaxy-app
+codegalaxy-app> ~fastOptJS
+```
+
+Then, refresh app in Expo client:
+* Cmd+R in emulator (if FastRefresh is disabled)
+* or shake real device and press Reload in then menu
+

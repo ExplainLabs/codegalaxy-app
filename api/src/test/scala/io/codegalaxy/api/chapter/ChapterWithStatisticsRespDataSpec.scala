@@ -5,7 +5,7 @@ import io.codegalaxy.api.stats.StatsData
 import org.scalatest.{FlatSpec, Matchers}
 import play.api.libs.json.Json
 
-class ChapterRespDataSpec extends FlatSpec with Matchers {
+class ChapterWithStatisticsRespDataSpec extends FlatSpec with Matchers {
 
   private val dataList = List(ChapterWithStatisticsRespData(
     chapter = ChapterData(
