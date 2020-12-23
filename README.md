@@ -12,6 +12,9 @@ Mobile App for https://codegalaxy.io/
 
 * [live expo link](https://expo.io/@viktorpodzigun/codegalaxy-app)
 
+#### Android Emulator Setup
+* [Android emulator expo link](https://docs.expo.io/workflow/android-studio-emulator/)
+
 #### How to Build/Run App locally using Expo
 
 First, build the application with the following command:
