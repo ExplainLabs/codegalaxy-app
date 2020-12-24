@@ -45,8 +45,15 @@ object ChapterListScreen extends FunctionComponent[ChapterListScreenProps] {
           <.View(^.rnStyle := styles.itemContainer)(
             <.Text(themeStyle(styles.itemTitle, themeTextStyle))(data.entity.name),
             <.View(^.rnStyle := styles.itemInfoContainer)(
-              <(CodeGalaxyIcons.FontAwesome5)(themeStyle(styles.itemInfo, styles.itemInfoDark), ^.name := "file-code", ^.rnSize := 16)(),
-              <.Text(themeStyle(styles.itemInfo, styles.itemInfoDark))(s" : ${data.entity.numQuestions}")
+              List(
+                <(CodeGalaxyIcons.FontAwesome5)(themeStyle(styles.itemInfo, styles.itemInfoDark), ^.name := "file-code", ^.rnSize := 16)(),
+                <.Text(themeStyle(styles.itemInfo, styles.itemInfoDark))(s" ${data.entity.numQuestions}")
+              ) ++ data.entity.numTheory.filter(_ > 0).map { numTheory =>
+                List(
+                  <(CodeGalaxyIcons.FontAwesome5)(themeStyle(styles.itemInfo, styles.itemInfoDark), ^.name := "book", ^.rnSize := 16)(),
+                  <.Text(themeStyle(styles.itemInfo, styles.itemInfoDark))(s" ${numTheory}  ")
+                )
+              }.getOrElse(List.empty) : _*
             )
           ),
           <(ListItemNavIcon())(^.wrapped := ListItemNavIconProps(
@@ -99,8 +106,11 @@ object ChapterListScreen extends FunctionComponent[ChapterListScreenProps] {
       override val alignItems = AlignItems.center
       override val paddingLeft = 10
       override val paddingRight = 10
-      override val borderBottomWidth = 2
-      override val borderBottomColor = Color.darkgray
+
+      override val borderWidth = 1
+      override val borderColor = Color.darkgray
+      override val borderRadius = 20
+      override val margin = 5
     }
     val itemContainer: Style = new ViewStyle {
       override val padding = 10
@@ -113,10 +123,13 @@ object ChapterListScreen extends FunctionComponent[ChapterListScreenProps] {
       override val flexDirection = FlexDirection.row
       override val alignItems = AlignItems.center
     }
+
     val itemInfo: Style = new TextStyle {
+      override val paddingRight = 5
       override val color = "rgba(0, 0, 0, .5)"
     }
     val itemInfoDark: Style = new TextStyle {
+      override val paddingRight = 5
       override val color = "rgba(255, 255, 255, .5)"
     }
   }

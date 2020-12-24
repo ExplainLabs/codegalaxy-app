@@ -13,6 +13,7 @@ import scommons.reactnative.svg._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.scalajs.js
+import scala.scalajs.js.{UndefOr, |}
 
 case class TopicListScreenProps(dispatch: Dispatch,
                                 actions: TopicActions,
@@ -47,11 +48,11 @@ object TopicListScreen extends FunctionComponent[TopicListScreenProps] {
             <.Text(themeStyle(styles.itemTitle, themeTextStyle))(data.entity.name),
             <.View(^.rnStyle := styles.itemInfoContainer)(
               <(CodeGalaxyIcons.FontAwesome5)(themeStyle(styles.itemInfo, styles.itemInfoDark), ^.name := "language", ^.rnSize := 16)(),
-              <.Text(themeStyle(styles.itemInfo, styles.itemInfoDark))(s" : ${data.entity.lang}  "),
+              <.Text(themeStyle(styles.itemInfo, styles.itemInfoDark))(s" ${data.entity.lang}  "),
               <(CodeGalaxyIcons.FontAwesome5)(themeStyle(styles.itemInfo, styles.itemInfoDark), ^.name := "file-code", ^.rnSize := 16)(),
-              <.Text(themeStyle(styles.itemInfo, styles.itemInfoDark))(s" : ${data.entity.numQuestions}  "),
+              <.Text(themeStyle(styles.itemInfo, styles.itemInfoDark))(s" ${data.entity.numQuestions}  "),
               <(CodeGalaxyIcons.FontAwesome5)(themeStyle(styles.itemInfo, styles.itemInfoDark), ^.name := "users", ^.rnSize := 16)(),
-              <.Text(themeStyle(styles.itemInfo, styles.itemInfoDark))(s" : ${data.entity.numLearners}")
+              <.Text(themeStyle(styles.itemInfo, styles.itemInfoDark))(s" ${data.entity.numLearners}")
             )
           ),
           <(ListItemNavIcon())(^.wrapped := ListItemNavIconProps(
@@ -101,8 +102,11 @@ object TopicListScreen extends FunctionComponent[TopicListScreenProps] {
       override val alignItems = AlignItems.center
       override val paddingLeft = 10
       override val paddingRight = 10
-      override val borderBottomWidth = 2
-      override val borderBottomColor = Color.darkgray
+
+      override val borderWidth = 1
+      override val borderColor = Color.darkgray
+      override val borderRadius: UndefOr[Int] = 20
+      override val margin: UndefOr[String | Int] = 5
     }
     val iconContainer: Style = new ViewStyle {
       override val alignItems = AlignItems.center

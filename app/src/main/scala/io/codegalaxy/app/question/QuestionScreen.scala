@@ -25,16 +25,18 @@ object QuestionScreen extends FunctionComponent[QuestionScreenProps] {
   private[question] lazy val choiceGroupComp = new ChoiceGroup[Int, ChoiceData]
   
   private def renderButton(text: String, onPress: js.Function0[Unit]): ReactElement = {
-    <.TouchableOpacity(
-      ^.rnStyle := styles.button,
-      ^.onPress := onPress
-    )(
-      <.Text(^.rnStyle := styles.buttonText)(text),
-      <(VectorIcons.Ionicons)(
-        ^.name := "ios-arrow-forward",
-        ^.rnSize := 24,
-        ^.color := Style.Color.dodgerblue
-      )()
+    <.View(^.rnStyle := styles.buttonContainer)(
+      <.TouchableOpacity(
+        ^.rnStyle := styles.button,
+        ^.onPress := onPress
+      )(
+        <.Text(^.rnStyle := styles.buttonText)(text),
+        <(VectorIcons.Ionicons)(
+          ^.name := "ios-arrow-forward",
+          ^.rnSize := 24,
+          ^.color := Style.Color.dodgerblue
+        )()
+      )
     )
   }
   
@@ -69,12 +71,14 @@ object QuestionScreen extends FunctionComponent[QuestionScreenProps] {
     <.SafeAreaView(
       ^.rnStyle := styles.container,
       ^.edges := List(SafeAreaEdge.left, SafeAreaEdge.bottom, SafeAreaEdge.right)
-    )(props.data.question match {
+    )(
+      <.View(^.rnStyle := styles.innerContainer)(
+      props.data.question match {
       case None => <.Text(^.rnStyle := themeTextStyle)("Loading...")
       case Some(question) =>
         val multiSelect = question.answerType != "SINGLE_CHOICE"
         val answered = question.correct.isDefined
-        
+
         <.ScrollView(^.keyboardShouldPersistTaps := KeyboardShouldPersistTaps.always)(
           <(QuestionText())(^.wrapped := QuestionTextProps(question.text))(),
 
@@ -114,16 +118,6 @@ object QuestionScreen extends FunctionComponent[QuestionScreenProps] {
             case true => <.Text(^.rnStyle := styles.rightAnswer)("Well done! Right answer.")
           },
 
-          question.rules.map { rule =>
-            <.>()(
-              <.Text(themeStyle(styles.ruleTitle, themeTextStyle))(rule.title),
-              <(QuestionText())(^.wrapped := QuestionTextProps(
-                textHtml = rule.text,
-                style = Some(js.Array(styles.ruleText))
-              ))()
-            )
-          },
-
           question.explanation.collect { case explanation if explanation.trim.nonEmpty =>
             <.>()(
               <.Text(themeStyle(styles.ruleTitle, themeTextStyle))("Explanation"),
@@ -134,7 +128,19 @@ object QuestionScreen extends FunctionComponent[QuestionScreenProps] {
             )
           },
 
-          if (!answered) {
+          question.rules.map { rule =>
+            <.>()(
+              <.Text(themeStyle(styles.ruleTitle, themeTextStyle))(rule.title),
+              <(QuestionText())(^.wrapped := QuestionTextProps(
+                textHtml = rule.text,
+                style = Some(js.Array(styles.ruleText))
+              ))()
+            )
+          }
+        )
+      },
+        props.data.question.map { question =>
+          if (question.correct.isEmpty) {
             renderButton("Continue", { () =>
               val data = question.copy(choices = question.choices.map { choice =>
                 val selected = selectedIds.contains(choice.id)
@@ -142,15 +148,14 @@ object QuestionScreen extends FunctionComponent[QuestionScreenProps] {
               })
               props.dispatch(props.actions.submitAnswer(props.dispatch, topic, chapter, data))
             })
-          }
-          else {
+          } else {
             renderButton("Next", { () =>
               props.dispatch(props.actions.fetchQuestion(props.dispatch, topic, chapter))
               setSelectedIds(Set.empty)
             })
           }
-        )
-    })
+        }
+      ))
   }
 
   private[question] lazy val styles = StyleSheet.create(new Styles)
@@ -164,6 +169,9 @@ object QuestionScreen extends FunctionComponent[QuestionScreenProps] {
       override val padding = 5
       override val marginBottom = 0
       override val paddingBottom = 0
+    }
+    val innerContainer: Style = new ViewStyle {
+      override val flex = 1
     }
     val choiceGroup: Style = new ViewStyle {
       override val alignSelf = AlignSelf.center
@@ -209,6 +217,14 @@ object QuestionScreen extends FunctionComponent[QuestionScreenProps] {
       override val alignItems = AlignItems.center
       override val marginVertical = 10
     }
+
+    val buttonContainer: Style = new ViewStyle {
+      override val flex = 1
+      override val justifyContent = JustifyContent.`flex-end`
+      override val marginBottom = 36
+//      override val backgroundColor = Style.Color.darkred
+    }
+
     val buttonText: Style = new TextStyle {
       override val fontWeight = FontWeight.bold
       override val fontSize = 18
