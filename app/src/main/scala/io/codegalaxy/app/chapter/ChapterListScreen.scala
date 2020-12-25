@@ -47,7 +47,7 @@ object ChapterListScreen extends FunctionComponent[ChapterListScreenProps] {
             <.View(^.rnStyle := styles.itemInfoContainer)(
               List(
                 <(CodeGalaxyIcons.FontAwesome5)(themeStyle(styles.itemInfo, styles.itemInfoDark), ^.name := "file-code", ^.rnSize := 16)(),
-                <.Text(themeStyle(styles.itemInfo, styles.itemInfoDark))(s" ${data.entity.numQuestions}")
+                <.Text(themeStyle(styles.itemInfo, styles.itemInfoDark))(s" ${data.entity.numQuestions}  ")
               ) ++ data.entity.numTheory.filter(_ > 0).map { numTheory =>
                 List(
                   <(CodeGalaxyIcons.FontAwesome5)(themeStyle(styles.itemInfo, styles.itemInfoDark), ^.name := "book", ^.rnSize := 16)(),
@@ -125,11 +125,9 @@ object ChapterListScreen extends FunctionComponent[ChapterListScreenProps] {
     }
 
     val itemInfo: Style = new TextStyle {
-      override val paddingRight = 5
       override val color = "rgba(0, 0, 0, .5)"
     }
     val itemInfoDark: Style = new TextStyle {
-      override val paddingRight = 5
       override val color = "rgba(255, 255, 255, .5)"
     }
   }

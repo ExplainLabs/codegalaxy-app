@@ -15,19 +15,22 @@ object ListItemNavIcon extends FunctionComponent[ListItemNavIconProps] {
   protected def render(compProps: Props): ReactElement = {
     implicit val theme: Theme = useTheme()
     val props = compProps.wrapped
-    
     <.View(^.rnStyle := styles.statsContainer)(
-      if (props.progress > 0) <.>()(
-        if (props.showLabel) Some(<.Text(^.rnStyle := styles.statsLabel)("Open"))
-        else None,
-        <.View(^.rnStyle := styles.statsProgress)(
-          <.Text(^.rnStyle := themeTextStyle)(s"${props.progress}")
-        )
-      )
-      else <.>()(
-        if (props.showLabel) Some(<.Text(^.rnStyle := styles.statsLabel)("Start"))
-        else None,
-        <.SvgXml(^.rnStyle := styles.startSvg, ^.xml := startSvgXml)()
+      <.>()(
+        Some(props.showLabel)
+          .filter(identity)
+          .map { _ =>
+            <.Text(^.rnStyle := styles.statsLabel)(
+              if (props.progress > 0) "Continue" else "Start"
+            )
+          },
+        if (props.progress > 0) {
+          <.View(^.rnStyle := styles.statsProgress)(
+            <.Text(^.rnStyle := themeTextStyle)(s"${props.progress}")
+          )
+        } else {
+          <.SvgXml(^.rnStyle := styles.startSvg, ^.xml := startSvgXml)()
+        }
       )
     )
   }
@@ -55,7 +58,7 @@ object ListItemNavIcon extends FunctionComponent[ListItemNavIconProps] {
       override val justifyContent = JustifyContent.`flex-end`
     }
     val statsLabel: Style = new TextStyle {
-      override val color = Color.dodgerblue
+      override val color = Color.gray
       override val fontWeight = FontWeight.bold
       override val marginRight = 5
     }
@@ -66,10 +69,10 @@ object ListItemNavIcon extends FunctionComponent[ListItemNavIconProps] {
       override val height = 32
       override val borderRadius = 16
       override val borderWidth = 2
-      override val borderColor = Color.dodgerblue
+      override val borderColor = Color.gray
     }
     val startSvg: Style = new ViewStyle {
-      override val color = Color.dodgerblue
+      override val color = Color.gray
       override val width = "100%"
       override val height = "100%"
     }

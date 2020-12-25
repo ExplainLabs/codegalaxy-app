@@ -8,6 +8,7 @@ import scommons.react._
 import scommons.react.hooks._
 import scommons.react.navigation._
 import scommons.reactnative.ScrollView._
+import scommons.reactnative.Style.Color
 import scommons.reactnative._
 import scommons.reactnative.safearea.SafeArea._
 import scommons.reactnative.safearea._
@@ -30,12 +31,7 @@ object QuestionScreen extends FunctionComponent[QuestionScreenProps] {
         ^.rnStyle := styles.button,
         ^.onPress := onPress
       )(
-        <.Text(^.rnStyle := styles.buttonText)(text),
-        <(VectorIcons.Ionicons)(
-          ^.name := "ios-arrow-forward",
-          ^.rnSize := 24,
-          ^.color := Style.Color.dodgerblue
-        )()
+        <.Text(^.rnStyle := styles.buttonText)(text)
       )
     )
   }
@@ -80,27 +76,34 @@ object QuestionScreen extends FunctionComponent[QuestionScreenProps] {
         val answered = question.correct.isDefined
 
         <.ScrollView(^.keyboardShouldPersistTaps := KeyboardShouldPersistTaps.always)(
-          <(QuestionText())(^.wrapped := QuestionTextProps(question.text))(),
+          <.View(^.rnStyle := styles.textWrapper)(
+            <(QuestionText())(^.wrapped := QuestionTextProps(question.text))()
+          ),
 
           <(choiceGroupComp())(^.wrapped := new ChoiceGroupProps[Int, ChoiceData](
             items = question.choices,
             keyExtractor = _.id,
             iconRenderer = {
-              if (!answered) ChoiceGroupProps.defaultIconRenderer(multiSelect)
-              else { (_, _) => null }
+              if (!answered) {
+                ChoiceGroupProps.defaultIconRenderer(multiSelect, color = Some(Style.Color.gray))
+              } else {
+                (_, _) => null
+              }
             },
             labelRenderer = { (data, _) =>
               val selected = selectedIds.contains(data.id)
-              <.>()(
-                if (answered) Some(renderAnswerIcon(data.correct.getOrElse(false)))
-                else None,
-                <(QuestionText())(^.wrapped := QuestionTextProps(
-                  textHtml = data.choiceText,
-                  style = Some(
-                    if (answered && !selected) js.Array(styles.choiceLabel, styles.choiceNotSelected)
-                    else js.Array(styles.choiceLabel)
-                  )
-                ))()
+              <.View(^.rnStyle := styles.choiceOption)(
+                <.>()(
+                  if (answered) Some(renderAnswerIcon(data.correct.getOrElse(false)))
+                  else None,
+                  <(QuestionText())(^.wrapped := QuestionTextProps(
+                    textHtml = data.choiceText,
+                    style = Some(
+                      if (answered && !selected) js.Array(styles.choiceLabel, styles.choiceNotSelected)
+                      else js.Array(styles.choiceLabel)
+                    )
+                  ))()
+                )
               )
             },
             selectedIds = selectedIds,
@@ -119,7 +122,7 @@ object QuestionScreen extends FunctionComponent[QuestionScreenProps] {
           },
 
           question.explanation.collect { case explanation if explanation.trim.nonEmpty =>
-            <.>()(
+            <.View(^.rnStyle := styles.textWrapper)(
               <.Text(themeStyle(styles.ruleTitle, themeTextStyle))("Explanation"),
               <(QuestionText())(^.wrapped := QuestionTextProps(
                 textHtml = explanation,
@@ -129,7 +132,7 @@ object QuestionScreen extends FunctionComponent[QuestionScreenProps] {
           },
 
           question.rules.map { rule =>
-            <.>()(
+            <.View(^.rnStyle := styles.textWrapper)(
               <.Text(themeStyle(styles.ruleTitle, themeTextStyle))(rule.title),
               <(QuestionText())(^.wrapped := QuestionTextProps(
                 textHtml = rule.text,
@@ -165,41 +168,67 @@ object QuestionScreen extends FunctionComponent[QuestionScreenProps] {
 
     val container: Style = new ViewStyle {
       override val flex = 1
-      override val margin = 5
-      override val padding = 5
+//      override val margin = 5
+//      override val padding = 5
       override val marginBottom = 0
       override val paddingBottom = 0
+      override val backgroundColor = "#e3e3e2"
     }
     val innerContainer: Style = new ViewStyle {
       override val flex = 1
     }
+    val textWrapper = new ViewStyle {
+      override val borderWidth = 1
+      override val borderRadius = 20
+      override val borderColor = Color.white
+      override val margin = 10
+      override val padding = 20
+      override val backgroundColor = Color.white
+    }
     val choiceGroup: Style = new ViewStyle {
-      override val alignSelf = AlignSelf.center
-      override val margin = 5
+      override val alignSelf = AlignSelf.`flex-start`
+      override val margin = 10
       override val paddingVertical = 5
       override val paddingLeft = 5
       override val paddingRight = 25
     }
+    val choiceOption: Style = new ViewStyle {
+      override val flexDirection = FlexDirection.row
+      override val padding = 10
+
+      override val borderWidth = 1
+
+      override val backgroundColor = Color.white
+      override val borderColor = Color.white
+      override val borderRadius = 10
+      override val marginHorizontal = 10
+      override val marginRight = 10
+    }
     val choiceLabel: Style = new ViewStyle {
       override val marginHorizontal = 5
       override val paddingHorizontal = 5
-      override val borderBottomWidth = 1
       override val borderBottomColor = Style.Color.gray
     }
     val choiceNotSelected = new ViewStyle {
       val opacity = 0.5
     }
+    val answerPaddingVertical = 10
+    val answerMarginVertical = 5
     val rightAnswer: Style = new TextStyle {
-      override val marginVertical = 5
+      override val marginVertical = answerMarginVertical
+      override val paddingVertical = answerPaddingVertical
       override val textAlign = TextAlign.center
       override val fontWeight = FontWeight.bold
+      
       override val color = Style.Color.green
       override val backgroundColor = Style.Color.lightcyan
     }
     val wrongAnswer: Style = new TextStyle {
-      override val marginVertical = 5
+      override val marginVertical = answerMarginVertical
+      override val paddingVertical = answerPaddingVertical
       override val textAlign = TextAlign.center
       override val fontWeight = FontWeight.bold
+
       override val color = Style.Color.red
       override val backgroundColor = Style.Color.lightpink
     }
@@ -216,19 +245,29 @@ object QuestionScreen extends FunctionComponent[QuestionScreenProps] {
       override val flexDirection = FlexDirection.row
       override val alignItems = AlignItems.center
       override val marginVertical = 10
+
+      override val paddingHorizontal = 50
+      override val paddingVertical = 10
+
+      override val borderWidth = 1
+      override val borderColor = "#51af85"
+      override val borderRadius = 10
+      override val margin = 5
+      override val backgroundColor = "#51af85"
+      override val color = Color.white
     }
 
     val buttonContainer: Style = new ViewStyle {
-      override val flex = 1
+//      override val flex = 1
       override val justifyContent = JustifyContent.`flex-end`
-      override val marginBottom = 36
-//      override val backgroundColor = Style.Color.darkred
+//      override val marginBottom = 36
+      override val backgroundColor = Style.Color.white
     }
 
     val buttonText: Style = new TextStyle {
       override val fontWeight = FontWeight.bold
       override val fontSize = 18
-      override val color = Style.Color.dodgerblue
+      override val color = Style.Color.white
       override val marginRight = 5
     }
   }

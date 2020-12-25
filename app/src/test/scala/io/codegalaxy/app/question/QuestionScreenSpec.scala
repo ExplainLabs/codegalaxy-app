@@ -435,7 +435,7 @@ class QuestionScreenSpec extends AsyncTestSpec
           <(VectorIcons.Ionicons)(
             ^.name := "ios-arrow-forward",
             ^.rnSize := 24,
-            ^.color := Style.Color.dodgerblue
+            ^.color := Style.Color.gray
           )()
         )
       )
