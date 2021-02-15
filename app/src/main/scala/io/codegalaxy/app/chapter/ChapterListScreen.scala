@@ -51,7 +51,7 @@ object ChapterListScreen extends FunctionComponent[ChapterListScreenProps] {
               ) ++ data.entity.numTheory.filter(_ > 0).map { numTheory =>
                 List(
                   <(CodeGalaxyIcons.FontAwesome5)(themeStyle(styles.itemInfo, styles.itemInfoDark), ^.name := "book", ^.rnSize := 16)(),
-                  <.Text(themeStyle(styles.itemInfo, styles.itemInfoDark))(s" ${numTheory}  ")
+                  <.Text(themeStyle(styles.itemInfo, styles.itemInfoDark))(s" $numTheory  ")
                 )
               }.getOrElse(List.empty) : _*
             )

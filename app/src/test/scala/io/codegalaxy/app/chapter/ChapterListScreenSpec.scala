@@ -127,6 +127,24 @@ class ChapterListScreenSpec extends AsyncTestSpec
     result shouldBe item.entity.alias
   }
 
+  it should "render item component with theory" in {
+    //given
+    val props = {
+      val props = getChapterListScreenProps()
+      props.copy(data = props.data.copy(
+        chapters = props.data.chapters.map(c => c.copy(entity = c.entity.copy(numTheory = Some(5))))
+      ))
+    }
+    val item = props.data.chapters.head
+    item.entity.numTheory should not be None
+    
+    //when
+    val result = renderItem(props, item)
+
+    //then
+    assertItem(result, item)
+  }
+
   it should "render item component with Start action" in {
     //given
     val props = getChapterListScreenProps()
@@ -194,7 +212,7 @@ class ChapterListScreenSpec extends AsyncTestSpec
                                               numPaid = 2,
                                               numLearners = 3,
                                               numChapters = 4,
-                                              numTheory = Some(5)
+                                              numTheory = None
                                             ),
                                             stats = Some(ChapterStats(
                                               id = 1,
@@ -247,8 +265,15 @@ class ChapterListScreenSpec extends AsyncTestSpec
           <.View(^.rnStyle := styles.itemContainer)(
             <.Text(themeStyle(styles.itemTitle, themeTextStyle))(data.entity.name),
             <.View(^.rnStyle := styles.itemInfoContainer)(
-              <(CodeGalaxyIcons.FontAwesome5)(themeStyle(styles.itemInfo, styles.itemInfoDark), ^.name := "file-code", ^.rnSize := 16)(),
-              <.Text(themeStyle(styles.itemInfo, styles.itemInfoDark))(s" : ${data.entity.numQuestions}")
+              List(
+                <(CodeGalaxyIcons.FontAwesome5)(themeStyle(styles.itemInfo, styles.itemInfoDark), ^.name := "file-code", ^.rnSize := 16)(),
+                <.Text(themeStyle(styles.itemInfo, styles.itemInfoDark))(s" ${data.entity.numQuestions}  ")
+              ) ++ data.entity.numTheory.filter(_ > 0).map { numTheory =>
+                List(
+                  <(CodeGalaxyIcons.FontAwesome5)(themeStyle(styles.itemInfo, styles.itemInfoDark), ^.name := "book", ^.rnSize := 16)(),
+                  <.Text(themeStyle(styles.itemInfo, styles.itemInfoDark))(s" $numTheory  ")
+                )
+              }
             )
           )
         )
