@@ -46,7 +46,7 @@ class ListItemNavIconSpec extends TestSpec with ShallowRendererUtils {
     )
   }
   
-  it should "render Open icon with label" in {
+  it should "render Continue icon with label" in {
     //given
     val props = ListItemNavIconProps(99, showLabel = true)
     val component = <(ListItemNavIcon())(^.wrapped := props)()
@@ -59,7 +59,7 @@ class ListItemNavIconSpec extends TestSpec with ShallowRendererUtils {
     assertNativeComponent(result,
       <.View(^.rnStyle := styles.statsContainer)(
         <.>()(
-          <.Text(^.rnStyle := styles.statsLabel)("Open"),
+          <.Text(^.rnStyle := styles.statsLabel)("Continue"),
           <.View(^.rnStyle := styles.statsProgress)(
             <.Text(^.rnStyle := themeTextStyle)(s"${props.progress}")
           )

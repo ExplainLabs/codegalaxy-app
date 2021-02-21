@@ -12,7 +12,6 @@ import scommons.react._
 import scommons.react.navigation._
 import scommons.react.redux.task.FutureTask
 import scommons.react.test._
-import scommons.reactnative.ScrollView._
 import scommons.reactnative._
 import scommons.reactnative.safearea.SafeArea._
 import scommons.reactnative.safearea._
@@ -233,7 +232,9 @@ class QuestionScreenSpec extends AsyncTestSpec
         ^.rnStyle := styles.container,
         ^.edges := List(SafeAreaEdge.left, SafeAreaEdge.bottom, SafeAreaEdge.right)
       )(
-        <.Text(^.rnStyle := themeTextStyle)("Loading...")
+        <.View(^.rnStyle := styles.innerContainer)(
+          <.Text(^.rnStyle := themeTextStyle)("Loading...")
+        )
       )
     )
   }
@@ -449,8 +450,8 @@ class QuestionScreenSpec extends AsyncTestSpec
       { children: List[ShallowInstance] =>
         val List(scroll) = children
         assertNativeComponent(scroll,
-          <.ScrollView(
-            ^.keyboardShouldPersistTaps := KeyboardShouldPersistTaps.always
+          <.View(
+            ^.rnStyle := styles.textWrapper
           )(),
           { children: List[ShallowInstance] =>
             children match {

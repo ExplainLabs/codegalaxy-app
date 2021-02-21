@@ -251,11 +251,11 @@ class TopicListScreenSpec extends AsyncTestSpec
             <.Text(themeStyle(styles.itemTitle, themeTextStyle))(data.entity.name),
             <.View(^.rnStyle := styles.itemInfoContainer)(
               <(CodeGalaxyIcons.FontAwesome5)(themeStyle(styles.itemInfo, styles.itemInfoDark), ^.name := "language", ^.rnSize := 16)(),
-              <.Text(themeStyle(styles.itemInfo, styles.itemInfoDark))(s" : ${data.entity.lang}  "),
+              <.Text(themeStyle(styles.itemInfo, styles.itemInfoDark))(s" ${data.entity.lang}  "),
               <(CodeGalaxyIcons.FontAwesome5)(themeStyle(styles.itemInfo, styles.itemInfoDark), ^.name := "file-code", ^.rnSize := 16)(),
-              <.Text(themeStyle(styles.itemInfo, styles.itemInfoDark))(s" : ${data.entity.numQuestions}  "),
+              <.Text(themeStyle(styles.itemInfo, styles.itemInfoDark))(s" ${data.entity.numQuestions}  "),
               <(CodeGalaxyIcons.FontAwesome5)(themeStyle(styles.itemInfo, styles.itemInfoDark), ^.name := "users", ^.rnSize := 16)(),
-              <.Text(themeStyle(styles.itemInfo, styles.itemInfoDark))(s" : ${data.entity.numLearners}")
+              <.Text(themeStyle(styles.itemInfo, styles.itemInfoDark))(s" ${data.entity.numLearners}")
             )
           )
         )
