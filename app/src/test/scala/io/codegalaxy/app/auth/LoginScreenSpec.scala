@@ -17,7 +17,7 @@ class LoginScreenSpec extends TestSpec with ShallowRendererUtils {
   it should "call onLogin when Login button is pressed" in {
     //given
     val onLogin = mockFunction[String, String, Unit]
-    val props = LoginScreenProps(onLogin = onLogin)
+    val props = LoginScreenProps(onLogin = onLogin, onSignup = () => ())
     val renderer = createRenderer()
     renderer.render(<(LoginScreen())(^.wrapped := props)())
     val List(email, password) = findComponents(renderer.getRenderOutput(), raw.TextInput)
@@ -25,7 +25,7 @@ class LoginScreenSpec extends TestSpec with ShallowRendererUtils {
     val passwordText = "test12345"
     email.props.onChangeText(emailText)
     password.props.onChangeText(passwordText)
-    val List(button) = findComponents(renderer.getRenderOutput(), raw.TouchableOpacity)
+    val List(button, _) = findComponents(renderer.getRenderOutput(), raw.TouchableOpacity)
 
     //then
     onLogin.expects(emailText, passwordText)
@@ -34,9 +34,24 @@ class LoginScreenSpec extends TestSpec with ShallowRendererUtils {
     button.props.onPress()
   }
 
+  it should "call onSignup when Signup link is pressed" in {
+    //given
+    val onSignup = mockFunction[Unit]
+    val props = LoginScreenProps(onLogin = (_, _) => (), onSignup = onSignup)
+    val renderer = createRenderer()
+    renderer.render(<(LoginScreen())(^.wrapped := props)())
+    val List(_, link) = findComponents(renderer.getRenderOutput(), raw.TouchableOpacity)
+
+    //then
+    onSignup.expects()
+
+    //when
+    link.props.onPress()
+  }
+
   it should "enable Login button when both fields are set" in {
     //given
-    val props = LoginScreenProps(onLogin = (_, _) => ())
+    val props = LoginScreenProps(onLogin = (_, _) => (), onSignup = () => ())
     val renderer = createRenderer()
     renderer.render(<(LoginScreen())(^.wrapped := props)())
     val List(email, password) = findComponents(renderer.getRenderOutput(), raw.TextInput)
@@ -53,7 +68,7 @@ class LoginScreenSpec extends TestSpec with ShallowRendererUtils {
 
   it should "render component with disabled Login button" in {
     //given
-    val props = LoginScreenProps(onLogin = (_, _) => ())
+    val props = LoginScreenProps(onLogin = (_, _) => (), onSignup = () => ())
 
     //when
     val result = shallowRender(<(LoginScreen())(^.wrapped := props)())
@@ -65,7 +80,7 @@ class LoginScreenSpec extends TestSpec with ShallowRendererUtils {
   it should "render component on Android platform" in {
     //given
     PlatformMock.use(Platform.android)
-    val props = LoginScreenProps(onLogin = (_, _) => ())
+    val props = LoginScreenProps(onLogin = (_, _) => (), onSignup = () => ())
 
     //when
     val result = shallowRender(<(LoginScreen())(^.wrapped := props)())
@@ -124,6 +139,12 @@ class LoginScreenSpec extends TestSpec with ShallowRendererUtils {
                 if (disabled) styles.buttonTextDisabled
                 else styles.buttonTextEnabled
               ))("Login")
+            )
+          ),
+
+          <.TouchableOpacity(^.rnStyle := styles.signupButton)(
+            <.Text(^.rnStyle := styles.signupText)(
+              "Sign Up"
             )
           )
         )
