@@ -10,7 +10,8 @@ import scommons.reactnative._
 
 import scala.scalajs.js
 
-case class LoginScreenProps(onLogin: (String, String) => Unit)
+case class LoginScreenProps(onLogin: (String, String) => Unit,
+                            onSignup: () => Unit)
 
 object LoginScreen extends FunctionComponent[LoginScreenProps] {
 
@@ -67,6 +68,15 @@ object LoginScreen extends FunctionComponent[LoginScreenProps] {
               else styles.buttonTextEnabled
             ))("Login")
           )
+        ),
+
+        <.TouchableOpacity(
+          ^.rnStyle := styles.signupButton,
+          ^.onPress := props.onSignup
+        )(
+          <.Text(^.rnStyle := styles.signupText)(
+            "Sign Up"
+          )
         )
       )
     )
@@ -109,6 +119,15 @@ object LoginScreen extends FunctionComponent[LoginScreenProps] {
     }
     val buttonTextDisabled: Style = new TextStyle {
       override val color = Color.black
+    }
+    val signupButton: Style = new ViewStyle {
+      override val justifyContent = JustifyContent.center
+      override val alignItems = AlignItems.center
+      override val margin = 10
+    }
+    val signupText: Style = new TextStyle {
+      override val fontSize = 16
+      override val color = Color.white
     }
   }
 }

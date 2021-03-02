@@ -22,7 +22,14 @@ object CodeGalaxyApp extends CodeGalaxyModule with CommonMobileModule {
       coverageExcludedPackages :=
         "io.codegalaxy.app.CodeGalaxyApp" +
           ";io.codegalaxy.app.CodeGalaxyActions" +
-          ";io.codegalaxy.app.CodeGalaxyIcons"
+          ";io.codegalaxy.app.CodeGalaxyIcons" +
+          ";common.reactnative.raw",
+
+      // we substitute references to react-native modules with our custom mocks during test
+      scommonsNodeJsTestLibs := Seq(
+        "scommons.reactnative.aliases.js",
+        "common.aliases.js"
+      )
     )
 
   override def internalDependencies: Seq[ClasspathDep[ProjectReference]] = Seq(

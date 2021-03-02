@@ -16,8 +16,13 @@ class LoginController(actions: UserActions)
                               state: CodeGalaxyStateDef,
                               nav: Navigation): LoginScreenProps = {
     
-    LoginScreenProps(onLogin = { (email, password) =>
-      dispatch(actions.userLogin(dispatch, email, password))
-    })
+    LoginScreenProps(
+      onLogin = { (email, password) =>
+        dispatch(actions.userLogin(dispatch, email, password))
+      },
+      onSignup = { () =>
+        dispatch(actions.userSignup())
+      }
+    )
   }
 }

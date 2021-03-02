@@ -45,6 +45,25 @@ class UserActionsSpec extends AsyncTestSpec {
     }
   }
   
+  it should "return UserSignupAction when userSignup" in {
+    //given
+    val api = mock[UserApi]
+    val userService = mock[UserService]
+    val configService = mock[ConfigService]
+    val image = mock[Image]
+    val actions = new UserActionsTest(api, userService, configService, image)
+
+    //when
+    val UserSignupAction(FutureTask(message, future)) =
+      actions.userSignup()
+
+    //then
+    message shouldBe "Signing up User"
+    future.map { _ =>
+      Succeeded
+    }
+  }
+  
   it should "dispatch UserLoggedinAction if no profile image url when userLogin" in {
     //given
     val api = mock[UserApi]

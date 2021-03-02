@@ -1,5 +1,6 @@
 package io.codegalaxy.app.user
 
+import common.reactnative.Linking
 import io.codegalaxy.api.user._
 import io.codegalaxy.app.config.ConfigService
 import io.codegalaxy.app.user.UserActions._
@@ -32,6 +33,12 @@ trait UserActions {
     }
 
     UserLoginAction(FutureTask("Authenticate User", resultF))
+  }
+  
+  def userSignup(): UserSignupAction = {
+    val resultF = Linking.openURL("https://codegalaxy.io/auth/signup")
+
+    UserSignupAction(FutureTask("Signing up User", resultF))
   }
   
   def userProfileFetch(dispatch: Dispatch): UserLoginAction = {
@@ -81,6 +88,8 @@ trait UserActions {
 
 object UserActions {
 
+  case class UserSignupAction(task: FutureTask[Unit]) extends TaskAction
+  
   case class UserLoginAction(task: FutureTask[(Option[ProfileEntity], Option[ConfigEntity])]) extends TaskAction
   case class UserLoggedinAction(profile: Option[ProfileEntity], config: Option[ConfigEntity]) extends Action
   
