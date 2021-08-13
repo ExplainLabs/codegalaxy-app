@@ -107,7 +107,7 @@ class ChapterDao(val ctx: CodeGalaxyDBContext) extends CommonDao
       liftQuery(list).foreach { entity =>
         chapters
           .insert(entity)
-          .returning(_.id)
+          .returningGenerated(_.id)
       }
     }
 

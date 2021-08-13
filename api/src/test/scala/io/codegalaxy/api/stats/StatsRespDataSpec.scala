@@ -1,9 +1,10 @@
 package io.codegalaxy.api.stats
 
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 import play.api.libs.json.Json
 
-class StatsRespDataSpec extends FlatSpec with Matchers {
+class StatsRespDataSpec extends AnyFlatSpec with Matchers {
 
   private val dataList = List(StatsRespData(
     topic = StatsTopicData(

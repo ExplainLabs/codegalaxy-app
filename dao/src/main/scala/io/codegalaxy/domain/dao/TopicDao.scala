@@ -89,7 +89,7 @@ class TopicDao(val ctx: CodeGalaxyDBContext) extends CommonDao
       liftQuery(list).foreach { entity =>
         topics
           .insert(entity)
-          .returning(_.id)
+          .returningGenerated(_.id)
       }
     }
 

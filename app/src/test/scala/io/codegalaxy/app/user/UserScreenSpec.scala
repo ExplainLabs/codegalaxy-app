@@ -45,9 +45,13 @@ class UserScreenSpec extends TestSpec with ShallowRendererUtils {
     val dispatch = mockFunction[Any, Any]
     val actions = mock[UserAndConfigActions]
     val props = getUserScreenProps(dispatch, actions)
-    val Some(profile) = props.data.profile
+    val profile = inside(props.data.profile) {
+      case Some(profile) => profile
+    }
     val comp = shallowRender(<(UserScreen())(^.wrapped := props)())
-    val List(switch) = findComponents(comp, <.Switch.reactClass)
+    val switch = inside(findComponents(comp, <.Switch.reactClass)) {
+      case List(switch) => switch
+    }
     val config = ConfigEntity(profile.id, darkTheme = true)
 
     val updateAction = ConfigUpdateAction(
@@ -161,7 +165,9 @@ class UserScreenSpec extends TestSpec with ShallowRendererUtils {
       )
     }
     
-    val Some(profile) = props.data.profile
+    val profile = inside(props.data.profile) {
+      case Some(profile) => profile
+    }
     
     assertNativeComponent(result,
       <.ScrollView(^.keyboardShouldPersistTaps := KeyboardShouldPersistTaps.always)(

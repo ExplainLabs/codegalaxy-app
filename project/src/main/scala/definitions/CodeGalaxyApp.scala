@@ -1,6 +1,8 @@
 package definitions
 
 import common.Libs
+import org.scalajs.jsenv.nodejs.NodeJSEnv
+import org.scalajs.sbtplugin.ScalaJSPlugin.autoImport._
 import sbt.Keys._
 import sbt._
 import scommons.sbtplugin.ScommonsPlugin.autoImport._
@@ -29,7 +31,15 @@ object CodeGalaxyApp extends CodeGalaxyModule with CommonMobileModule {
       scommonsNodeJsTestLibs := Seq(
         "scommons.reactnative.aliases.js",
         "common.aliases.js"
-      )
+      ),
+
+      // required for node.js >= v12.12.0
+      // see:
+      //   https://github.com/nodejs/node/pull/29919
+      scalaJSLinkerConfig in Test ~= {
+        _.withSourceMap(true)
+      },
+      jsEnv in Test := new NodeJSEnv(NodeJSEnv.Config().withArgs(List("--enable-source-maps")))
     )
 
   override def internalDependencies: Seq[ClasspathDep[ProjectReference]] = Seq(
