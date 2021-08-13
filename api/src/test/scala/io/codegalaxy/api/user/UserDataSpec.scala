@@ -1,9 +1,10 @@
 package io.codegalaxy.api.user
 
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 import play.api.libs.json.Json
 
-class UserDataSpec extends FlatSpec with Matchers {
+class UserDataSpec extends AnyFlatSpec with Matchers {
 
   private val data = UserData(
     username = "test_user",

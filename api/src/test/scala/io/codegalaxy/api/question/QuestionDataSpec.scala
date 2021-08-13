@@ -1,9 +1,10 @@
 package io.codegalaxy.api.question
 
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 import play.api.libs.json.Json
 
-class QuestionDataSpec extends FlatSpec with Matchers {
+class QuestionDataSpec extends AnyFlatSpec with Matchers {
 
   private val data = QuestionData(
     uuid = "14h15kl1h514l5h4315j145lj1",
@@ -58,7 +59,7 @@ class QuestionDataSpec extends FlatSpec with Matchers {
 
   it should "serialize data to json" in {
     //when & then
-    Json.prettyPrint(Json.toJson(data)) shouldBe expectedJson
+    Json.prettyPrint(Json.parse(Json.stringify(Json.toJson(data)))) shouldBe expectedJson
   }
 
   it should "deserialize data from json" in {

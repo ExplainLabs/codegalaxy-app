@@ -21,7 +21,12 @@ class QuestionActionsSpec extends AsyncTestSpec {
     val dispatch = mockFunction[Any, Any]
     val topic = "test_topic"
     val chapter = "test_chapter"
-    val data = mock[QuestionData]
+    val data = QuestionData(
+      uuid = "1",
+      text = "Can methods, taking one argument, be used with infix syntax?",
+      answerType = "SINGLE_CHOICE",
+      choices = Nil
+    )
 
     //then
     (api.getNextQuestion _).expects(topic, chapter).returning(Future.successful(data))
@@ -48,8 +53,18 @@ class QuestionActionsSpec extends AsyncTestSpec {
     val dispatch = mockFunction[Any, Any]
     val topic = "test_topic"
     val chapter = "test_chapter"
-    val data = mock[QuestionData]
-    val respData = mock[QuestionData]
+    val data = QuestionData(
+      uuid = "1",
+      text = "Can methods, taking one argument, be used with infix syntax?",
+      answerType = "SINGLE_CHOICE",
+      choices = Nil
+    )
+    val respData = QuestionData(
+      uuid = "2",
+      text = "test",
+      answerType = "SINGLE_CHOICE",
+      choices = Nil
+    )
     val topicStats = mock[TopicStats]
     val chapterStats = mock[ChapterStats]
     val stats = (topicStats, chapterStats)

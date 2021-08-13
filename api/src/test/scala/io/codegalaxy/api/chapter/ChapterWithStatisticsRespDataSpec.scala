@@ -2,10 +2,11 @@ package io.codegalaxy.api.chapter
 
 import io.codegalaxy.api.data.InfoData
 import io.codegalaxy.api.stats.StatsData
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 import play.api.libs.json.Json
 
-class ChapterWithStatisticsRespDataSpec extends FlatSpec with Matchers {
+class ChapterWithStatisticsRespDataSpec extends AnyFlatSpec with Matchers {
 
   private val dataList = List(ChapterWithStatisticsRespData(
     chapter = ChapterData(

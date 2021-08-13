@@ -1,8 +1,9 @@
 package io.codegalaxy.app.topic
 
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-class TopicParamsSpec extends FlatSpec with Matchers {
+class TopicParamsSpec extends AnyFlatSpec with Matchers {
 
   private val params = TopicParams(
     topic = "test_topic",

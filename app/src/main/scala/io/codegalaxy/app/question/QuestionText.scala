@@ -86,7 +86,7 @@ object QuestionText extends FunctionComponent[QuestionTextProps] {
     <.HTMLView(
       props.style.map(^.rnStyle := _),
       textProps,
-      ^.renderNode := renderNode(theme.dark),
+      ^.renderNode := renderNode(theme.dark) _,
       ^.value := s"<div>$text</div>"
     )()
   }

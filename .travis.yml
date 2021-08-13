@@ -18,9 +18,8 @@ before_install:
 - node --version
 - npm install -g expo-cli
 script:
-- sbt clean coverage test coverageReport &&
-  sbt coverageAggregate &&
-  sbt coveralls
+- sbt clean coverage test &&
+  sbt coverageAggregate coveralls
 - if [ "$TRAVIS_PULL_REQUEST" == "false" ] && [ "$TRAVIS_BRANCH" == "master" -o "$TRAVIS_BRANCH" == "$TRAVIS_TAG" ]; then
     if [ -z "$TRAVIS_TAG" ]; then
        echo "Publish to expo";
@@ -39,6 +38,7 @@ script:
 cache:
   directories:
   - ~/.npm
+  - ~/.nvm
   - "$HOME/.ivy2/cache"
   - "$HOME/.sbt"
 before_cache:

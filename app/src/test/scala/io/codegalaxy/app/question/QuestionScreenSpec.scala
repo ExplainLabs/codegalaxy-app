@@ -46,7 +46,9 @@ class QuestionScreenSpec extends AsyncTestSpec
     //given
     val props = {
       val props = getQuestionScreenProps()
-      val Some(question) = props.data.question
+      val question = inside(props.data.question) {
+        case Some(question) => question
+      }
       props.copy(data = props.data.copy(question = Some(question.copy(
         correct = Some(false),
         rules = Nil,
@@ -80,13 +82,21 @@ class QuestionScreenSpec extends AsyncTestSpec
     inside(findComponentProps(renderer.getRenderOutput(), choiceGroupComp)) { case choice =>
       choice.selectedIds shouldBe Set(selectedChoiceId)
     }
-    val List(button) = findComponents(renderer.getRenderOutput(), <.TouchableOpacity.reactClass)
+    val button = inside(findComponents(renderer.getRenderOutput(), <.TouchableOpacity.reactClass)) {
+      case List(button) => button
+    }
     val resp = mock[QuestionData]
-    val Some(topic) = props.data.topic
-    val Some(chapter) = props.data.chapter
+    val topic = inside(props.data.topic) {
+      case Some(topic) => topic
+    }
+    val chapter = inside(props.data.chapter) {
+      case Some(chapter) => chapter
+    }
     val submitAction = AnswerSubmitAction(FutureTask("Submitting...", Future.successful(resp)))
     val data = {
-      val Some(question) = props.data.question
+      val question = inside(props.data.question) {
+        case Some(question) => question
+      }
       question.copy(choices = question.choices.map { choice =>
         val selected = choice.id == selectedChoiceId
         choice.copy(selected = if (selected) Some(true) else Some(false))
@@ -119,7 +129,9 @@ class QuestionScreenSpec extends AsyncTestSpec
       choice.selectedIds shouldBe Set(1)
     }
     val updatedProps = {
-      val Some(question) = props.data.question
+      val question = inside(props.data.question) {
+        case Some(question) => question
+      }
       props.copy(data = props.data.copy(question = Some(question.copy(
         correct = Some(false),
         rules = Nil,
@@ -127,9 +139,15 @@ class QuestionScreenSpec extends AsyncTestSpec
       ))))
     }
     renderer.render(<(QuestionScreen())(^.wrapped := updatedProps)())
-    val List(button) = findComponents(renderer.getRenderOutput(), <.TouchableOpacity.reactClass)
-    val Some(topic) = updatedProps.data.topic
-    val Some(chapter) = updatedProps.data.chapter
+    val button = inside(findComponents(renderer.getRenderOutput(), <.TouchableOpacity.reactClass)) {
+      case List(button) => button
+    }
+    val topic = inside(updatedProps.data.topic) {
+      case Some(topic) => topic
+    }
+    val chapter = inside(updatedProps.data.chapter) {
+      case Some(chapter) => chapter
+    }
     val data = mock[QuestionData]
     val fetchAction = QuestionFetchAction(topic, chapter, FutureTask("Fetching...",
       Future.successful(data)))
@@ -154,9 +172,12 @@ class QuestionScreenSpec extends AsyncTestSpec
     val dispatch = mockFunction[Any, Any]
     val actions = mock[QuestionActions]
     val topic = "new_topic"
-    val (props, Some(chapter)) = {
+    val (props, chapter) = {
       val props = getQuestionScreenProps(dispatch, actions)
-      (props.copy(params = props.params.copy(topic = topic)), props.data.chapter)
+      val chapter = inside(props.data.chapter) {
+        case Some(chapter) => chapter
+      }
+      (props.copy(params = props.params.copy(topic = topic)), chapter)
     }
     val data = mock[QuestionData]
     val fetchAction = QuestionFetchAction(topic, chapter, FutureTask("Fetching Question",
@@ -180,9 +201,12 @@ class QuestionScreenSpec extends AsyncTestSpec
     val dispatch = mockFunction[Any, Any]
     val actions = mock[QuestionActions]
     val chapter = "new_chapter"
-    val (props, Some(topic)) = {
+    val (props, topic) = {
       val props = getQuestionScreenProps(dispatch, actions)
-      (props.copy(params = props.params.copy(chapter = Some(chapter))), props.data.topic)
+      val topic = inside(props.data.topic) {
+        case Some(topic) => topic
+      }
+      (props.copy(params = props.params.copy(chapter = Some(chapter))), topic)
     }
     val data = mock[QuestionData]
     val fetchAction = QuestionFetchAction(topic, chapter, FutureTask("Fetching Question",
@@ -253,7 +277,9 @@ class QuestionScreenSpec extends AsyncTestSpec
     //given
     val props = {
       val props = getQuestionScreenProps()
-      val Some(question) = props.data.question
+      val question = inside(props.data.question) {
+        case Some(question) => question
+      }
       props.copy(data = props.data.copy(question = Some(question.copy(
         correct = Some(false),
         rules = List(RuleData("test rule title", "test rule text")),
@@ -272,7 +298,9 @@ class QuestionScreenSpec extends AsyncTestSpec
     //given
     val props = {
       val props = getQuestionScreenProps()
-      val Some(question) = props.data.question
+      val question = inside(props.data.question) {
+        case Some(question) => question
+      }
       props.copy(data = props.data.copy(question = Some(question.copy(
         choices = question.choices.map(_.copy(correct = Some(true))),
         correct = Some(true),
@@ -321,7 +349,9 @@ class QuestionScreenSpec extends AsyncTestSpec
   
   private def assertQuestionScreen(result: ShallowInstance, props: QuestionScreenProps): Assertion = {
     implicit val theme: Theme = DefaultTheme
-    val Some(question) = props.data.question
+    val question = inside(props.data.question) {
+      case Some(question) => question
+    }
     val answered = question.correct.isDefined
     
     def assertComponents(questionText: ShallowInstance,
@@ -398,7 +428,9 @@ class QuestionScreenSpec extends AsyncTestSpec
         val rule = question.rules.head
         
         assertNativeComponent(ruleComp, <.>()(), { children: List[ShallowInstance] =>
-          val List(title, text) = children
+          val (title, text) = inside(children) {
+            case List(title, text) => (title, text)
+          }
           assertNativeComponent(title,
             <.Text(themeStyle(styles.ruleTitle, themeTextStyle))(rule.title)
           )
@@ -411,10 +443,14 @@ class QuestionScreenSpec extends AsyncTestSpec
       }
       
       explanation.foreach { explanationComp =>
-        val Some(explanation) = question.explanation
+        val explanation = inside(question.explanation) {
+          case Some(explanation) => explanation
+        }
         
         assertNativeComponent(explanationComp, <.>()(), { children: List[ShallowInstance] =>
-          val List(title, text) = children
+          val (title, text) = inside(children) {
+            case List(title, text) => (title, text)
+          }
           assertNativeComponent(title,
             <.Text(themeStyle(styles.ruleTitle, themeTextStyle))("Explanation")
           )

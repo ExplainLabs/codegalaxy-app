@@ -1,10 +1,11 @@
 package io.codegalaxy.api.topic
 
 import io.codegalaxy.api.data.InfoData
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 import play.api.libs.json.Json
 
-class TopicWithInfoDataSpec extends FlatSpec with Matchers {
+class TopicWithInfoDataSpec extends AnyFlatSpec with Matchers {
 
   private val dataList = List(TopicWithInfoData(
     alias = "test_topic",
