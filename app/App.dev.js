@@ -3,7 +3,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import { SplashScreen } from 'expo';
 import { registerRootComponent } from 'expo';
 
-import { CodeGalaxyApp } from './target/scala-2.13/scalajs-bundler/main/codegalaxy-app-opt';
+import { CodeGalaxyApp } from './target/scala-2.13/scalajs-bundler/main/codegalaxy-app-fastopt';
 
 SplashScreen.preventAutoHide()
 
@@ -13,7 +13,3 @@ const App = new CodeGalaxyApp(() => {
 }).apply()
 
 registerRootComponent(App);
-//export default () => {
-//  
-//  return <App />
-//}

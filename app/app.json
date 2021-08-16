@@ -1,6 +1,7 @@
 {
   "expo": {
     "name": "CodeGalaxyApp",
+    "entryPoint": "./App.dev.js",
     "slug": "codegalaxy-app",
     "privacy": "public",
     "platforms": [

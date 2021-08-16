@@ -24,11 +24,11 @@ script:
     if [ -z "$TRAVIS_TAG" ]; then
        echo "Publish to expo";
        sbt clean;
-       sbt "project codegalaxy-app" fastOptJS;
+       sbt "project codegalaxy-app" fullOptJS;
        cd app;
        npm install;
        expo login -u $EXPO_USERNAME -p $EXPO_PASSWORD;
-       NODE_OPTIONS=--max_old_space_size=8192 expo publish --non-interactive;
+       EXPO_ENV=production expo publish --non-interactive;
     else
        echo "Nothing to release yet!";
     fi
