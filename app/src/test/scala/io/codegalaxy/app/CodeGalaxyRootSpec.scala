@@ -22,7 +22,6 @@ import scala.scalajs.js
 
 class CodeGalaxyRootSpec extends AsyncTestSpec
   with BaseTestSpec
-  with ShallowRendererUtils
   with TestRendererUtils {
 
   it should "dispatch actions and render LoginScreen if not logged-in" in {
@@ -230,13 +229,21 @@ class CodeGalaxyRootSpec extends AsyncTestSpec
     val state = mock[CodeGalaxyStateDef]
     val codeGalaxyRoot = new CodeGalaxyRoot(actions)
     val props = CodeGalaxyRootProps(dispatch, actions, state, onAppReady = () => ())
-    (state.userState _).expects().returning(UserState(None))
+    (state.userState _).expects().returning(UserState(None)).twice()
+
+    val profileAction = UserLoginAction(FutureTask("Fetching Profile", Future.successful((None, None))))
+    (actions.userProfileFetch _).expects(dispatch).returning(profileAction)
+    dispatch.expects(profileAction)
 
     //when
-    val result = shallowRender(<(codeGalaxyRoot())(^.wrapped := props)())
+    val result = createTestRenderer(<(codeGalaxyRoot())(^.wrapped := props)()).root
 
     //then
-    assertNativeComponent(result, <.>()())
+    result.children.toList should be(empty)
+    
+    eventually {
+      result.children.toList should not be empty
+    }
   }
 
   it should "render home tab component" in {
@@ -245,7 +252,7 @@ class CodeGalaxyRootSpec extends AsyncTestSpec
     val codeGalaxyRoot = new CodeGalaxyRoot(actions)
 
     //when
-    val result = shallowRender(<(codeGalaxyRoot.homeTabComp)()())
+    val result = testRender(<(codeGalaxyRoot.homeTabComp)()())
 
     //then
     assertHomeTabComp(result, codeGalaxyRoot)
@@ -257,7 +264,7 @@ class CodeGalaxyRootSpec extends AsyncTestSpec
     val codeGalaxyRoot = new CodeGalaxyRoot(actions)
 
     //when
-    val result = shallowRender(<(codeGalaxyRoot.userStackComp)()())
+    val result = testRender(<(codeGalaxyRoot.userStackComp)()())
 
     //then
     import codeGalaxyRoot._
@@ -269,19 +276,12 @@ class CodeGalaxyRootSpec extends AsyncTestSpec
     )
   }
 
-  private def assertHomeTabComp(result: ShallowInstance, codeGalaxyRoot: CodeGalaxyRoot): Assertion = {
+  private def assertHomeTabComp(result: TestInstance, codeGalaxyRoot: CodeGalaxyRoot): Assertion = {
     import codeGalaxyRoot._
 
-    def renderIcon(tab: ShallowInstance, size: Int, color: String): ShallowInstance = {
+    def renderIcon(tab: TestInstance, size: Int, color: String): TestInstance = {
       val iconComp = tab.props.options.tabBarIcon(js.Dynamic.literal("size" -> size, "color" -> color))
-
-      val wrapper = new FunctionComponent[Unit] {
-        protected def render(props: Props): ReactElement = {
-          iconComp.asInstanceOf[ReactElement]
-        }
-      }
-
-      shallowRender(<(wrapper()).empty)
+      createTestRenderer(iconComp.asInstanceOf[ReactElement]).root
     }
 
     assertNativeComponent(result, <(HomeTab.Navigator)(
@@ -289,9 +289,7 @@ class CodeGalaxyRootSpec extends AsyncTestSpec
       ^.tabBarOptions := new TabBarOptions {
         override val showLabel = false
       }
-    )(), { children: List[ShallowInstance] =>
-      val List(tab1, tab2) = children
-
+    )(), inside(_) { case List(tab1, tab2) =>
       assertNativeComponent(tab1,
         <(HomeTab.Screen)(^.name := "Quizzes", ^.component := topicListController())()
       )

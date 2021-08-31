@@ -1,13 +1,12 @@
 package io.codegalaxy.app.info
 
 import io.codegalaxy.app.info.ListItemNavIcon._
-import scommons.react._
 import scommons.react.navigation._
 import scommons.react.test._
 import scommons.reactnative._
 import scommons.reactnative.svg._
 
-class ListItemNavIconSpec extends TestSpec with ShallowRendererUtils {
+class ListItemNavIconSpec extends TestSpec with TestRendererUtils {
 
   it should "render Start icon with label" in {
     //given
@@ -15,15 +14,13 @@ class ListItemNavIconSpec extends TestSpec with ShallowRendererUtils {
     val component = <(ListItemNavIcon())(^.wrapped := props)()
 
     //when
-    val result = shallowRender(component)
+    val result = testRender(component)
 
     //then
     assertNativeComponent(result,
       <.View(^.rnStyle := styles.statsContainer)(
-        <.>()(
-          <.Text(^.rnStyle := styles.statsLabel)("Start"),
-          <.SvgXml(^.rnStyle := styles.startSvg, ^.xml := startSvgXml)()
-        )
+        <.Text(^.rnStyle := styles.statsLabel)("Start"),
+        <.SvgXml(^.rnStyle := styles.startSvg, ^.xml := startSvgXml)()
       )
     )
   }
@@ -34,14 +31,12 @@ class ListItemNavIconSpec extends TestSpec with ShallowRendererUtils {
     val component = <(ListItemNavIcon())(^.wrapped := props)()
 
     //when
-    val result = shallowRender(component)
+    val result = testRender(component)
 
     //then
     assertNativeComponent(result,
       <.View(^.rnStyle := styles.statsContainer)(
-        <.>()(
-          <.SvgXml(^.rnStyle := styles.startSvg, ^.xml := startSvgXml)()
-        )
+        <.SvgXml(^.rnStyle := styles.startSvg, ^.xml := startSvgXml)()
       )
     )
   }
@@ -52,17 +47,15 @@ class ListItemNavIconSpec extends TestSpec with ShallowRendererUtils {
     val component = <(ListItemNavIcon())(^.wrapped := props)()
 
     //when
-    val result = shallowRender(component)
+    val result = testRender(component)
 
     //then
     implicit val theme: Theme = DefaultTheme
     assertNativeComponent(result,
       <.View(^.rnStyle := styles.statsContainer)(
-        <.>()(
-          <.Text(^.rnStyle := styles.statsLabel)("Open"),
-          <.View(^.rnStyle := styles.statsProgress)(
-            <.Text(^.rnStyle := themeTextStyle)(s"${props.progress}")
-          )
+        <.Text(^.rnStyle := styles.statsLabel)("Open"),
+        <.View(^.rnStyle := styles.statsProgress)(
+          <.Text(^.rnStyle := themeTextStyle)(s"${props.progress}")
         )
       )
     )
@@ -74,16 +67,14 @@ class ListItemNavIconSpec extends TestSpec with ShallowRendererUtils {
     val component = <(ListItemNavIcon())(^.wrapped := props)()
 
     //when
-    val result = shallowRender(component)
+    val result = testRender(component)
 
     //then
     implicit val theme: Theme = DefaultTheme
     assertNativeComponent(result,
       <.View(^.rnStyle := styles.statsContainer)(
-        <.>()(
-          <.View(^.rnStyle := styles.statsProgress)(
-            <.Text(^.rnStyle := themeTextStyle)(s"${props.progress}")
-          )
+        <.View(^.rnStyle := styles.statsProgress)(
+          <.Text(^.rnStyle := themeTextStyle)(s"${props.progress}")
         )
       )
     )

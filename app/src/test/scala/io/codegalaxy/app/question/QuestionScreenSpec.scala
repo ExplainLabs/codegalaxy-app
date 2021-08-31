@@ -22,22 +22,23 @@ import scala.concurrent.Future
 
 class QuestionScreenSpec extends AsyncTestSpec
   with BaseTestSpec
-  with ShallowRendererUtils
   with TestRendererUtils {
+
+  QuestionScreen.choiceGroupComp = () => "ChoiceGroup".asInstanceOf[ReactClass]
+  QuestionScreen.questionTextComp = () => "QuestionText".asInstanceOf[ReactClass]
 
   it should "update selectedIds if un-answered when onSelectChange" in {
     //given
     val props = getQuestionScreenProps()
-    val renderer = createRenderer()
-    renderer.render(<(QuestionScreen())(^.wrapped := props)())
-    val choiceComp = findComponentProps(renderer.getRenderOutput(), choiceGroupComp)
+    val renderer = createTestRenderer(<(QuestionScreen())(^.wrapped := props)())
+    val choiceComp = findComponentProps(renderer.root, choiceGroupComp)
     choiceComp.selectedIds shouldBe Set.empty
 
     //when
     choiceComp.onSelectChange(Set(1, 2))
     
     //then
-    inside(findComponentProps(renderer.getRenderOutput(), choiceGroupComp)) { case choice =>
+    inside(findComponentProps(renderer.root, choiceGroupComp)) { case choice =>
       choice.selectedIds shouldBe Set(1, 2)
     }
   }
@@ -55,16 +56,15 @@ class QuestionScreenSpec extends AsyncTestSpec
         explanation = None
       ))))
     }
-    val renderer = createRenderer()
-    renderer.render(<(QuestionScreen())(^.wrapped := props)())
-    val choiceComp = findComponentProps(renderer.getRenderOutput(), choiceGroupComp)
+    val renderer = createTestRenderer(<(QuestionScreen())(^.wrapped := props)())
+    val choiceComp = findComponentProps(renderer.root, choiceGroupComp)
     choiceComp.selectedIds shouldBe Set.empty
 
     //when
     choiceComp.onSelectChange(Set(1, 2))
     
     //then
-    inside(findComponentProps(renderer.getRenderOutput(), choiceGroupComp)) { case choice =>
+    inside(findComponentProps(renderer.root, choiceGroupComp)) { case choice =>
       choice.selectedIds shouldBe Set.empty
     }
   }
@@ -74,15 +74,14 @@ class QuestionScreenSpec extends AsyncTestSpec
     val dispatch = mockFunction[Any, Any]
     val actions = mock[QuestionActions]
     val props = getQuestionScreenProps(dispatch, actions)
-    val renderer = createRenderer()
-    renderer.render(<(QuestionScreen())(^.wrapped := props)())
-    val choiceComp = findComponentProps(renderer.getRenderOutput(), choiceGroupComp)
+    val renderer = createTestRenderer(<(QuestionScreen())(^.wrapped := props)())
+    val choiceComp = findComponentProps(renderer.root, choiceGroupComp)
     val selectedChoiceId = 1
     choiceComp.onSelectChange(Set(selectedChoiceId))
-    inside(findComponentProps(renderer.getRenderOutput(), choiceGroupComp)) { case choice =>
+    inside(findComponentProps(renderer.root, choiceGroupComp)) { case choice =>
       choice.selectedIds shouldBe Set(selectedChoiceId)
     }
-    val button = inside(findComponents(renderer.getRenderOutput(), <.TouchableOpacity.reactClass)) {
+    val button = inside(findComponents(renderer.root, <.TouchableOpacity.reactClass)) {
       case List(button) => button
     }
     val resp = mock[QuestionData]
@@ -121,11 +120,10 @@ class QuestionScreenSpec extends AsyncTestSpec
     val dispatch = mockFunction[Any, Any]
     val actions = mock[QuestionActions]
     val props = getQuestionScreenProps(dispatch, actions)
-    val renderer = createRenderer()
-    renderer.render(<(QuestionScreen())(^.wrapped := props)())
-    val choiceComp = findComponentProps(renderer.getRenderOutput(), choiceGroupComp)
+    val renderer = createTestRenderer(<(QuestionScreen())(^.wrapped := props)())
+    val choiceComp = findComponentProps(renderer.root, choiceGroupComp)
     choiceComp.onSelectChange(Set(1))
-    inside(findComponentProps(renderer.getRenderOutput(), choiceGroupComp)) { case choice =>
+    inside(findComponentProps(renderer.root, choiceGroupComp)) { case choice =>
       choice.selectedIds shouldBe Set(1)
     }
     val updatedProps = {
@@ -138,8 +136,8 @@ class QuestionScreenSpec extends AsyncTestSpec
         explanation = None
       ))))
     }
-    renderer.render(<(QuestionScreen())(^.wrapped := updatedProps)())
-    val button = inside(findComponents(renderer.getRenderOutput(), <.TouchableOpacity.reactClass)) {
+    renderer.update(<(QuestionScreen())(^.wrapped := updatedProps)())
+    val button = inside(findComponents(renderer.root, <.TouchableOpacity.reactClass)) {
       case List(button) => button
     }
     val topic = inside(updatedProps.data.topic) {
@@ -161,7 +159,7 @@ class QuestionScreenSpec extends AsyncTestSpec
 
     //then
     fetchAction.task.future.map { _ =>
-      inside(findComponentProps(renderer.getRenderOutput(), choiceGroupComp)) { case choice =>
+      inside(findComponentProps(renderer.root, choiceGroupComp)) { case choice =>
         choice.selectedIds shouldBe Set.empty
       }
     }
@@ -248,7 +246,7 @@ class QuestionScreenSpec extends AsyncTestSpec
     }
     
     //when
-    val result = shallowRender(<(QuestionScreen())(^.wrapped := props)())
+    val result = testRender(<(QuestionScreen())(^.wrapped := props)())
 
     //then
     implicit val theme: Theme = DefaultTheme
@@ -267,7 +265,7 @@ class QuestionScreenSpec extends AsyncTestSpec
     val props = getQuestionScreenProps()
     
     //when
-    val result = shallowRender(<(QuestionScreen())(^.wrapped := props)())
+    val result = testRender(<(QuestionScreen())(^.wrapped := props)())
 
     //then
     assertQuestionScreen(result, props)
@@ -288,7 +286,7 @@ class QuestionScreenSpec extends AsyncTestSpec
     }
     
     //when
-    val result = shallowRender(<(QuestionScreen())(^.wrapped := props)())
+    val result = testRender(<(QuestionScreen())(^.wrapped := props)())
 
     //then
     assertQuestionScreen(result, props)
@@ -310,7 +308,7 @@ class QuestionScreenSpec extends AsyncTestSpec
     }
     
     //when
-    val result = shallowRender(<(QuestionScreen())(^.wrapped := props)())
+    val result = testRender(<(QuestionScreen())(^.wrapped := props)())
 
     //then
     assertQuestionScreen(result, props)
@@ -347,26 +345,26 @@ class QuestionScreenSpec extends AsyncTestSpec
     )
   }
   
-  private def assertQuestionScreen(result: ShallowInstance, props: QuestionScreenProps): Assertion = {
+  private def assertQuestionScreen(result: TestInstance, props: QuestionScreenProps): Assertion = {
     implicit val theme: Theme = DefaultTheme
     val question = inside(props.data.question) {
       case Some(question) => question
     }
     val answered = question.correct.isDefined
     
-    def assertComponents(questionText: ShallowInstance,
-                         choice: ShallowInstance,
-                         button: ShallowInstance,
-                         answerStatus: Option[ShallowInstance],
-                         rule: Option[ShallowInstance],
-                         explanation: Option[ShallowInstance]): Assertion = {
+    def assertComponents(questionText: TestInstance,
+                         choice: TestInstance,
+                         button: TestInstance,
+                         answerStatus: Option[TestInstance],
+                         ruleComponents: Option[(TestInstance, TestInstance)],
+                         explanationComponents: Option[(TestInstance, TestInstance)]): Assertion = {
 
-      assertComponent(questionText, QuestionText) { case QuestionTextProps(html, style) =>
+      assertTestComponent(questionText, questionTextComp) { case QuestionTextProps(html, style) =>
         html shouldBe question.text
         style shouldBe None
       }
 
-      assertComponent(choice, choiceGroupComp) {
+      assertTestComponent(choice, choiceGroupComp) {
         case ChoiceGroupProps(items, keyExtractor, iconRenderer, labelRenderer, selectedIds, _, multiSelect, style) =>
           items shouldBe question.choices
           keyExtractor(question.choices.head) shouldBe 1
@@ -375,36 +373,36 @@ class QuestionScreenSpec extends AsyncTestSpec
           else iconRenderer(false, theme) shouldBe null
 
           val data = items.head
-          assertNativeComponent(wrapAndRender(labelRenderer(data, theme)), <.>()(), { children: List[ShallowInstance] =>
-            val (maybeIcon, choiceLabel) = children match {
-              case List(label) if !answered => (None, label)
+          val labelComp = createTestRenderer(labelRenderer(data, theme)).root
+          val (maybeIcon, choiceLabel) =
+            if (!answered) (None, labelComp)
+            else inside(labelComp.children.toList) {
               case List(icon, label) => (Some(icon), label)
             }
-            val correct = data.correct.getOrElse(false)
-            maybeIcon.foreach { icon =>
-              assertNativeComponent(icon,
-                <(VectorIcons.Ionicons)(
-                  ^.name := {
-                    if (correct) "ios-checkmark"
-                    else "ios-close"
-                  },
-                  ^.rnSize := 24,
-                  ^.color := {
-                    if (correct) Style.Color.green
-                    else Style.Color.red
-                  }
-                )()
-              )
-            }
-            assertComponent(choiceLabel, QuestionText) {
-              case QuestionTextProps(textHtml, labelStyle) =>
-                textHtml shouldBe data.choiceText
-                labelStyle.get.toList shouldBe {
-                  if (answered) List(styles.choiceLabel, styles.choiceNotSelected)
-                  else List(styles.choiceLabel)
+          val correct = data.correct.getOrElse(false)
+          maybeIcon.foreach { icon =>
+            assertNativeComponent(icon,
+              <(VectorIcons.Ionicons)(
+                ^.name := {
+                  if (correct) "ios-checkmark"
+                  else "ios-close"
+                },
+                ^.rnSize := 24,
+                ^.color := {
+                  if (correct) Style.Color.green
+                  else Style.Color.red
                 }
-            }
-          })
+              )()
+            )
+          }
+          assertTestComponent(choiceLabel, questionTextComp) {
+            case QuestionTextProps(textHtml, labelStyle) =>
+              textHtml shouldBe data.choiceText
+              labelStyle.get.toList shouldBe {
+                if (answered) List(styles.choiceLabel, styles.choiceNotSelected)
+                else List(styles.choiceLabel)
+              }
+          }
 
           selectedIds shouldBe Set.empty
           multiSelect shouldBe false
@@ -424,42 +422,32 @@ class QuestionScreenSpec extends AsyncTestSpec
         }
       }
       
-      rule.foreach { ruleComp =>
+      ruleComponents.foreach { case (title, text) =>
         val rule = question.rules.head
         
-        assertNativeComponent(ruleComp, <.>()(), { children: List[ShallowInstance] =>
-          val (title, text) = inside(children) {
-            case List(title, text) => (title, text)
-          }
-          assertNativeComponent(title,
-            <.Text(themeStyle(styles.ruleTitle, themeTextStyle))(rule.title)
-          )
-          assertComponent(text, QuestionText) {
-            case QuestionTextProps(textHtml, labelStyle) =>
-              textHtml shouldBe rule.text
-              labelStyle.get.toList shouldBe List(styles.ruleText)
-          }
-        })
+        assertNativeComponent(title,
+          <.Text(themeStyle(styles.ruleTitle, themeTextStyle))(rule.title)
+        )
+        assertTestComponent(text, questionTextComp) {
+          case QuestionTextProps(textHtml, labelStyle) =>
+            textHtml shouldBe rule.text
+            labelStyle.get.toList shouldBe List(styles.ruleText)
+        }
       }
       
-      explanation.foreach { explanationComp =>
+      explanationComponents.foreach { case (title, text) =>
         val explanation = inside(question.explanation) {
           case Some(explanation) => explanation
         }
         
-        assertNativeComponent(explanationComp, <.>()(), { children: List[ShallowInstance] =>
-          val (title, text) = inside(children) {
-            case List(title, text) => (title, text)
-          }
-          assertNativeComponent(title,
-            <.Text(themeStyle(styles.ruleTitle, themeTextStyle))("Explanation")
-          )
-          assertComponent(text, QuestionText) {
-            case QuestionTextProps(textHtml, labelStyle) =>
-              textHtml shouldBe explanation
-              labelStyle.get.toList shouldBe List(styles.ruleText)
-          }
-        })
+        assertNativeComponent(title,
+          <.Text(themeStyle(styles.ruleTitle, themeTextStyle))("Explanation")
+        )
+        assertTestComponent(text, questionTextComp) {
+          case QuestionTextProps(textHtml, labelStyle) =>
+            textHtml shouldBe explanation
+            labelStyle.get.toList shouldBe List(styles.ruleText)
+        }
       }
       
       assertNativeComponent(button,
@@ -482,37 +470,24 @@ class QuestionScreenSpec extends AsyncTestSpec
         ^.rnStyle := styles.container,
         ^.edges := List(SafeAreaEdge.left, SafeAreaEdge.bottom, SafeAreaEdge.right)
       )(),
-      { children: List[ShallowInstance] =>
-        val List(scroll) = children
+      inside(_) { case List(scroll) =>
         assertNativeComponent(scroll,
           <.ScrollView(
             ^.keyboardShouldPersistTaps := KeyboardShouldPersistTaps.always
           )(),
-          { children: List[ShallowInstance] =>
-            children match {
-              case List(text, choice, continue) if !answered =>
-                assertComponents(text, choice, continue, None, None, None)
-              case List(text, choice, status, next) if {
-                question.rules.isEmpty && question.explanation.isEmpty
-              } =>
-                assertComponents(text, choice, next, Some(status), None, None)
-              case List(text, choice, status, rule, explanation, next) if {
-                question.rules.nonEmpty && question.explanation.nonEmpty
-              } =>
-                assertComponents(text, choice, next, Some(status), Some(rule), Some(explanation))
-            }
+          inside(_) {
+            case List(text, choice, continue) if !answered =>
+              assertComponents(text, choice, continue, None, None, None)
+            case List(text, choice, status, next) if {
+              question.rules.isEmpty && question.explanation.isEmpty
+            } =>
+              assertComponents(text, choice, next, Some(status), None, None)
+            case List(text, choice, status, ruleTitle, ruleText, explanationTitle, explanationText, next) if {
+              question.rules.nonEmpty && question.explanation.nonEmpty
+            } =>
+              assertComponents(text, choice, next, Some(status), Some((ruleTitle, ruleText)), Some((explanationTitle, explanationText)))
           }
         )
       })
-  }
-
-  private def wrapAndRender(element: ReactElement): ShallowInstance = {
-    val wrapper = new FunctionComponent[Unit] {
-      protected def render(props: Props): ReactElement = {
-        element
-      }
-    }.apply()
-
-    shallowRender(<(wrapper)()())
   }
 }

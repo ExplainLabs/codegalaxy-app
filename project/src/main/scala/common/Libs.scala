@@ -6,10 +6,10 @@ import scommons.sbtplugin.project.CommonLibs
 
 object Libs extends CommonLibs {
   
-  val scommonsReactVersion = "0.5.0"
-  val scommonsReactNativeVersion = "0.5.0"
-  val scommonsApiVersion = "0.5.0"
-  val scommonsWebSqlVersion = "0.5.0"
+  val scommonsReactVersion = "0.6.0"
+  val scommonsReactNativeVersion = "0.6.0"
+  val scommonsApiVersion = "0.6.0"
+  val scommonsWebSqlVersion = "0.6.0"
 
   lazy val scommonsApiCore = Def.setting("org.scommons.api" %%% "scommons-api-core" % scommonsApiVersion)
   lazy val scommonsApiJodaTime = Def.setting("org.scommons.api" %%% "scommons-api-joda-time" % scommonsApiVersion)

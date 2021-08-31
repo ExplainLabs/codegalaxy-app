@@ -1,9 +1,7 @@
 package io.codegalaxy.app.auth
 
 import io.codegalaxy.app.auth.LoginScreen._
-import scommons.react.test.TestSpec
-import scommons.react.test.raw.ShallowInstance
-import scommons.react.test.util.ShallowRendererUtils
+import scommons.react.test._
 import scommons.reactnative.KeyboardAvoidingView._
 import scommons.reactnative.ScrollView._
 import scommons.reactnative.TextInput._
@@ -12,20 +10,19 @@ import scommons.reactnative.test.PlatformMock
 
 import scala.scalajs.js
 
-class LoginScreenSpec extends TestSpec with ShallowRendererUtils {
+class LoginScreenSpec extends TestSpec with TestRendererUtils {
 
   it should "call onLogin when Login button is pressed" in {
     //given
     val onLogin = mockFunction[String, String, Unit]
     val props = LoginScreenProps(onLogin = onLogin, onSignup = () => ())
-    val renderer = createRenderer()
-    renderer.render(<(LoginScreen())(^.wrapped := props)())
-    val List(email, password) = findComponents(renderer.getRenderOutput(), raw.TextInput)
+    val renderer = createTestRenderer(<(LoginScreen())(^.wrapped := props)())
+    val List(email, password) = findComponents(renderer.root, <.TextInput.reactClass)
     val emailText = "test@test.com"
     val passwordText = "test12345"
     email.props.onChangeText(emailText)
     password.props.onChangeText(passwordText)
-    val List(button, _) = findComponents(renderer.getRenderOutput(), raw.TouchableOpacity)
+    val List(button, _) = findComponents(renderer.root, <.TouchableOpacity.reactClass)
 
     //then
     onLogin.expects(emailText, passwordText)
@@ -38,9 +35,8 @@ class LoginScreenSpec extends TestSpec with ShallowRendererUtils {
     //given
     val onSignup = mockFunction[Unit]
     val props = LoginScreenProps(onLogin = (_, _) => (), onSignup = onSignup)
-    val renderer = createRenderer()
-    renderer.render(<(LoginScreen())(^.wrapped := props)())
-    val List(_, link) = findComponents(renderer.getRenderOutput(), raw.TouchableOpacity)
+    val renderer = createTestRenderer(<(LoginScreen())(^.wrapped := props)())
+    val List(_, link) = findComponents(renderer.root, <.TouchableOpacity.reactClass)
 
     //then
     onSignup.expects()
@@ -52,9 +48,8 @@ class LoginScreenSpec extends TestSpec with ShallowRendererUtils {
   it should "enable Login button when both fields are set" in {
     //given
     val props = LoginScreenProps(onLogin = (_, _) => (), onSignup = () => ())
-    val renderer = createRenderer()
-    renderer.render(<(LoginScreen())(^.wrapped := props)())
-    val List(email, password) = findComponents(renderer.getRenderOutput(), raw.TextInput)
+    val renderer = createTestRenderer(<(LoginScreen())(^.wrapped := props)())
+    val List(email, password) = findComponents(renderer.root, <.TextInput.reactClass)
     val emailText = "test@test.com"
     val passwordText = "test12345"
 
@@ -63,7 +58,7 @@ class LoginScreenSpec extends TestSpec with ShallowRendererUtils {
     password.props.onChangeText(passwordText)
 
     //then
-    assertLoginScreen(renderer.getRenderOutput(), emailText, passwordText, disabled = false)
+    assertLoginScreen(renderer.root.children(0), emailText, passwordText, disabled = false)
   }
 
   it should "render component with disabled Login button" in {
@@ -71,7 +66,7 @@ class LoginScreenSpec extends TestSpec with ShallowRendererUtils {
     val props = LoginScreenProps(onLogin = (_, _) => (), onSignup = () => ())
 
     //when
-    val result = shallowRender(<(LoginScreen())(^.wrapped := props)())
+    val result = testRender(<(LoginScreen())(^.wrapped := props)())
 
     //then
     assertLoginScreen(result, emailText = "", passwordText = "", disabled = true)
@@ -83,7 +78,7 @@ class LoginScreenSpec extends TestSpec with ShallowRendererUtils {
     val props = LoginScreenProps(onLogin = (_, _) => (), onSignup = () => ())
 
     //when
-    val result = shallowRender(<(LoginScreen())(^.wrapped := props)())
+    val result = testRender(<(LoginScreen())(^.wrapped := props)())
 
     //then
     assertLoginScreen(result, emailText = "", passwordText = "", disabled = true)
@@ -92,7 +87,7 @@ class LoginScreenSpec extends TestSpec with ShallowRendererUtils {
     PlatformMock.use(Platform.ios)
   }
 
-  private def assertLoginScreen(result: ShallowInstance,
+  private def assertLoginScreen(result: TestInstance,
                                 emailText: String,
                                 passwordText: String,
                                 disabled: Boolean): Unit = {
