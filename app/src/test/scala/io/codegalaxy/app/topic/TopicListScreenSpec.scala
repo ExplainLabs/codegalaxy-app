@@ -23,7 +23,6 @@ import scala.scalajs.js.annotation.JSExportAll
 
 class TopicListScreenSpec extends AsyncTestSpec
   with BaseTestSpec
-  with ShallowRendererUtils
   with TestRendererUtils {
 
   it should "call onTopicNavigate when onPress" in {
@@ -117,7 +116,7 @@ class TopicListScreenSpec extends AsyncTestSpec
   it should "return data.alias from keyExtractor" in {
     //given
     val props = getTopicListScreenProps()
-    val comp = shallowRender(<(TopicListScreen())(^.wrapped := props)())
+    val comp = testRender(<(TopicListScreen())(^.wrapped := props)())
     val List(flatList) = findComponents(comp, <.FlatList.reactClass)
     val item = props.data.topics.head
 
@@ -172,7 +171,7 @@ class TopicListScreenSpec extends AsyncTestSpec
     val component = <(TopicListScreen())(^.wrapped := props)()
 
     //when
-    val result = shallowRender(component)
+    val result = testRender(component)
 
     //then
     assertNativeComponent(result,
@@ -213,32 +212,22 @@ class TopicListScreenSpec extends AsyncTestSpec
     )
   }
 
-  private def renderItem(props: TopicListScreenProps, data: Topic): ShallowInstance = {
-    val comp = shallowRender(<(TopicListScreen())(^.wrapped := props)())
+  private def renderItem(props: TopicListScreenProps, data: Topic): TestInstance = {
+    val comp = testRender(<(TopicListScreen())(^.wrapped := props)())
     val List(flatList) = findComponents(comp, <.FlatList.reactClass)
 
     val listData = mock[FlatListDataMock]
     (listData.item _).expects().returning(data)
 
-    val wrapper = new FunctionComponent[Unit] {
-      protected def render(compProps: Props): ReactElement = {
-        val result = flatList.props.renderItem(listData.asInstanceOf[FlatListData[Topic]])
-        result.asInstanceOf[ReactElement]
-      }
-    }
-
-    shallowRender(<(wrapper())()())
+    val result = flatList.props.renderItem(listData.asInstanceOf[FlatListData[Topic]])
+    createTestRenderer(result.asInstanceOf[ReactElement]).root
   }
 
-  private def assertItem(result: ShallowInstance, data: Topic): Assertion = {
+  private def assertItem(result: TestInstance, data: Topic): Assertion = {
     implicit val theme: Theme = DefaultTheme
     
-    assertNativeComponent(result, <.TouchableWithoutFeedback()(), { children: List[ShallowInstance] =>
-      val List(container) = children
-      
-      assertNativeComponent(container, <.View(^.rnStyle := styles.rowContainer)(), { children: List[ShallowInstance] =>
-        val List(icon, info, action) = children
-        
+    assertNativeComponent(result, <.TouchableWithoutFeedback()(), inside(_) { case List(container) =>
+      assertNativeComponent(container, <.View(^.rnStyle := styles.rowContainer)(), inside(_) { case List(icon, info, action) =>
         assertNativeComponent(icon, 
           <.View(^.rnStyle := js.Array(styles.iconContainer, styles.icon))(
             data.entity.svgIcon.map { svgXml =>
@@ -259,7 +248,7 @@ class TopicListScreenSpec extends AsyncTestSpec
             )
           )
         )
-        assertComponent(action, ListItemNavIcon) { case ListItemNavIconProps(progress, showLabel) =>
+        assertTestComponent(action, ListItemNavIcon) { case ListItemNavIconProps(progress, showLabel) =>
           progress shouldBe data.stats.map(_.progress).getOrElse(0)
           showLabel shouldBe true
         }

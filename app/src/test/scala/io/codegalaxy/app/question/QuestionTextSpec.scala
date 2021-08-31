@@ -12,9 +12,7 @@ import scommons.reactnative.htmlview._
 import scala.scalajs.js
 import scala.scalajs.js.annotation.JSExportAll
 
-class QuestionTextSpec extends TestSpec
-  with BaseTestSpec
-  with ShallowRendererUtils {
+class QuestionTextSpec extends TestSpec with TestRendererUtils {
 
   private implicit val theme: Theme = DefaultTheme
 
@@ -49,21 +47,22 @@ class QuestionTextSpec extends TestSpec
     )
     
     //then
-    assertNativeComponent(renderNodeResult(result),
-      <.>(^.key := "1")(
-        "\n",
-        <.SyntaxHighlighter(
-          ^.PreTag := <.Text.reactClass,
-          ^.CodeTag := <.Text.reactClass,
-          ^.language := "java",
-          ^.customStyle := codeBlockStyle,
-          ^.highlighter := "hljs",
-          ^.highlighterStyle := getHighlightJsStyle("github")
-            .getOrElse(HighlightJsStyles.defaultStyle)
-        )(code.trim),
-        "\n"
-      )
-    )
+    inside(renderNodeResult(result).children.toList) {
+      case List(lineBreakBefore, syntaxHighlighter, lineBreakAfter) =>
+        lineBreakBefore shouldBe "\n"
+        lineBreakAfter shouldBe "\n"
+        assertNativeComponent(syntaxHighlighter,
+          <.SyntaxHighlighter(
+            ^.PreTag := <.Text.reactClass,
+            ^.CodeTag := <.Text.reactClass,
+            ^.language := "java",
+            ^.customStyle := codeBlockStyle,
+            ^.highlighter := "hljs",
+            ^.highlighterStyle := getHighlightJsStyle("github")
+              .getOrElse(HighlightJsStyles.defaultStyle)
+          )(code.trim)
+        )
+    }
   }
   
   it should "return SyntaxHighlighter for pre.code tag without line breaks when renderNode" in {
@@ -92,16 +91,14 @@ class QuestionTextSpec extends TestSpec
     
     //then
     assertNativeComponent(renderNodeResult(result),
-      <.>(^.key := "1")(
-        <.SyntaxHighlighter(
-          ^.PreTag := <.Text.reactClass,
-          ^.CodeTag := <.Text.reactClass,
-          ^.customStyle := codeBlockStyle,
-          ^.highlighter := "hljs",
-          ^.highlighterStyle := getHighlightJsStyle("github")
-            .getOrElse(HighlightJsStyles.defaultStyle)
-        )(code.trim)
-      )
+      <.SyntaxHighlighter(
+        ^.PreTag := <.Text.reactClass,
+        ^.CodeTag := <.Text.reactClass,
+        ^.customStyle := codeBlockStyle,
+        ^.highlighter := "hljs",
+        ^.highlighterStyle := getHighlightJsStyle("github")
+          .getOrElse(HighlightJsStyles.defaultStyle)
+      )(code.trim)
     )
   }
   
@@ -130,17 +127,15 @@ class QuestionTextSpec extends TestSpec
     
     //then
     assertNativeComponent(renderNodeResult(result),
-      <.>(^.key := "1")(
-        <.SyntaxHighlighter(
-          ^.PreTag := <.Text.reactClass,
-          ^.CodeTag := <.Text.reactClass,
-          ^.language := "scala",
-          ^.customStyle := codeBlockStyle,
-          ^.highlighter := "hljs",
-          ^.highlighterStyle := getHighlightJsStyle("github")
-            .getOrElse(HighlightJsStyles.defaultStyle)
-        )(code.trim)
-      )
+      <.SyntaxHighlighter(
+        ^.PreTag := <.Text.reactClass,
+        ^.CodeTag := <.Text.reactClass,
+        ^.language := "scala",
+        ^.customStyle := codeBlockStyle,
+        ^.highlighter := "hljs",
+        ^.highlighterStyle := getHighlightJsStyle("github")
+          .getOrElse(HighlightJsStyles.defaultStyle)
+      )(code.trim)
     )
   }
   
@@ -169,17 +164,15 @@ class QuestionTextSpec extends TestSpec
     
     //then
     assertNativeComponent(renderNodeResult(result),
-      <.>(^.key := "1")(
-        <.SyntaxHighlighter(
-          ^.PreTag := <.Text.reactClass,
-          ^.CodeTag := <.Text.reactClass,
-          ^.language := "scala",
-          ^.customStyle := codeBlockStyle,
-          ^.highlighter := "hljs",
-          ^.highlighterStyle := getHighlightJsStyle("dark")
-            .getOrElse(HighlightJsStyles.defaultStyle)
-        )(code.trim)
-      )
+      <.SyntaxHighlighter(
+        ^.PreTag := <.Text.reactClass,
+        ^.CodeTag := <.Text.reactClass,
+        ^.language := "scala",
+        ^.customStyle := codeBlockStyle,
+        ^.highlighter := "hljs",
+        ^.highlighterStyle := getHighlightJsStyle("dark")
+          .getOrElse(HighlightJsStyles.defaultStyle)
+      )(code.trim)
     )
   }
   
@@ -216,7 +209,7 @@ class QuestionTextSpec extends TestSpec
     val component = <(QuestionText())(^.wrapped := props)()
     
     //when
-    val result = shallowRender(component)
+    val result = testRender(component)
     
     //then
     val textProps = ^.textComponentProps := {
@@ -238,14 +231,8 @@ class QuestionTextSpec extends TestSpec
     )
   }
   
-  private def renderNodeResult(resultComp: Any): ShallowInstance = {
-    val wrapper = new FunctionComponent[Unit] {
-      protected def render(props: Props): ReactElement = {
-        resultComp.asInstanceOf[ReactElement]
-      }
-    }.apply()
-    
-    shallowRender(<(wrapper)()())
+  private def renderNodeResult(resultComp: Any): TestInstance = {
+    createTestRenderer(resultComp.asInstanceOf[ReactElement]).root
   }
 }
 

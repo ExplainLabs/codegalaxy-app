@@ -18,14 +18,14 @@ import scommons.reactnative._
 import scala.concurrent.Future
 import scala.scalajs.js
 
-class UserScreenSpec extends TestSpec with ShallowRendererUtils {
+class UserScreenSpec extends TestSpec with TestRendererUtils {
 
   it should "dispatch actions on logout" in {
     //given
     val dispatch = mockFunction[Any, Any]
     val actions = mock[UserAndConfigActions]
     val props = getUserScreenProps(dispatch, actions)
-    val comp = shallowRender(<(UserScreen())(^.wrapped := props)())
+    val comp = testRender(<(UserScreen())(^.wrapped := props)())
     val logout = findComponents(comp, <.Text.reactClass).last
 
     val loguotAction = UserLogoutAction(
@@ -48,7 +48,7 @@ class UserScreenSpec extends TestSpec with ShallowRendererUtils {
     val profile = inside(props.data.profile) {
       case Some(profile) => profile
     }
-    val comp = shallowRender(<(UserScreen())(^.wrapped := props)())
+    val comp = testRender(<(UserScreen())(^.wrapped := props)())
     val switch = inside(findComponents(comp, <.Switch.reactClass)) {
       case List(switch) => switch
     }
@@ -74,7 +74,7 @@ class UserScreenSpec extends TestSpec with ShallowRendererUtils {
     }
 
     //when
-    val result = shallowRender(<(UserScreen())(^.wrapped := props)())
+    val result = testRender(<(UserScreen())(^.wrapped := props)())
 
     //then
     assertNativeComponent(result,
@@ -89,7 +89,7 @@ class UserScreenSpec extends TestSpec with ShallowRendererUtils {
     val props = getUserScreenProps()
 
     //when
-    val result = shallowRender(<(UserScreen())(^.wrapped := props)())
+    val result = testRender(<(UserScreen())(^.wrapped := props)())
 
     //then
     assertUserScreen(result, props)
@@ -103,7 +103,7 @@ class UserScreenSpec extends TestSpec with ShallowRendererUtils {
     }
 
     //when
-    val result = shallowRender(<(UserScreen())(^.wrapped := props)())
+    val result = testRender(<(UserScreen())(^.wrapped := props)())
 
     //then
     assertUserScreen(result, props)
@@ -130,7 +130,7 @@ class UserScreenSpec extends TestSpec with ShallowRendererUtils {
     )
   }
   
-  private def assertUserScreen(result: ShallowInstance, props: UserScreenProps): Unit = {
+  private def assertUserScreen(result: TestInstance, props: UserScreenProps): Unit = {
     implicit val theme: Theme = DefaultTheme
     
     def renderField(name: String, value: Option[String]): ReactElement = {
@@ -172,25 +172,23 @@ class UserScreenSpec extends TestSpec with ShallowRendererUtils {
     assertNativeComponent(result,
       <.ScrollView(^.keyboardShouldPersistTaps := KeyboardShouldPersistTaps.always)(
         <.View(^.rnStyle := styles.cardContainer)(
-          <.>()(
-            <.View(^.rnStyle := js.Array(styles.cardImageContainer, styles.cardImage, styles.cardImageContainerShadow))(
-              profile.avatarUrl.map { avatarUrl =>
-                <.Image(^.rnStyle := styles.cardImage, ^.source := new UriResource {
-                  override val uri = avatarUrl
-                })()
-              }
-            ),
-    
-            renderField("Full Name", profile.fullName),
-            renderField("Email", profile.email),
-            renderField("User Name", Some(profile.username)),
-            renderField("City", profile.city),
-    
-            <.Text(themeStyle(styles.settings, themeTextStyle))("Settings:"),
-            renderSwitch("Dark Theme", value = props.data.config.exists(_.darkTheme)),
-    
-            <.Text(^.rnStyle := styles.logoutBtn)("Logout")
-          )
+          <.View(^.rnStyle := js.Array(styles.cardImageContainer, styles.cardImage, styles.cardImageContainerShadow))(
+            profile.avatarUrl.map { avatarUrl =>
+              <.Image(^.rnStyle := styles.cardImage, ^.source := new UriResource {
+                override val uri = avatarUrl
+              })()
+            }
+          ),
+  
+          renderField("Full Name", profile.fullName),
+          renderField("Email", profile.email),
+          renderField("User Name", Some(profile.username)),
+          renderField("City", profile.city),
+  
+          <.Text(themeStyle(styles.settings, themeTextStyle))("Settings:"),
+          renderSwitch("Dark Theme", value = props.data.config.exists(_.darkTheme)),
+  
+          <.Text(^.rnStyle := styles.logoutBtn)("Logout")
         )
       )
     )

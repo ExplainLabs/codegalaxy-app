@@ -22,7 +22,9 @@ case class QuestionScreenProps(dispatch: Dispatch,
 
 object QuestionScreen extends FunctionComponent[QuestionScreenProps] {
 
-  private[question] lazy val choiceGroupComp = new ChoiceGroup[Int, ChoiceData]
+  private[question] var choiceGroupComp: UiComponent[ChoiceGroupProps[Int, ChoiceData]] =
+    new ChoiceGroup[Int, ChoiceData]
+  private[question] var questionTextComp: UiComponent[QuestionTextProps] = QuestionText
   
   private def renderButton(text: String, onPress: js.Function0[Unit]): ReactElement = {
     <.TouchableOpacity(
@@ -76,7 +78,7 @@ object QuestionScreen extends FunctionComponent[QuestionScreenProps] {
         val answered = question.correct.isDefined
         
         <.ScrollView(^.keyboardShouldPersistTaps := KeyboardShouldPersistTaps.always)(
-          <(QuestionText())(^.wrapped := QuestionTextProps(question.text))(),
+          <(questionTextComp())(^.wrapped := QuestionTextProps(question.text))(),
 
           <(choiceGroupComp())(^.wrapped := new ChoiceGroupProps[Int, ChoiceData](
             items = question.choices,
@@ -90,7 +92,7 @@ object QuestionScreen extends FunctionComponent[QuestionScreenProps] {
               <.>()(
                 if (answered) Some(renderAnswerIcon(data.correct.getOrElse(false)))
                 else None,
-                <(QuestionText())(^.wrapped := QuestionTextProps(
+                <(questionTextComp())(^.wrapped := QuestionTextProps(
                   textHtml = data.choiceText,
                   style = Some(
                     if (answered && !selected) js.Array(styles.choiceLabel, styles.choiceNotSelected)
@@ -117,7 +119,7 @@ object QuestionScreen extends FunctionComponent[QuestionScreenProps] {
           question.rules.map { rule =>
             <.>()(
               <.Text(themeStyle(styles.ruleTitle, themeTextStyle))(rule.title),
-              <(QuestionText())(^.wrapped := QuestionTextProps(
+              <(questionTextComp())(^.wrapped := QuestionTextProps(
                 textHtml = rule.text,
                 style = Some(js.Array(styles.ruleText))
               ))()
@@ -127,7 +129,7 @@ object QuestionScreen extends FunctionComponent[QuestionScreenProps] {
           question.explanation.collect { case explanation if explanation.trim.nonEmpty =>
             <.>()(
               <.Text(themeStyle(styles.ruleTitle, themeTextStyle))("Explanation"),
-              <(QuestionText())(^.wrapped := QuestionTextProps(
+              <(questionTextComp())(^.wrapped := QuestionTextProps(
                 textHtml = explanation,
                 style = Some(js.Array(styles.ruleText))
               ))()
