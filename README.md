@@ -1,5 +1,5 @@
 
-[![Build Status](https://travis-ci.com/ExplainLabs/codegalaxy-app.svg?branch=master)](https://travis-ci.com/ExplainLabs/codegalaxy-app)
+[![CI](https://github.com/ExplainLabs/codegalaxy-app/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/ExplainLabs/codegalaxy-app/actions/workflows/ci.yml?query=workflow%3Aci+branch%3Amaster)
 [![Coverage Status](https://coveralls.io/repos/github/ExplainLabs/codegalaxy-app/badge.svg?branch=master)](https://coveralls.io/github/ExplainLabs/codegalaxy-app?branch=master)
 [![Scala.js](https://www.scala-js.org/assets/badges/scalajs-0.6.29.svg)](https://www.scala-js.org)
 
