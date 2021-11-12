@@ -16,10 +16,10 @@ Mobile App for https://codegalaxy.io/
 
 Please, make sure you have `Node.js` **version 12.x** installed locally.
 
-Then, please make sure you have `expo-cli` **version 3** installed
+Then, please make sure you have `expo-cli` **version 4** installed
 globally:
 ```bash
-npm i expo-cli@3 -g
+npm i expo-cli@4 -g
 ```
 
 Then you can run following commands to init the project:
@@ -31,12 +31,13 @@ npm install
 expo install
 ```
 
-Or when upgrade/re-install the project, then perform these commands first:
+NOTE: when upgrading/re-installing the project perform these commands **first**:
 ```bash
 sbt clean
 
 cd app
 rm -rf node_modules
+rm package-lock.json
 ```
 
 #### Android Emulator Setup
