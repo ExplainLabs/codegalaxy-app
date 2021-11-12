@@ -102,7 +102,7 @@ class CodeGalaxyRoot(actions: CodeGalaxyActions) extends FunctionComponent[CodeG
             }
             else {
               <(AppStack.Navigator)(
-                ^.screenOptions := { navProps =>
+                ^.screenOptions := { navProps: NavigationProps =>
                   val screenTitle = getScreenTitle(navProps)
                   val options = new StackScreenOptions {
                     val headerBackTitleVisible = false
@@ -136,8 +136,9 @@ class CodeGalaxyRoot(actions: CodeGalaxyActions) extends FunctionComponent[CodeG
     protected def render(props: Props): ReactElement = {
       <(HomeTab.Navigator)(
         ^.initialRouteName := "Quizzes",
-        ^.tabBarOptions := new TabBarOptions {
-          override val showLabel = false
+        ^.screenOptions := new TabScreenOptions {
+          override val headerShown = false
+          override val tabBarShowLabel = false
         }
       )(
         <(HomeTab.Screen)(
@@ -165,7 +166,12 @@ class CodeGalaxyRoot(actions: CodeGalaxyActions) extends FunctionComponent[CodeG
   private[app] lazy val UserStack = createStackNavigator()
   private[app] lazy val userStackComp: ReactClass = new FunctionComponent[Unit] {
     protected def render(props: Props): ReactElement = {
-      <(UserStack.Navigator)(^.initialRouteName := "Profile")(
+      <(UserStack.Navigator)(
+        ^.initialRouteName := "Profile",
+        ^.screenOptions := new StackScreenOptions {
+          override val headerShown = false
+        }
+      )(
         <(UserStack.Screen)(^.name := "Profile", ^.component := userController())()
       )
     }

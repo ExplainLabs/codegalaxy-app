@@ -270,7 +270,12 @@ class CodeGalaxyRootSpec extends AsyncTestSpec
     import codeGalaxyRoot._
 
     assertNativeComponent(result,
-      <(UserStack.Navigator)(^.initialRouteName := "Profile")(
+      <(UserStack.Navigator)(
+        ^.initialRouteName := "Profile",
+        ^.screenOptions := new StackScreenOptions {
+          override val headerShown = false
+        }
+      )(
         <(UserStack.Screen)(^.name := "Profile", ^.component := userController())()
       )
     )
@@ -286,8 +291,9 @@ class CodeGalaxyRootSpec extends AsyncTestSpec
 
     assertNativeComponent(result, <(HomeTab.Navigator)(
       ^.initialRouteName := "Quizzes",
-      ^.tabBarOptions := new TabBarOptions {
-        override val showLabel = false
+      ^.screenOptions := new TabScreenOptions {
+        override val headerShown = false
+        override val tabBarShowLabel = false
       }
     )(), inside(_) { case List(tab1, tab2) =>
       assertNativeComponent(tab1,
