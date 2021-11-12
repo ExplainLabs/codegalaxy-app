@@ -74,7 +74,7 @@ jobs:
         npm install &&
         npm install expo-cli --save-dev &&
         ./node_modules/expo-cli/bin/expo.js login -u $EXPO_USERNAME -p $EXPO_PASSWORD &&
-        EXPO_ENV=production ./node_modules/expo-cli/bin/expo.js publish --non-interactive
+        NODE_OPTIONS=--max_old_space_size=4096 EXPO_ENV=production ./node_modules/expo-cli/bin/expo.js publish --non-interactive
       if: ${{ !github.event.pull_request && env.TAG_NAME == '' }}
       env:
         EXPO_USERNAME: ${{ secrets.EXPO_USERNAME }}
