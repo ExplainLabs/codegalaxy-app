@@ -1,7 +1,7 @@
 package io.codegalaxy.app
 
-import io.github.shogowada.scalajs.reactjs.redux.Redux.Dispatch
 import scommons.react.navigation.Navigation
+import scommons.react.redux.Dispatch
 import scommons.react.test.TestSpec
 
 class CodeGalaxyRootControllerSpec extends TestSpec {

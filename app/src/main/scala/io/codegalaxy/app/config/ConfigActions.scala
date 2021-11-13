@@ -2,8 +2,7 @@ package io.codegalaxy.app.config
 
 import io.codegalaxy.app.config.ConfigActions._
 import io.codegalaxy.domain.ConfigEntity
-import io.github.shogowada.scalajs.reactjs.redux.Action
-import io.github.shogowada.scalajs.reactjs.redux.Redux.Dispatch
+import scommons.react.redux._
 import scommons.react.redux.task.{FutureTask, TaskAction}
 
 import scala.concurrent.ExecutionContext.Implicits.global

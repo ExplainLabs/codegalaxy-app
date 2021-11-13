@@ -3,10 +3,10 @@ package io.codegalaxy.app.topic
 import io.codegalaxy.app.CodeGalaxyIcons
 import io.codegalaxy.app.info._
 import io.codegalaxy.domain.Topic
-import io.github.shogowada.scalajs.reactjs.redux.Redux.Dispatch
 import scommons.react._
 import scommons.react.hooks._
 import scommons.react.navigation._
+import scommons.react.redux.Dispatch
 import scommons.reactnative.FlatList.FlatListData
 import scommons.reactnative._
 import scommons.reactnative.svg._

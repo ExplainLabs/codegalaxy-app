@@ -1,9 +1,9 @@
 package io.codegalaxy.app.user
 
 import io.codegalaxy.app.config.ConfigActions
-import io.github.shogowada.scalajs.reactjs.redux.Redux.Dispatch
 import scommons.react._
 import scommons.react.navigation._
+import scommons.react.redux.Dispatch
 import scommons.reactnative.ScrollView._
 import scommons.reactnative.Switch._
 import scommons.reactnative._

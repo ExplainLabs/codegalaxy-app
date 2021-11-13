@@ -4,12 +4,11 @@ import io.codegalaxy.api.question._
 import io.codegalaxy.app.question.QuestionActions._
 import io.codegalaxy.app.question.QuestionScreen._
 import io.codegalaxy.app.topic.TopicParams
-import io.github.shogowada.scalajs.reactjs.redux.Redux.Dispatch
 import org.scalatest.{Assertion, Succeeded}
 import scommons.expo._
 import scommons.nodejs.test.AsyncTestSpec
-import scommons.react._
 import scommons.react.navigation._
+import scommons.react.redux.Dispatch
 import scommons.react.redux.task.FutureTask
 import scommons.react.test._
 import scommons.reactnative.ScrollView._
@@ -24,8 +23,8 @@ class QuestionScreenSpec extends AsyncTestSpec
   with BaseTestSpec
   with TestRendererUtils {
 
-  QuestionScreen.choiceGroupComp = () => "ChoiceGroup".asInstanceOf[ReactClass]
-  QuestionScreen.questionTextComp = () => "QuestionText".asInstanceOf[ReactClass]
+  QuestionScreen.choiceGroupComp = mockUiComponent("ChoiceGroup")
+  QuestionScreen.questionTextComp = mockUiComponent("QuestionText")
 
   it should "update selectedIds if un-answered when onSelectChange" in {
     //given

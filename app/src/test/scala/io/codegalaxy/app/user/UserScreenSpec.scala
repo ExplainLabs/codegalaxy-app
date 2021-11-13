@@ -6,9 +6,9 @@ import io.codegalaxy.app.user.UserActions.UserLogoutAction
 import io.codegalaxy.app.user.UserScreen._
 import io.codegalaxy.app.user.UserScreenSpec.UserAndConfigActions
 import io.codegalaxy.domain.{ConfigEntity, ProfileEntity}
-import io.github.shogowada.scalajs.reactjs.redux.Redux.Dispatch
 import scommons.react._
 import scommons.react.navigation._
+import scommons.react.redux.Dispatch
 import scommons.react.redux.task.FutureTask
 import scommons.react.test._
 import scommons.reactnative.ScrollView._

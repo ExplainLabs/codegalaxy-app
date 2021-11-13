@@ -5,12 +5,12 @@ import io.codegalaxy.app.chapter.ChapterListController
 import io.codegalaxy.app.question.QuestionController
 import io.codegalaxy.app.topic.{TopicListController, TopicParams}
 import io.codegalaxy.app.user._
-import io.github.shogowada.scalajs.reactjs.redux.Redux.Dispatch
 import scommons.react._
 import scommons.react.hooks._
 import scommons.react.navigation._
 import scommons.react.navigation.stack._
 import scommons.react.navigation.tab._
+import scommons.react.redux.Dispatch
 import scommons.reactnative._
 import scommons.reactnative.safearea._
 

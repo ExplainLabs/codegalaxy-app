@@ -1,7 +1,7 @@
 package io.codegalaxy.app.stats
 
 import io.codegalaxy.domain.{ChapterStats, TopicStats}
-import io.github.shogowada.scalajs.reactjs.redux.Action
+import scommons.react.redux.Action
 
 object StatsActions {
 

@@ -4,8 +4,7 @@ import io.codegalaxy.api.question.{QuestionApi, QuestionData}
 import io.codegalaxy.app.question.QuestionActions._
 import io.codegalaxy.app.stats.StatsActions.StatsFetchedAction
 import io.codegalaxy.app.stats.StatsService
-import io.github.shogowada.scalajs.reactjs.redux.Action
-import io.github.shogowada.scalajs.reactjs.redux.Redux.Dispatch
+import scommons.react.redux._
 import scommons.react.redux.task.{FutureTask, TaskAction}
 
 import scala.concurrent.ExecutionContext.Implicits.global

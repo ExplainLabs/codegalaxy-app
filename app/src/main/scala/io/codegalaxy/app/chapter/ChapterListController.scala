@@ -2,9 +2,9 @@ package io.codegalaxy.app.chapter
 
 import io.codegalaxy.app.CodeGalaxyStateDef
 import io.codegalaxy.app.topic.TopicParams
-import io.github.shogowada.scalajs.reactjs.redux.Redux.Dispatch
 import scommons.react._
 import scommons.react.navigation._
+import scommons.react.redux.Dispatch
 import scommons.reactnative.app.BaseStateAndRouteController
 
 class ChapterListController(actions: ChapterActions)

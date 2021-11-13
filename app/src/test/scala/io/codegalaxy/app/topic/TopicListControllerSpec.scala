@@ -1,8 +1,8 @@
 package io.codegalaxy.app.topic
 
 import io.codegalaxy.app.CodeGalaxyStateDef
-import io.github.shogowada.scalajs.reactjs.redux.Redux.Dispatch
 import scommons.react.navigation.Navigation
+import scommons.react.redux.Dispatch
 import scommons.react.test.TestSpec
 
 class TopicListControllerSpec extends TestSpec {

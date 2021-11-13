@@ -2,11 +2,11 @@ package io.codegalaxy.app.question
 
 import io.codegalaxy.api.question.ChoiceData
 import io.codegalaxy.app.topic.TopicParams
-import io.github.shogowada.scalajs.reactjs.redux.Redux.Dispatch
 import scommons.expo._
 import scommons.react._
 import scommons.react.hooks._
 import scommons.react.navigation._
+import scommons.react.redux.Dispatch
 import scommons.reactnative.ScrollView._
 import scommons.reactnative._
 import scommons.reactnative.safearea.SafeArea._

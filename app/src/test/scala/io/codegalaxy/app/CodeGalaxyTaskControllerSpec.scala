@@ -1,7 +1,7 @@
 package io.codegalaxy.app
 
 import io.github.shogowada.scalajs.reactjs.React.Props
-import io.github.shogowada.scalajs.reactjs.redux.Redux.Dispatch
+import scommons.react.redux.Dispatch
 import scommons.react.redux.task._
 import scommons.react.test.TestSpec
 

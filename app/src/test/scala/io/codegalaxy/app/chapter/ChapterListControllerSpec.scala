@@ -2,8 +2,8 @@ package io.codegalaxy.app.chapter
 
 import io.codegalaxy.app.CodeGalaxyStateDef
 import io.codegalaxy.app.topic.TopicParams
-import io.github.shogowada.scalajs.reactjs.redux.Redux.Dispatch
 import scommons.react.navigation.Navigation
+import scommons.react.redux.Dispatch
 import scommons.react.test.TestSpec
 
 class ChapterListControllerSpec extends TestSpec {

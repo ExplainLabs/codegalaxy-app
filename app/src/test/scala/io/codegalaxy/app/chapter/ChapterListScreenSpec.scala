@@ -7,11 +7,11 @@ import io.codegalaxy.app.chapter.ChapterListScreenSpec.FlatListDataMock
 import io.codegalaxy.app.info._
 import io.codegalaxy.app.topic.TopicParams
 import io.codegalaxy.domain.{Chapter, ChapterEntity, ChapterStats}
-import io.github.shogowada.scalajs.reactjs.redux.Redux.Dispatch
 import org.scalatest.{Assertion, Succeeded}
 import scommons.nodejs.test.AsyncTestSpec
 import scommons.react._
 import scommons.react.navigation._
+import scommons.react.redux.Dispatch
 import scommons.react.redux.task.FutureTask
 import scommons.react.test._
 import scommons.reactnative.FlatList.FlatListData

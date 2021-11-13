@@ -1,9 +1,8 @@
 package io.codegalaxy.app
 
 import io.github.shogowada.scalajs.reactjs.React.Props
-import io.github.shogowada.scalajs.reactjs.redux.Redux.Dispatch
 import scommons.react.UiComponent
-import scommons.react.redux.BaseStateController
+import scommons.react.redux._
 import scommons.react.redux.task.{TaskManager, TaskManagerProps}
 import scommons.reactnative.app.AppTaskManagerUi
 import scommons.reactnative.ui.popup.LoadingPopupProps
