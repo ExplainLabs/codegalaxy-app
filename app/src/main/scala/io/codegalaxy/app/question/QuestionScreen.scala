@@ -2,7 +2,6 @@ package io.codegalaxy.app.question
 
 import io.codegalaxy.api.question.ChoiceData
 import io.codegalaxy.app.topic.TopicParams
-import scommons.expo._
 import scommons.react._
 import scommons.react.hooks._
 import scommons.react.navigation._
@@ -25,34 +24,10 @@ object QuestionScreen extends FunctionComponent[QuestionScreenProps] {
   private[question] var choiceGroupComp: UiComponent[ChoiceGroupProps[Int, ChoiceData]] =
     new ChoiceGroup[Int, ChoiceData]
   private[question] var questionTextComp: UiComponent[QuestionTextProps] = QuestionText
-  
-  private def renderButton(text: String, onPress: js.Function0[Unit]): ReactElement = {
-    <.TouchableOpacity(
-      ^.rnStyle := styles.button,
-      ^.onPress := onPress
-    )(
-      <.Text(^.rnStyle := styles.buttonText)(text),
-      <(VectorIcons.Ionicons)(
-        ^.name := "ios-arrow-forward",
-        ^.rnSize := 24,
-        ^.color := Style.Color.dodgerblue
-      )()
-    )
-  }
-  
-  private def renderAnswerIcon(correct: Boolean): ReactElement = {
-    <(VectorIcons.Ionicons)(
-      ^.name := {
-        if (correct) "ios-checkmark"
-        else "ios-close"
-      },
-      ^.rnSize := 24,
-      ^.color := {
-        if (correct) Style.Color.green
-        else Style.Color.red
-      }
-    )()
-  }
+  private[question] var questionButtonComp: UiComponent[QuestionButtonProps] = QuestionButton
+  private[question] var questionAnswerComp: UiComponent[QuestionAnswerProps] = QuestionAnswer
+  private[question] var questionAnswerIcon: UiComponent[QuestionAnswerIconProps] = QuestionAnswerIcon
+  private[question] var questionRuleComp: UiComponent[QuestionRuleProps] = QuestionRule
   
   protected def render(compProps: Props): ReactElement = {
     implicit val theme: Theme = useTheme()
@@ -90,7 +65,11 @@ object QuestionScreen extends FunctionComponent[QuestionScreenProps] {
             labelRenderer = { (data, _) =>
               val selected = selectedIds.contains(data.id)
               <.>()(
-                if (answered) Some(renderAnswerIcon(data.correct.getOrElse(false)))
+                if (answered) Some {
+                  <(questionAnswerIcon())(^.wrapped := QuestionAnswerIconProps(
+                    correct = data.correct.getOrElse(false)
+                  ))()
+                }
                 else None,
                 <(questionTextComp())(^.wrapped := QuestionTextProps(
                   textHtml = data.choiceText,
@@ -111,45 +90,33 @@ object QuestionScreen extends FunctionComponent[QuestionScreenProps] {
             style = Some(styles.choiceGroup)
           ))(),
 
-          question.correct.map {
-            case false => <.Text(^.rnStyle := styles.wrongAnswer)("Oops! This is the wrong answer.")
-            case true => <.Text(^.rnStyle := styles.rightAnswer)("Well done! Right answer.")
+          question.correct.map { correct =>
+            <(questionAnswerComp())(^.wrapped := QuestionAnswerProps(correct))()
           },
 
           question.rules.map { rule =>
-            <.>()(
-              <.Text(themeStyle(styles.ruleTitle, themeTextStyle))(rule.title),
-              <(questionTextComp())(^.wrapped := QuestionTextProps(
-                textHtml = rule.text,
-                style = Some(js.Array(styles.ruleText))
-              ))()
-            )
+            <(questionRuleComp())(^.wrapped := QuestionRuleProps(rule.title, rule.text))()
           },
-
           question.explanation.collect { case explanation if explanation.trim.nonEmpty =>
-            <.>()(
-              <.Text(themeStyle(styles.ruleTitle, themeTextStyle))("Explanation"),
-              <(questionTextComp())(^.wrapped := QuestionTextProps(
-                textHtml = explanation,
-                style = Some(js.Array(styles.ruleText))
-              ))()
-            )
+            <(questionRuleComp())(^.wrapped := QuestionRuleProps("Explanation", explanation))()
           },
 
           if (!answered) {
-            renderButton("Continue", { () =>
-              val data = question.copy(choices = question.choices.map { choice =>
-                val selected = selectedIds.contains(choice.id)
-                choice.copy(selected = if (selected) Some(true) else Some(false))
-              })
-              props.dispatch(props.actions.submitAnswer(props.dispatch, topic, chapter, data))
-            })
+            <(questionButtonComp())(^.wrapped := QuestionButtonProps("Continue", onPress = { () =>
+                val data = question.copy(choices = question.choices.map { choice =>
+                  val selected = selectedIds.contains(choice.id)
+                  choice.copy(selected = if (selected) Some(true) else Some(false))
+                })
+                props.dispatch(props.actions.submitAnswer(props.dispatch, topic, chapter, data))
+              }
+            ))()
           }
           else {
-            renderButton("Next", { () =>
-              props.dispatch(props.actions.fetchQuestion(props.dispatch, topic, chapter))
-              setSelectedIds(Set.empty)
-            })
+            <(questionButtonComp())(^.wrapped := QuestionButtonProps("Next", onPress = { () =>
+                props.dispatch(props.actions.fetchQuestion(props.dispatch, topic, chapter))
+                setSelectedIds(Set.empty)
+              }
+            ))()
           }
         )
     })
@@ -157,7 +124,6 @@ object QuestionScreen extends FunctionComponent[QuestionScreenProps] {
 
   private[question] lazy val styles = StyleSheet.create(new Styles)
   private[question] class Styles extends js.Object {
-    import TextStyle._
     import ViewStyle._
 
     val container: Style = new ViewStyle {
@@ -182,40 +148,6 @@ object QuestionScreen extends FunctionComponent[QuestionScreenProps] {
     }
     val choiceNotSelected = new ViewStyle {
       val opacity = 0.5
-    }
-    val rightAnswer: Style = new TextStyle {
-      override val marginVertical = 5
-      override val textAlign = TextAlign.center
-      override val fontWeight = FontWeight.bold
-      override val color = Style.Color.green
-      override val backgroundColor = Style.Color.lightcyan
-    }
-    val wrongAnswer: Style = new TextStyle {
-      override val marginVertical = 5
-      override val textAlign = TextAlign.center
-      override val fontWeight = FontWeight.bold
-      override val color = Style.Color.red
-      override val backgroundColor = Style.Color.lightpink
-    }
-    val ruleTitle: Style = new TextStyle {
-      override val textAlign = TextAlign.center
-      override val fontWeight = FontWeight.bold
-      override val marginVertical = 5
-    }
-    val ruleText: Style = new ViewStyle {
-      override val marginVertical = 5
-    }
-    val button: Style = new ViewStyle {
-      override val alignSelf = AlignSelf.center
-      override val flexDirection = FlexDirection.row
-      override val alignItems = AlignItems.center
-      override val marginVertical = 10
-    }
-    val buttonText: Style = new TextStyle {
-      override val fontWeight = FontWeight.bold
-      override val fontSize = 18
-      override val color = Style.Color.dodgerblue
-      override val marginRight = 5
     }
   }
 }
