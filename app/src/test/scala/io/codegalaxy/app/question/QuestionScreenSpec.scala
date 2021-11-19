@@ -5,7 +5,6 @@ import io.codegalaxy.app.question.QuestionActions._
 import io.codegalaxy.app.question.QuestionScreen._
 import io.codegalaxy.app.topic.TopicParams
 import org.scalatest.{Assertion, Succeeded}
-import scommons.expo._
 import scommons.nodejs.test.AsyncTestSpec
 import scommons.react.navigation._
 import scommons.react.redux.Dispatch
@@ -25,6 +24,10 @@ class QuestionScreenSpec extends AsyncTestSpec
 
   QuestionScreen.choiceGroupComp = mockUiComponent("ChoiceGroup")
   QuestionScreen.questionTextComp = mockUiComponent("QuestionText")
+  QuestionScreen.questionButtonComp = mockUiComponent("QuestionButton")
+  QuestionScreen.questionAnswerComp = mockUiComponent("QuestionAnswer")
+  QuestionScreen.questionAnswerIcon = mockUiComponent("QuestionAnswerIcon")
+  QuestionScreen.questionRuleComp = mockUiComponent("QuestionRule")
 
   it should "update selectedIds if un-answered when onSelectChange" in {
     //given
@@ -80,9 +83,8 @@ class QuestionScreenSpec extends AsyncTestSpec
     inside(findComponentProps(renderer.root, choiceGroupComp)) { case choice =>
       choice.selectedIds shouldBe Set(selectedChoiceId)
     }
-    val button = inside(findComponents(renderer.root, <.TouchableOpacity.reactClass)) {
-      case List(button) => button
-    }
+    val buttonProps = findComponentProps(renderer.root, questionButtonComp)
+    buttonProps.text shouldBe "Continue"
     val resp = mock[QuestionData]
     val topic = inside(props.data.topic) {
       case Some(topic) => topic
@@ -106,7 +108,7 @@ class QuestionScreenSpec extends AsyncTestSpec
     dispatch.expects(submitAction)
 
     //when
-    button.props.onPress()
+    buttonProps.onPress()
 
     //then
     submitAction.task.future.map { _ =>
@@ -136,9 +138,8 @@ class QuestionScreenSpec extends AsyncTestSpec
       ))))
     }
     renderer.update(<(QuestionScreen())(^.wrapped := updatedProps)())
-    val button = inside(findComponents(renderer.root, <.TouchableOpacity.reactClass)) {
-      case List(button) => button
-    }
+    val buttonProps = findComponentProps(renderer.root, questionButtonComp)
+    buttonProps.text shouldBe "Next"
     val topic = inside(updatedProps.data.topic) {
       case Some(topic) => topic
     }
@@ -154,7 +155,7 @@ class QuestionScreenSpec extends AsyncTestSpec
     dispatch.expects(fetchAction)
 
     //when
-    button.props.onPress()
+    buttonProps.onPress()
 
     //then
     fetchAction.task.future.map { _ =>
@@ -355,8 +356,8 @@ class QuestionScreenSpec extends AsyncTestSpec
                          choice: TestInstance,
                          button: TestInstance,
                          answerStatus: Option[TestInstance],
-                         ruleComponents: Option[(TestInstance, TestInstance)],
-                         explanationComponents: Option[(TestInstance, TestInstance)]): Assertion = {
+                         ruleComp: Option[TestInstance],
+                         explanationComp: Option[TestInstance]): Assertion = {
 
       assertTestComponent(questionText, questionTextComp) { case QuestionTextProps(html, style) =>
         html shouldBe question.text
@@ -378,21 +379,11 @@ class QuestionScreenSpec extends AsyncTestSpec
             else inside(labelComp.children.toList) {
               case List(icon, label) => (Some(icon), label)
             }
-          val correct = data.correct.getOrElse(false)
+          
           maybeIcon.foreach { icon =>
-            assertNativeComponent(icon,
-              <(VectorIcons.Ionicons)(
-                ^.name := {
-                  if (correct) "ios-checkmark"
-                  else "ios-close"
-                },
-                ^.rnSize := 24,
-                ^.color := {
-                  if (correct) Style.Color.green
-                  else Style.Color.red
-                }
-              )()
-            )
+            assertTestComponent(icon, questionAnswerIcon) { case QuestionAnswerIconProps(correct) =>
+              correct shouldBe data.correct.getOrElse(false)
+            }
           }
           assertTestComponent(choiceLabel, questionTextComp) {
             case QuestionTextProps(textHtml, labelStyle) =>
@@ -409,59 +400,32 @@ class QuestionScreenSpec extends AsyncTestSpec
       }
 
       answerStatus.foreach { status =>
-        if (!question.correct.getOrElse(false)) {
-          assertNativeComponent(status,
-            <.Text(^.rnStyle := styles.wrongAnswer)("Oops! This is the wrong answer.")
-          )
-        }
-        else {
-          assertNativeComponent(status,
-            <.Text(^.rnStyle := styles.rightAnswer)("Well done! Right answer.")
-          )
+        assertTestComponent(status, questionAnswerComp) { case QuestionAnswerProps(correct) =>
+          correct shouldBe question.correct.getOrElse(false)
         }
       }
       
-      ruleComponents.foreach { case (title, text) =>
+      ruleComp.foreach { comp =>
         val rule = question.rules.head
         
-        assertNativeComponent(title,
-          <.Text(themeStyle(styles.ruleTitle, themeTextStyle))(rule.title)
-        )
-        assertTestComponent(text, questionTextComp) {
-          case QuestionTextProps(textHtml, labelStyle) =>
-            textHtml shouldBe rule.text
-            labelStyle.get.toList shouldBe List(styles.ruleText)
+        assertTestComponent(comp, questionRuleComp) {
+          case QuestionRuleProps(resTitle, resText) =>
+            resTitle shouldBe rule.title
+            resText shouldBe rule.text
         }
       }
       
-      explanationComponents.foreach { case (title, text) =>
-        val explanation = inside(question.explanation) {
-          case Some(explanation) => explanation
-        }
-        
-        assertNativeComponent(title,
-          <.Text(themeStyle(styles.ruleTitle, themeTextStyle))("Explanation")
-        )
-        assertTestComponent(text, questionTextComp) {
-          case QuestionTextProps(textHtml, labelStyle) =>
-            textHtml shouldBe explanation
-            labelStyle.get.toList shouldBe List(styles.ruleText)
+      explanationComp.foreach { comp =>
+        assertTestComponent(comp, questionRuleComp) {
+          case QuestionRuleProps(resTitle, resText) =>
+            resTitle shouldBe "Explanation"
+            Some(resText) shouldBe question.explanation
         }
       }
       
-      assertNativeComponent(button,
-        <.TouchableOpacity(^.rnStyle := styles.button)(
-          <.Text(^.rnStyle := styles.buttonText)(
-            if (!answered) "Continue"
-            else "Next"
-          ),
-          <(VectorIcons.Ionicons)(
-            ^.name := "ios-arrow-forward",
-            ^.rnSize := 24,
-            ^.color := Style.Color.dodgerblue
-          )()
-        )
-      )
+      assertTestComponent(button, questionButtonComp) { case QuestionButtonProps(text, _) =>
+        text shouldBe (if (!answered) "Continue" else "Next")
+      }
     }
     
     assertNativeComponent(result,
@@ -481,10 +445,10 @@ class QuestionScreenSpec extends AsyncTestSpec
               question.rules.isEmpty && question.explanation.isEmpty
             } =>
               assertComponents(text, choice, next, Some(status), None, None)
-            case List(text, choice, status, ruleTitle, ruleText, explanationTitle, explanationText, next) if {
+            case List(text, choice, status, ruleComp, explanationComp, next) if {
               question.rules.nonEmpty && question.explanation.nonEmpty
             } =>
-              assertComponents(text, choice, next, Some(status), Some((ruleTitle, ruleText)), Some((explanationTitle, explanationText)))
+              assertComponents(text, choice, next, Some(status), Some(ruleComp), Some(explanationComp))
           }
         )
       })
