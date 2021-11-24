@@ -14,7 +14,6 @@ import scommons.reactnative.ScrollView._
 import scommons.reactnative._
 import scommons.reactnative.safearea.SafeArea._
 import scommons.reactnative.safearea._
-import scommons.reactnative.ui._
 
 import scala.concurrent.Future
 
@@ -22,52 +21,26 @@ class QuestionScreenSpec extends AsyncTestSpec
   with BaseTestSpec
   with TestRendererUtils {
 
-  QuestionScreen.choiceGroupComp = mockUiComponent("ChoiceGroup")
+  QuestionScreen.questionChoicesComp = mockUiComponent("QuestionChoices")
   QuestionScreen.questionTextComp = mockUiComponent("QuestionText")
   QuestionScreen.questionButtonComp = mockUiComponent("QuestionButton")
   QuestionScreen.questionAnswerComp = mockUiComponent("QuestionAnswer")
-  QuestionScreen.questionAnswerIcon = mockUiComponent("QuestionAnswerIcon")
   QuestionScreen.questionRuleComp = mockUiComponent("QuestionRule")
 
-  it should "update selectedIds if un-answered when onSelectChange" in {
+  it should "update selectedIds when setSelectedIds" in {
     //given
     val props = getQuestionScreenProps()
     val renderer = createTestRenderer(<(QuestionScreen())(^.wrapped := props)())
-    val choiceComp = findComponentProps(renderer.root, choiceGroupComp)
+    val choiceComp = findComponentProps(renderer.root, questionChoicesComp)
     choiceComp.selectedIds shouldBe Set.empty
+    val ids = Set(1, 2)
 
     //when
-    choiceComp.onSelectChange(Set(1, 2))
+    choiceComp.setSelectedIds(ids)
     
     //then
-    inside(findComponentProps(renderer.root, choiceGroupComp)) { case choice =>
-      choice.selectedIds shouldBe Set(1, 2)
-    }
-  }
-
-  it should "not update selectedIds if answered when onSelectChange" in {
-    //given
-    val props = {
-      val props = getQuestionScreenProps()
-      val question = inside(props.data.question) {
-        case Some(question) => question
-      }
-      props.copy(data = props.data.copy(question = Some(question.copy(
-        correct = Some(false),
-        rules = Nil,
-        explanation = None
-      ))))
-    }
-    val renderer = createTestRenderer(<(QuestionScreen())(^.wrapped := props)())
-    val choiceComp = findComponentProps(renderer.root, choiceGroupComp)
-    choiceComp.selectedIds shouldBe Set.empty
-
-    //when
-    choiceComp.onSelectChange(Set(1, 2))
-    
-    //then
-    inside(findComponentProps(renderer.root, choiceGroupComp)) { case choice =>
-      choice.selectedIds shouldBe Set.empty
+    inside(findComponentProps(renderer.root, questionChoicesComp)) { case choice =>
+      choice.selectedIds shouldBe ids
     }
   }
 
@@ -77,10 +50,10 @@ class QuestionScreenSpec extends AsyncTestSpec
     val actions = mock[QuestionActions]
     val props = getQuestionScreenProps(dispatch, actions)
     val renderer = createTestRenderer(<(QuestionScreen())(^.wrapped := props)())
-    val choiceComp = findComponentProps(renderer.root, choiceGroupComp)
+    val choiceComp = findComponentProps(renderer.root, questionChoicesComp)
     val selectedChoiceId = 1
-    choiceComp.onSelectChange(Set(selectedChoiceId))
-    inside(findComponentProps(renderer.root, choiceGroupComp)) { case choice =>
+    choiceComp.setSelectedIds(Set(selectedChoiceId))
+    inside(findComponentProps(renderer.root, questionChoicesComp)) { case choice =>
       choice.selectedIds shouldBe Set(selectedChoiceId)
     }
     val buttonProps = findComponentProps(renderer.root, questionButtonComp)
@@ -122,9 +95,9 @@ class QuestionScreenSpec extends AsyncTestSpec
     val actions = mock[QuestionActions]
     val props = getQuestionScreenProps(dispatch, actions)
     val renderer = createTestRenderer(<(QuestionScreen())(^.wrapped := props)())
-    val choiceComp = findComponentProps(renderer.root, choiceGroupComp)
-    choiceComp.onSelectChange(Set(1))
-    inside(findComponentProps(renderer.root, choiceGroupComp)) { case choice =>
+    val choiceComp = findComponentProps(renderer.root, questionChoicesComp)
+    choiceComp.setSelectedIds(Set(1))
+    inside(findComponentProps(renderer.root, questionChoicesComp)) { case choice =>
       choice.selectedIds shouldBe Set(1)
     }
     val updatedProps = {
@@ -159,7 +132,7 @@ class QuestionScreenSpec extends AsyncTestSpec
 
     //then
     fetchAction.task.future.map { _ =>
-      inside(findComponentProps(renderer.root, choiceGroupComp)) { case choice =>
+      inside(findComponentProps(renderer.root, questionChoicesComp)) { case choice =>
         choice.selectedIds shouldBe Set.empty
       }
     }
@@ -346,7 +319,6 @@ class QuestionScreenSpec extends AsyncTestSpec
   }
   
   private def assertQuestionScreen(result: TestInstance, props: QuestionScreenProps): Assertion = {
-    implicit val theme: Theme = DefaultTheme
     val question = inside(props.data.question) {
       case Some(question) => question
     }
@@ -364,39 +336,12 @@ class QuestionScreenSpec extends AsyncTestSpec
         style shouldBe None
       }
 
-      assertTestComponent(choice, choiceGroupComp) {
-        case ChoiceGroupProps(items, keyExtractor, iconRenderer, labelRenderer, selectedIds, _, multiSelect, style) =>
-          items shouldBe question.choices
-          keyExtractor(question.choices.head) shouldBe 1
-          
-          if (!answered) iconRenderer(false, theme) should not be null
-          else iconRenderer(false, theme) shouldBe null
-
-          val data = items.head
-          val labelComp = createTestRenderer(labelRenderer(data, theme)).root
-          val (maybeIcon, choiceLabel) =
-            if (!answered) (None, labelComp)
-            else inside(labelComp.children.toList) {
-              case List(icon, label) => (Some(icon), label)
-            }
-          
-          maybeIcon.foreach { icon =>
-            assertTestComponent(icon, questionAnswerIcon) { case QuestionAnswerIconProps(correct) =>
-              correct shouldBe data.correct.getOrElse(false)
-            }
-          }
-          assertTestComponent(choiceLabel, questionTextComp) {
-            case QuestionTextProps(textHtml, labelStyle) =>
-              textHtml shouldBe data.choiceText
-              labelStyle.get.toList shouldBe {
-                if (answered) List(styles.choiceLabel, styles.choiceNotSelected)
-                else List(styles.choiceLabel)
-              }
-          }
-
+      assertTestComponent(choice, questionChoicesComp) {
+        case QuestionChoicesProps(resAnswered, choices, selectedIds, _, multiSelect) =>
+          resAnswered shouldBe answered
+          choices shouldBe question.choices
           selectedIds shouldBe Set.empty
           multiSelect shouldBe false
-          style shouldBe Some(styles.choiceGroup)
       }
 
       answerStatus.foreach { status =>
