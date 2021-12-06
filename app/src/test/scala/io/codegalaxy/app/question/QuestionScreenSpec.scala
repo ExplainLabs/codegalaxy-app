@@ -4,7 +4,7 @@ import io.codegalaxy.api.question._
 import io.codegalaxy.app.question.QuestionActions._
 import io.codegalaxy.app.question.QuestionScreen._
 import io.codegalaxy.app.topic.TopicParams
-import org.scalatest.{Assertion, Succeeded}
+import org.scalatest.Succeeded
 import scommons.nodejs.test.AsyncTestSpec
 import scommons.react.navigation._
 import scommons.react.redux.Dispatch
@@ -17,47 +17,17 @@ import scommons.reactnative.safearea._
 
 import scala.concurrent.Future
 
-class QuestionScreenSpec extends AsyncTestSpec
-  with BaseTestSpec
-  with TestRendererUtils {
+class QuestionScreenSpec extends AsyncTestSpec with BaseTestSpec with TestRendererUtils {
 
-  QuestionScreen.questionChoicesComp = mockUiComponent("QuestionChoices")
-  QuestionScreen.questionTextComp = mockUiComponent("QuestionText")
-  QuestionScreen.questionButtonComp = mockUiComponent("QuestionButton")
-  QuestionScreen.questionAnswerComp = mockUiComponent("QuestionAnswer")
-  QuestionScreen.questionRuleComp = mockUiComponent("QuestionRule")
+  QuestionScreen.questionViewComp = mockUiComponent("QuestionView")
 
-  it should "update selectedIds when setSelectedIds" in {
-    //given
-    val props = getQuestionScreenProps()
-    val renderer = createTestRenderer(<(QuestionScreen())(^.wrapped := props)())
-    val choiceComp = findComponentProps(renderer.root, questionChoicesComp)
-    choiceComp.selectedIds shouldBe Set.empty
-    val ids = Set(1, 2)
-
-    //when
-    choiceComp.setSelectedIds(ids)
-    
-    //then
-    inside(findComponentProps(renderer.root, questionChoicesComp)) { case choice =>
-      choice.selectedIds shouldBe ids
-    }
-  }
-
-  it should "dispatch actions when onPress Continue button" in {
+  it should "dispatch actions when onSubmitAnswer" in {
     //given
     val dispatch = mockFunction[Any, Any]
     val actions = mock[QuestionActions]
     val props = getQuestionScreenProps(dispatch, actions)
     val renderer = createTestRenderer(<(QuestionScreen())(^.wrapped := props)())
-    val choiceComp = findComponentProps(renderer.root, questionChoicesComp)
-    val selectedChoiceId = 1
-    choiceComp.setSelectedIds(Set(selectedChoiceId))
-    inside(findComponentProps(renderer.root, questionChoicesComp)) { case choice =>
-      choice.selectedIds shouldBe Set(selectedChoiceId)
-    }
-    val buttonProps = findComponentProps(renderer.root, questionButtonComp)
-    buttonProps.text shouldBe "Continue"
+    val viewComp = findComponentProps(renderer.root, questionViewComp)
     val resp = mock[QuestionData]
     val topic = inside(props.data.topic) {
       case Some(topic) => topic
@@ -66,14 +36,8 @@ class QuestionScreenSpec extends AsyncTestSpec
       case Some(chapter) => chapter
     }
     val submitAction = AnswerSubmitAction(FutureTask("Submitting...", Future.successful(resp)))
-    val data = {
-      val question = inside(props.data.question) {
-        case Some(question) => question
-      }
-      question.copy(choices = question.choices.map { choice =>
-        val selected = choice.id == selectedChoiceId
-        choice.copy(selected = if (selected) Some(true) else Some(false))
-      })
+    val data = inside(props.data.question) {
+      case Some(question) => question.copy(text = "Answering...")
     }
 
     //then
@@ -81,25 +45,18 @@ class QuestionScreenSpec extends AsyncTestSpec
     dispatch.expects(submitAction)
 
     //when
-    buttonProps.onPress()
+    viewComp.onSubmitAnswer(data)
 
     //then
-    submitAction.task.future.map { _ =>
-      Succeeded
-    }
+    submitAction.task.future.map(_ => Succeeded)
   }
 
-  it should "dispatch actions when onPress Next button" in {
+  it should "dispatch actions when onNextQuestion" in {
     //given
     val dispatch = mockFunction[Any, Any]
     val actions = mock[QuestionActions]
     val props = getQuestionScreenProps(dispatch, actions)
     val renderer = createTestRenderer(<(QuestionScreen())(^.wrapped := props)())
-    val choiceComp = findComponentProps(renderer.root, questionChoicesComp)
-    choiceComp.setSelectedIds(Set(1))
-    inside(findComponentProps(renderer.root, questionChoicesComp)) { case choice =>
-      choice.selectedIds shouldBe Set(1)
-    }
     val updatedProps = {
       val question = inside(props.data.question) {
         case Some(question) => question
@@ -111,8 +68,7 @@ class QuestionScreenSpec extends AsyncTestSpec
       ))))
     }
     renderer.update(<(QuestionScreen())(^.wrapped := updatedProps)())
-    val buttonProps = findComponentProps(renderer.root, questionButtonComp)
-    buttonProps.text shouldBe "Next"
+    val viewComp = findComponentProps(renderer.root, questionViewComp)
     val topic = inside(updatedProps.data.topic) {
       case Some(topic) => topic
     }
@@ -128,14 +84,10 @@ class QuestionScreenSpec extends AsyncTestSpec
     dispatch.expects(fetchAction)
 
     //when
-    buttonProps.onPress()
+    viewComp.onNextQuestion()
 
     //then
-    fetchAction.task.future.map { _ =>
-      inside(findComponentProps(renderer.root, questionChoicesComp)) { case choice =>
-        choice.selectedIds shouldBe Set.empty
-      }
-    }
+    fetchAction.task.future.map(_ => Succeeded)
   }
 
   it should "dispatch actions if topic is changed when mount" in {
@@ -162,9 +114,7 @@ class QuestionScreenSpec extends AsyncTestSpec
     testRender(<(QuestionScreen())(^.wrapped := props)())
 
     //then
-    fetchAction.task.future.map { _ =>
-      Succeeded
-    }
+    fetchAction.task.future.map(_ => Succeeded)
   }
 
   it should "dispatch actions if chapter is changed when mount" in {
@@ -191,9 +141,7 @@ class QuestionScreenSpec extends AsyncTestSpec
     testRender(<(QuestionScreen())(^.wrapped := props)())
 
     //then
-    fetchAction.task.future.map { _ =>
-      Succeeded
-    }
+    fetchAction.task.future.map(_ => Succeeded)
   }
 
   it should "do not dispatch actions if params not changed when mount" in {
@@ -233,7 +181,7 @@ class QuestionScreenSpec extends AsyncTestSpec
     )
   }
 
-  it should "render un-answered question data" in {
+  it should "render question view" in {
     //given
     val props = getQuestionScreenProps()
     
@@ -241,50 +189,20 @@ class QuestionScreenSpec extends AsyncTestSpec
     val result = testRender(<(QuestionScreen())(^.wrapped := props)())
 
     //then
-    assertQuestionScreen(result, props)
-  }
-
-  it should "render answered incorrect question data" in {
-    //given
-    val props = {
-      val props = getQuestionScreenProps()
-      val question = inside(props.data.question) {
-        case Some(question) => question
-      }
-      props.copy(data = props.data.copy(question = Some(question.copy(
-        correct = Some(false),
-        rules = List(RuleData("test rule title", "test rule text")),
-        explanation = Some("test explanation")
-      ))))
+    assertNativeComponent(result,
+      <.SafeAreaView(
+        ^.rnStyle := styles.container,
+        ^.edges := List(SafeAreaEdge.left, SafeAreaEdge.bottom, SafeAreaEdge.right)
+      )(
+        <.ScrollView(^.keyboardShouldPersistTaps := KeyboardShouldPersistTaps.always)(
+          <(questionViewComp())()()
+        )
+      )
+    )
+    inside(findComponentProps(result, questionViewComp)) {
+      case QuestionViewProps(question, _, _) =>
+        Some(question) shouldBe props.data.question
     }
-    
-    //when
-    val result = testRender(<(QuestionScreen())(^.wrapped := props)())
-
-    //then
-    assertQuestionScreen(result, props)
-  }
-
-  it should "render answered correct question data" in {
-    //given
-    val props = {
-      val props = getQuestionScreenProps()
-      val question = inside(props.data.question) {
-        case Some(question) => question
-      }
-      props.copy(data = props.data.copy(question = Some(question.copy(
-        choices = question.choices.map(_.copy(correct = Some(true))),
-        correct = Some(true),
-        rules = Nil,
-        explanation = None
-      ))))
-    }
-    
-    //when
-    val result = testRender(<(QuestionScreen())(^.wrapped := props)())
-
-    //then
-    assertQuestionScreen(result, props)
   }
 
   private def getQuestionScreenProps(dispatch: Dispatch = mock[Dispatch],
@@ -316,86 +234,5 @@ class QuestionScreenSpec extends AsyncTestSpec
       data = data,
       params = params
     )
-  }
-  
-  private def assertQuestionScreen(result: TestInstance, props: QuestionScreenProps): Assertion = {
-    val question = inside(props.data.question) {
-      case Some(question) => question
-    }
-    val answered = question.correct.isDefined
-    
-    def assertComponents(questionText: TestInstance,
-                         choice: TestInstance,
-                         button: TestInstance,
-                         answerStatus: Option[TestInstance],
-                         ruleComp: Option[TestInstance],
-                         explanationComp: Option[TestInstance]): Assertion = {
-
-      assertTestComponent(questionText, questionTextComp) { case QuestionTextProps(html, style) =>
-        html shouldBe question.text
-        style shouldBe None
-      }
-
-      assertTestComponent(choice, questionChoicesComp) {
-        case QuestionChoicesProps(resAnswered, choices, selectedIds, _, multiSelect) =>
-          resAnswered shouldBe answered
-          choices shouldBe question.choices
-          selectedIds shouldBe Set.empty
-          multiSelect shouldBe false
-      }
-
-      answerStatus.foreach { status =>
-        assertTestComponent(status, questionAnswerComp) { case QuestionAnswerProps(correct) =>
-          correct shouldBe question.correct.getOrElse(false)
-        }
-      }
-      
-      ruleComp.foreach { comp =>
-        val rule = question.rules.head
-        
-        assertTestComponent(comp, questionRuleComp) {
-          case QuestionRuleProps(resTitle, resText) =>
-            resTitle shouldBe rule.title
-            resText shouldBe rule.text
-        }
-      }
-      
-      explanationComp.foreach { comp =>
-        assertTestComponent(comp, questionRuleComp) {
-          case QuestionRuleProps(resTitle, resText) =>
-            resTitle shouldBe "Explanation"
-            Some(resText) shouldBe question.explanation
-        }
-      }
-      
-      assertTestComponent(button, questionButtonComp) { case QuestionButtonProps(text, _) =>
-        text shouldBe (if (!answered) "Continue" else "Next")
-      }
-    }
-    
-    assertNativeComponent(result,
-      <.SafeAreaView(
-        ^.rnStyle := styles.container,
-        ^.edges := List(SafeAreaEdge.left, SafeAreaEdge.bottom, SafeAreaEdge.right)
-      )(),
-      inside(_) { case List(scroll) =>
-        assertNativeComponent(scroll,
-          <.ScrollView(
-            ^.keyboardShouldPersistTaps := KeyboardShouldPersistTaps.always
-          )(),
-          inside(_) {
-            case List(text, choice, continue) if !answered =>
-              assertComponents(text, choice, continue, None, None, None)
-            case List(text, choice, status, next) if {
-              question.rules.isEmpty && question.explanation.isEmpty
-            } =>
-              assertComponents(text, choice, next, Some(status), None, None)
-            case List(text, choice, status, ruleComp, explanationComp, next) if {
-              question.rules.nonEmpty && question.explanation.nonEmpty
-            } =>
-              assertComponents(text, choice, next, Some(status), Some(ruleComp), Some(explanationComp))
-          }
-        )
-      })
   }
 }
