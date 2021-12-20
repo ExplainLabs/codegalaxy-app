@@ -195,14 +195,13 @@ class QuestionScreenSpec extends AsyncTestSpec with BaseTestSpec with TestRender
         ^.edges := List(SafeAreaEdge.left, SafeAreaEdge.bottom, SafeAreaEdge.right)
       )(
         <.ScrollView(^.keyboardShouldPersistTaps := KeyboardShouldPersistTaps.always)(
-          <(questionViewComp())()()
+          <(questionViewComp())(^.assertWrapped(inside(_) {
+            case QuestionViewProps(question, _, _) =>
+              Some(question) shouldBe props.data.question
+          }))()
         )
       )
     )
-    inside(findComponentProps(result, questionViewComp)) {
-      case QuestionViewProps(question, _, _) =>
-        Some(question) shouldBe props.data.question
-    }
   }
 
   private def getQuestionScreenProps(dispatch: Dispatch = mock[Dispatch],

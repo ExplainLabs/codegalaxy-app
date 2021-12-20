@@ -8,12 +8,3 @@ case class ProfileEntity(id: Int,
                          fullName: Option[String],
                          city: Option[String],
                          avatarUrl: Option[String])
-
-//noinspection TypeAnnotation
-trait ProfileSchema {
-
-  val ctx: CodeGalaxyDBContext
-  import ctx._
-
-  val profiles = quote(querySchema[ProfileEntity]("profiles"))
-}
