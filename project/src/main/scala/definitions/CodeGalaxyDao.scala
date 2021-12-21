@@ -23,12 +23,12 @@ object CodeGalaxyDao extends CodeGalaxyModule {
 
   override def superRepoProjectsDependencies: Seq[(String, String, Option[String])] = Seq(
     ("scommons-websql", "scommons-websql-migrations", None),
-    ("scommons-websql", "scommons-websql-quill", None)
+    ("scommons-websql", "scommons-websql-io", None)
   )
   
   override def runtimeDependencies: Def.Initialize[Seq[ModuleID]] = Def.setting(Seq(
     Libs.scommonsWebSqlMigrations.value,
-    Libs.scommonsWebSqlQuill.value
+    Libs.scommonsWebSqlIO.value
   ))
   
   override def testDependencies: Def.Initialize[Seq[ModuleID]] = Def.setting(Nil)

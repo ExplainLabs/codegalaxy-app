@@ -10,19 +10,3 @@ case class TopicEntity(id: Int,
                        numChapters: Int,
                        numTheory: Option[Int],
                        svgIcon: Option[String])
-
-//noinspection TypeAnnotation
-trait TopicSchema {
-
-  val ctx: CodeGalaxyDBContext
-  import ctx._
-
-  implicit val topicsInsertMeta = insertMeta[TopicEntity](
-    _.id
-  )
-  implicit val topicsUpdateMeta = updateMeta[TopicEntity](
-    _.id
-  )
-
-  val topics = quote(querySchema[TopicEntity]("topics"))
-}

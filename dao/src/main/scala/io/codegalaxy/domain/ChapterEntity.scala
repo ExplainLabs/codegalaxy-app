@@ -9,19 +9,3 @@ case class ChapterEntity(id: Int,
                          numLearners: Int,
                          numChapters: Int,
                          numTheory: Option[Int])
-
-//noinspection TypeAnnotation
-trait ChapterSchema {
-
-  val ctx: CodeGalaxyDBContext
-  import ctx._
-
-  implicit val chaptersInsertMeta = insertMeta[ChapterEntity](
-    _.id
-  )
-  implicit val chaptersUpdateMeta = updateMeta[ChapterEntity](
-    _.id
-  )
-
-  val chapters = quote(querySchema[ChapterEntity]("chapters"))
-}

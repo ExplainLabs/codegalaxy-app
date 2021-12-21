@@ -1,12 +1,11 @@
 package io.codegalaxy.domain.dao
 
 import io.codegalaxy.domain._
-import scommons.websql.quill.dao.CommonDao
+import scommons.websql.io.dao.CommonDao
 
 import scala.concurrent.Future
 
-class ConfigDao(val ctx: CodeGalaxyDBContext) extends CommonDao
-  with ConfigSchema {
+class ConfigDao(val ctx: CodeGalaxyDBContext) extends CommonDao {
 
   import ctx._
 
@@ -28,25 +27,28 @@ class ConfigDao(val ctx: CodeGalaxyDBContext) extends CommonDao
   }
 
   private def getByUserIdQuery(userId: Int): IO[Seq[ConfigEntity], Effect.Read] = {
-    ctx.run(configs
-      .filter(c => c.userId == lift(userId))
+    ctx.runQuery(
+      sql = "SELECT c.user_id, c.dark_theme FROM configs c WHERE c.user_id = ?",
+      args = userId,
+      extractor = ConfigEntity.tupled
     )
   }
 
   private def insertQuery(entity: ConfigEntity): IO[Long, Effect.Write] = {
-    ctx.run(configs
-      .insert(lift(entity))
+    ctx.runActionReturning(
+      sql = "INSERT INTO configs (user_id, dark_theme) VALUES (?, ?)",
+      args = (entity.userId, entity.darkTheme)
     )
   }
 
   private def updateQuery(entity: ConfigEntity): IO[Long, Effect.Write] = {
-    ctx.run(configs
-      .filter(c => c.userId == lift(entity.userId))
-      .update(lift(entity))
+    ctx.runAction(
+      sql = "UPDATE configs SET dark_theme = ? WHERE user_id = ?",
+      args = (entity.darkTheme, entity.userId)
     )
   }
 
   def deleteAll(): Future[Long] = {
-    ctx.performIO(ctx.run(configs.delete))
+    ctx.performIO(ctx.runAction("DELETE FROM configs"))
   }
 }
