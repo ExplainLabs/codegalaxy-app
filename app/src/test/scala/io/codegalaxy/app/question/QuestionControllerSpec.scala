@@ -1,13 +1,26 @@
 package io.codegalaxy.app.question
 
-import io.codegalaxy.app.CodeGalaxyStateDef
 import io.codegalaxy.app.topic.TopicParams
-import scommons.react.navigation.Navigation
+import io.codegalaxy.app.{MockCodeGalaxyState, MockNavigation}
 import scommons.react.redux.Dispatch
 import scommons.react.test.TestSpec
 
 class QuestionControllerSpec extends TestSpec {
 
+  //noinspection TypeAnnotation
+  class State {
+    val questionState = mockFunction[QuestionState]
+    
+    val state = new MockCodeGalaxyState(questionStateMock = questionState)
+  }
+  
+  //noinspection TypeAnnotation
+  class Nav {
+    val getParams = mockFunction[Map[String, String]]
+    
+    val nav = new MockNavigation(getParamsMock = getParams)
+  }
+  
   it should "return component" in {
     //given
     val actions = mock[QuestionActions]
@@ -22,16 +35,16 @@ class QuestionControllerSpec extends TestSpec {
     val dispatch = mock[Dispatch]
     val actions = mock[QuestionActions]
     val controller = new QuestionController(actions)
-    val state = mock[CodeGalaxyStateDef]
-    val questionState = mock[QuestionState]
-    val nav = mock[Navigation]
+    val state = new State
+    val questionState = QuestionState()
+    val nav = new Nav
     val params = TopicParams("test_topic", Some("test_chpater"))
 
-    (state.questionState _).expects().returning(questionState)
-    (nav.getParams _).expects().returning(params.toMap)
+    state.questionState.expects().returning(questionState)
+    nav.getParams.expects().returning(params.toMap)
     
     //when
-    val result = controller.mapStateAndRouteToProps(dispatch, state, nav)
+    val result = controller.mapStateAndRouteToProps(dispatch, state.state, nav.nav)
     
     //then
     inside(result) {

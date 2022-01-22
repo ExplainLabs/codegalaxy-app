@@ -4,7 +4,6 @@ import io.codegalaxy.app.config.ConfigActions
 import io.codegalaxy.app.config.ConfigActions.ConfigUpdateAction
 import io.codegalaxy.app.user.UserActions.UserLogoutAction
 import io.codegalaxy.app.user.UserScreen._
-import io.codegalaxy.app.user.UserScreenSpec.UserAndConfigActions
 import io.codegalaxy.domain.{ConfigEntity, ProfileEntity}
 import scommons.react._
 import scommons.react.navigation._
@@ -20,21 +19,32 @@ import scala.scalajs.js
 
 class UserScreenSpec extends TestSpec with TestRendererUtils {
 
+  //noinspection TypeAnnotation
+  class Actions {
+    val userLogout = mockFunction[Dispatch, UserLogoutAction]
+    val updateDarkTheme = mockFunction[Dispatch, Int, Boolean, ConfigUpdateAction]
+
+    val actions = new MockUserActions(
+      userLogoutMock = userLogout,
+      updateDarkThemeMock = updateDarkTheme
+    )
+  }
+
   it should "dispatch actions on logout" in {
     //given
     val dispatch = mockFunction[Any, Any]
-    val actions = mock[UserAndConfigActions]
-    val props = getUserScreenProps(dispatch, actions)
+    val actions = new Actions
+    val props = getUserScreenProps(dispatch, actions.actions)
     val comp = testRender(<(UserScreen())(^.wrapped := props)())
     val logout = findComponents(comp, <.Text.reactClass).last
 
-    val loguotAction = UserLogoutAction(
+    val logoutAction = UserLogoutAction(
       FutureTask("Fetching User", Future.successful(()))
     )
-    (actions.userLogout _).expects(dispatch).returning(loguotAction)
+    actions.userLogout.expects(dispatch).returning(logoutAction)
 
     //then
-    dispatch.expects(loguotAction)
+    dispatch.expects(logoutAction)
 
     //when
     logout.props.onPress()
@@ -43,8 +53,8 @@ class UserScreenSpec extends TestSpec with TestRendererUtils {
   it should "dispatch actions on darkTheme config update" in {
     //given
     val dispatch = mockFunction[Any, Any]
-    val actions = mock[UserAndConfigActions]
-    val props = getUserScreenProps(dispatch, actions)
+    val actions = new Actions
+    val props = getUserScreenProps(dispatch, actions.actions)
     val profile = inside(props.data.profile) {
       case Some(profile) => profile
     }
@@ -57,7 +67,11 @@ class UserScreenSpec extends TestSpec with TestRendererUtils {
     val updateAction = ConfigUpdateAction(
       FutureTask("Updating Config", Future.successful(config))
     )
-    (actions.updateDarkTheme _).expects(dispatch, profile.id, true).returning(updateAction)
+    actions.updateDarkTheme.expects(dispatch, *, *).onCall { (_, id, darkTheme) =>
+      id shouldBe profile.id
+      darkTheme shouldBe true
+      updateAction
+    }
 
     //then
     dispatch.expects(updateAction)
@@ -110,7 +124,7 @@ class UserScreenSpec extends TestSpec with TestRendererUtils {
   }
   
   private def getUserScreenProps(dispatch: Dispatch = mock[Dispatch],
-                                 actions: UserActions with ConfigActions = mock[UserAndConfigActions],
+                                 actions: UserActions with ConfigActions = new Actions().actions,
                                  data: UserState = UserState(
                                    profile = Some(ProfileEntity(
                                      id = 123,
@@ -193,11 +207,4 @@ class UserScreenSpec extends TestSpec with TestRendererUtils {
       )
     )
   }
-}
-
-object UserScreenSpec {
-
-  private trait UserAndConfigActions
-    extends UserActions
-      with ConfigActions
 }

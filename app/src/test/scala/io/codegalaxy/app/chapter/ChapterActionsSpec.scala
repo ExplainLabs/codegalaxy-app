@@ -10,10 +10,17 @@ import scala.concurrent.Future
 
 class ChapterActionsSpec extends AsyncTestSpec {
 
+  //noinspection TypeAnnotation
+  class ChapterService {
+    val fetch = mockFunction[String, Boolean, Future[Seq[Chapter]]]
+
+    val service = new MockChapterService(fetchMock = fetch)
+  }
+
   it should "dispatch ChaptersFetchedAction when fetchChapters" in {
     //given
     val chapterService = mock[ChapterService]
-    val actions = new ChapterActionsTest(chapterService)
+    val actions = new ChapterActionsTest(chapterService.service)
     val dispatch = mockFunction[Any, Any]
     val topic = "test_topic"
     val chapter = Chapter(
@@ -41,7 +48,11 @@ class ChapterActionsSpec extends AsyncTestSpec {
     val refresh = true
 
     //then
-    (chapterService.fetch _).expects(topic, refresh).returning(Future.successful(dataList))
+    chapterService.fetch.expects(*, *).onCall { (t, r) =>
+      t shouldBe topic
+      r shouldBe refresh
+      Future.successful(dataList)
+    }
     dispatch.expects(ChaptersFetchedAction(topic, dataList))
 
     //when

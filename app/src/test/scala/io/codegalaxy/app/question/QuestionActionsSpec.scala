@@ -4,7 +4,7 @@ import io.codegalaxy.api.question._
 import io.codegalaxy.app.question.QuestionActions._
 import io.codegalaxy.app.question.QuestionActionsSpec._
 import io.codegalaxy.app.stats.StatsActions.StatsFetchedAction
-import io.codegalaxy.app.stats.StatsService
+import io.codegalaxy.app.stats.{MockStatsService, StatsService}
 import io.codegalaxy.domain.{ChapterStats, TopicStats}
 import scommons.nodejs.test.AsyncTestSpec
 import scommons.react.redux.task.FutureTask
@@ -13,11 +13,29 @@ import scala.concurrent.Future
 
 class QuestionActionsSpec extends AsyncTestSpec {
 
+  //noinspection TypeAnnotation
+  class Api {
+    val getNextQuestion = mockFunction[String, String, Future[QuestionData]]
+    val submitAnswer = mockFunction[String, String, QuestionData, Future[QuestionData]]
+
+    val api = new MockQuestionApi(
+      getNextQuestionMock = getNextQuestion,
+      submitAnswerMock = submitAnswer
+    )
+  }
+
+  //noinspection TypeAnnotation
+  class StatsService {
+    val updateStats = mockFunction[String, String, Future[(TopicStats, ChapterStats)]]
+
+    val service = new MockStatsService(updateStatsMock = updateStats)
+  }
+
   it should "dispatch QuestionFetchedAction when fetchQuestion" in {
     //given
-    val api = mock[QuestionApi]
-    val statsService = mock[StatsService]
-    val actions = new QuestionActionsTest(api, statsService)
+    val api = new Api
+    val statsService = new StatsService
+    val actions = new QuestionActionsTest(api.api, statsService.service)
     val dispatch = mockFunction[Any, Any]
     val topic = "test_topic"
     val chapter = "test_chapter"
@@ -29,7 +47,11 @@ class QuestionActionsSpec extends AsyncTestSpec {
     )
 
     //then
-    (api.getNextQuestion _).expects(topic, chapter).returning(Future.successful(data))
+    api.getNextQuestion.expects(*, *).onCall { (t, c) =>
+      t shouldBe topic
+      c shouldBe chapter
+      Future.successful(data)
+    }
     dispatch.expects(QuestionFetchedAction(topic, chapter, data))
 
     //when
@@ -47,9 +69,9 @@ class QuestionActionsSpec extends AsyncTestSpec {
   
   it should "dispatch QuestionFetchedAction and StatsFetchedAction when submitAnswer" in {
     //given
-    val api = mock[QuestionApi]
-    val statsService = mock[StatsService]
-    val actions = new QuestionActionsTest(api, statsService)
+    val api = new Api
+    val statsService = new StatsService
+    val actions = new QuestionActionsTest(api.api, statsService.service)
     val dispatch = mockFunction[Any, Any]
     val topic = "test_topic"
     val chapter = "test_chapter"
@@ -70,8 +92,17 @@ class QuestionActionsSpec extends AsyncTestSpec {
     val stats = (topicStats, chapterStats)
 
     //then
-    (api.submitAnswer _).expects(topic, chapter, data).returning(Future.successful(respData))
-    (statsService.updateStats _).expects(topic, chapter).returning(Future.successful(stats))
+    api.submitAnswer.expects(*, *, *).onCall { (t, c, d) =>
+      t shouldBe topic
+      c shouldBe chapter
+      d shouldBe data
+      Future.successful(respData)
+    }
+    statsService.updateStats.expects(*, *).onCall { (t, c) =>
+      t shouldBe topic
+      c shouldBe chapter
+      Future.successful(stats)
+    }
     dispatch.expects(QuestionFetchedAction(topic, chapter, respData))
     dispatch.expects(StatsFetchedAction(stats))
 

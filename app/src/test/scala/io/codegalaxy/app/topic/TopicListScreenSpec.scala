@@ -4,7 +4,6 @@ import io.codegalaxy.app.CodeGalaxyIcons
 import io.codegalaxy.app.info._
 import io.codegalaxy.app.topic.TopicActions.TopicsFetchAction
 import io.codegalaxy.app.topic.TopicListScreen._
-import io.codegalaxy.app.topic.TopicListScreenSpec.FlatListDataMock
 import io.codegalaxy.domain.{Topic, TopicEntity, TopicStats}
 import org.scalatest.{Assertion, Succeeded}
 import scommons.nodejs.test.AsyncTestSpec
@@ -19,11 +18,17 @@ import scommons.reactnative.svg._
 
 import scala.concurrent.Future
 import scala.scalajs.js
-import scala.scalajs.js.annotation.JSExportAll
 
 class TopicListScreenSpec extends AsyncTestSpec
   with BaseTestSpec
   with TestRendererUtils {
+
+  //noinspection TypeAnnotation
+  class Actions {
+    val fetchTopics = mockFunction[Dispatch, Boolean, TopicsFetchAction]
+
+    val actions = new MockTopicActions(fetchTopicsMock = fetchTopics)
+  }
 
   it should "call onTopicNavigate when onPress" in {
     //given
@@ -34,7 +39,10 @@ class TopicListScreenSpec extends AsyncTestSpec
     val List(touchable) = findComponents(comp, <.TouchableWithoutFeedback.reactClass)
 
     //then
-    navigate.expects(item.entity.alias)
+    navigate.expects(*).onCall { topic: String =>
+      topic shouldBe item.entity.alias
+      ()
+    }
 
     //when
     touchable.props.onPress()
@@ -45,8 +53,8 @@ class TopicListScreenSpec extends AsyncTestSpec
   it should "dispatch actions when onRefresh" in {
     //given
     val dispatch = mockFunction[Any, Any]
-    val actions = mock[TopicActions]
-    val props = getTopicListScreenProps(dispatch, actions)
+    val actions = new Actions
+    val props = getTopicListScreenProps(dispatch, actions.actions)
     val renderer = createTestRenderer(<(TopicListScreen())(^.wrapped := props)())
     val List(flatList) = findComponents(renderer.root, <.FlatList.reactClass)
     flatList.props.refreshing shouldBe false
@@ -55,7 +63,10 @@ class TopicListScreenSpec extends AsyncTestSpec
       Future.successful(Nil)))
     
     //then
-    (actions.fetchTopics _).expects(dispatch, true).returning(fetchAction)
+    actions.fetchTopics.expects(dispatch, *).onCall { (_, refresh) =>
+      refresh shouldBe true
+      fetchAction
+    }
     dispatch.expects(fetchAction)
 
     //when
@@ -72,16 +83,19 @@ class TopicListScreenSpec extends AsyncTestSpec
   it should "dispatch actions when mount" in {
     //given
     val dispatch = mockFunction[Any, Any]
-    val actions = mock[TopicActions]
+    val actions = new Actions
     val props = {
-      val props = getTopicListScreenProps(dispatch, actions)
+      val props = getTopicListScreenProps(dispatch, actions.actions)
       props.copy(data = props.data.copy(topics = Nil))
     }
     val fetchAction = TopicsFetchAction(FutureTask("Fetching Topics",
       Future.successful(Nil)))
     
     //then
-    (actions.fetchTopics _).expects(dispatch, false).returning(fetchAction)
+    actions.fetchTopics.expects(dispatch, *).onCall { (_, refresh) =>
+      refresh shouldBe false
+      fetchAction
+    }
     dispatch.expects(fetchAction)
 
     //when
@@ -101,11 +115,11 @@ class TopicListScreenSpec extends AsyncTestSpec
   it should "not dispatch actions if topics list is not empty when mount" in {
     //given
     val dispatch = mockFunction[Any, Any]
-    val actions = mock[TopicActions]
-    val props = getTopicListScreenProps(dispatch, actions)
+    val actions = new Actions
+    val props = getTopicListScreenProps(dispatch, actions.actions)
     
     //then
-    (actions.fetchTopics _).expects(*, *).never()
+    actions.fetchTopics.expects(*, *).never()
 
     //when
     testRender(<(TopicListScreen())(^.wrapped := props)())
@@ -185,7 +199,7 @@ class TopicListScreenSpec extends AsyncTestSpec
   }
 
   private def getTopicListScreenProps(dispatch: Dispatch = mock[Dispatch],
-                                      actions: TopicActions = mock[TopicActions],
+                                      actions: TopicActions = new Actions().actions,
                                       data: TopicState = TopicState(
                                         topics = List(Topic(
                                           entity = TopicEntity(
@@ -216,9 +230,7 @@ class TopicListScreenSpec extends AsyncTestSpec
     val comp = testRender(<(TopicListScreen())(^.wrapped := props)())
     val List(flatList) = findComponents(comp, <.FlatList.reactClass)
 
-    val listData = mock[FlatListDataMock]
-    (listData.item _).expects().returning(data)
-
+    val listData = js.Dynamic.literal("item" -> data.asInstanceOf[js.Any])
     val result = flatList.props.renderItem(listData.asInstanceOf[FlatListData[Topic]])
     createTestRenderer(result.asInstanceOf[ReactElement]).root
   }
@@ -254,13 +266,5 @@ class TopicListScreenSpec extends AsyncTestSpec
         }
       })
     })
-  }
-}
-
-object TopicListScreenSpec {
-
-  @JSExportAll
-  trait FlatListDataMock {
-    def item: Topic
   }
 }

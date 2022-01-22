@@ -9,15 +9,29 @@ import scala.concurrent.Future
 
 class UserServiceSpec extends BaseDBContextSpec {
 
+  //noinspection TypeAnnotation
+  class Api {
+    val getUserProfile = mockFunction[Boolean, Future[Option[UserProfileData]]]
+    val getUser = mockFunction[Future[UserData]]
+
+    val api = new MockUserApi(
+      getUserProfileMock = getUserProfile,
+      getUserMock = getUser
+    )
+  }
+
   it should "fetch profile and save it in DB" in withCtx { ctx =>
     //given
-    val api = mock[UserApi]
+    val api = new Api
     val dao = new ProfileDao(ctx)
-    val service = new UserService(api, dao)
+    val service = new UserService(api.api, dao)
     val (profile, user) = getProfileData(123)
 
-    (api.getUserProfile _).expects(true).returning(Future.successful(Some(profile)))
-    (api.getUser _).expects().returning(Future.successful(user))
+    api.getUserProfile.expects(*).onCall { force: Boolean =>
+      force shouldBe true
+      Future.successful(Some(profile))
+    }
+    api.getUser.expects().returning(Future.successful(user))
 
     val beforeF = service.removeProfile()
     
@@ -38,12 +52,15 @@ class UserServiceSpec extends BaseDBContextSpec {
   
   it should "remove profile from DB if not authenticated" in withCtx { ctx =>
     //given
-    val api = mock[UserApi]
+    val api = new Api
     val dao = new ProfileDao(ctx)
-    val service = new UserService(api, dao)
+    val service = new UserService(api.api, dao)
 
-    (api.getUserProfile _).expects(true).returning(Future.successful(None))
-    (api.getUser _).expects().never()
+    api.getUserProfile.expects(*).onCall { force: Boolean =>
+      force shouldBe true
+      Future.successful(None)
+    }
+    api.getUser.expects().never()
 
     val (profile, user) = getProfileData(123)
     val beforeF = for {
@@ -69,14 +86,17 @@ class UserServiceSpec extends BaseDBContextSpec {
   
   it should "refresh profile in DB" in withCtx { ctx =>
     //given
-    val api = mock[UserApi]
+    val api = new Api
     val dao = new ProfileDao(ctx)
-    val service = new UserService(api, dao)
+    val service = new UserService(api.api, dao)
     val (profile, user) = getProfileData(123)
     val (newProfile, newUser) = getProfileData(456)
 
-    (api.getUserProfile _).expects(true).returning(Future.successful(Some(newProfile)))
-    (api.getUser _).expects().returning(Future.successful(newUser))
+    api.getUserProfile.expects(*).onCall { force: Boolean =>
+      force shouldBe true
+      Future.successful(Some(newProfile))
+    }
+    api.getUser.expects().returning(Future.successful(newUser))
 
     val beforeF = for {
       _ <- service.removeProfile()
@@ -103,13 +123,13 @@ class UserServiceSpec extends BaseDBContextSpec {
 
   it should "return local data from DB" in withCtx { ctx =>
     //given
-    val api = mock[UserApi]
+    val api = new Api
     val dao = new ProfileDao(ctx)
-    val service = new UserService(api, dao)
+    val service = new UserService(api.api, dao)
     val (profile, user) = getProfileData(123)
 
-    (api.getUserProfile _).expects(*).never()
-    (api.getUser _).expects().never()
+    api.getUserProfile.expects(*).never()
+    api.getUser.expects().never()
 
     val beforeF = for {
       _ <- service.removeProfile()

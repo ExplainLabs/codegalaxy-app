@@ -9,19 +9,39 @@ import scala.concurrent.Future
 
 class StatsServiceSpec extends BaseDBContextSpec {
 
+  //noinspection TypeAnnotation
+  class Api {
+    val getStats = mockFunction[Future[List[StatsRespData]]]
+    val getStatsTopic = mockFunction[String, Future[StatsData]]
+    val getStatsChapter = mockFunction[String, String, Future[StatsData]]
+
+    val api = new MockStatsApi(
+      getStatsMock = getStats,
+      getStatsTopicMock = getStatsTopic,
+      getStatsChapterMock = getStatsChapter
+    )
+  }
+
   it should "fail if topic doesn't exist" in withCtx { ctx =>
     //given
-    val api = mock[StatsApi]
+    val api = new Api
     val topicDao = new TopicDao(ctx)
     val chapterDao = new ChapterDao(ctx)
-    val service = new StatsService(api, topicDao, chapterDao)
+    val service = new StatsService(api.api, topicDao, chapterDao)
     val topicStatsData = getStatsData(multiplier = 1)
     val chapterStatsData = getStatsData(multiplier = 2)
     val topic = "test_topic"
     val chapter = "test_chapter"
 
-    (api.getStatsTopic _).expects(topic).returning(Future.successful(topicStatsData))
-    (api.getStatsChapter _).expects(topic, chapter).returning(Future.successful(chapterStatsData))
+    api.getStatsTopic.expects(*).onCall { t: String =>
+      t shouldBe topic
+      Future.successful(topicStatsData)
+    }
+    api.getStatsChapter.expects(*, *).onCall { (t, c) =>
+      t shouldBe topic
+      c shouldBe chapter
+      Future.successful(chapterStatsData)
+    }
 
     val beforeF = for {
       _ <- topicDao.deleteAll()
@@ -42,17 +62,24 @@ class StatsServiceSpec extends BaseDBContextSpec {
 
   it should "fail if chapter doesn't exist" in withCtx { ctx =>
     //given
-    val api = mock[StatsApi]
+    val api = new Api
     val topicDao = new TopicDao(ctx)
     val chapterDao = new ChapterDao(ctx)
-    val service = new StatsService(api, topicDao, chapterDao)
+    val service = new StatsService(api.api, topicDao, chapterDao)
     val topicStatsData = getStatsData(multiplier = 1)
     val chapterStatsData = getStatsData(multiplier = 2)
     val topic = "test_topic"
     val chapter = "test_chapter"
 
-    (api.getStatsTopic _).expects(topic).returning(Future.successful(topicStatsData))
-    (api.getStatsChapter _).expects(topic, chapter).returning(Future.successful(chapterStatsData))
+    api.getStatsTopic.expects(*).onCall { t: String =>
+      t shouldBe topic
+      Future.successful(topicStatsData)
+    }
+    api.getStatsChapter.expects(*, *).onCall { (t, c) =>
+      t shouldBe topic
+      c shouldBe chapter
+      Future.successful(chapterStatsData)
+    }
 
     val beforeF = for {
       _ <- topicDao.deleteAll()
@@ -73,17 +100,24 @@ class StatsServiceSpec extends BaseDBContextSpec {
 
   it should "fetch stats and insert them into DB" in withCtx { ctx =>
     //given
-    val api = mock[StatsApi]
+    val api = new Api
     val topicDao = new TopicDao(ctx)
     val chapterDao = new ChapterDao(ctx)
-    val service = new StatsService(api, topicDao, chapterDao)
+    val service = new StatsService(api.api, topicDao, chapterDao)
     val topicStatsData = getStatsData(multiplier = 1)
     val chapterStatsData = getStatsData(multiplier = 2)
     val topic = "test_topic"
     val chapter = "test_chapter"
 
-    (api.getStatsTopic _).expects(topic).returning(Future.successful(topicStatsData))
-    (api.getStatsChapter _).expects(topic, chapter).returning(Future.successful(chapterStatsData))
+    api.getStatsTopic.expects(*).onCall { t: String =>
+      t shouldBe topic
+      Future.successful(topicStatsData)
+    }
+    api.getStatsChapter.expects(*, *).onCall { (t, c) =>
+      t shouldBe topic
+      c shouldBe chapter
+      Future.successful(chapterStatsData)
+    }
 
     val beforeF = for {
       _ <- topicDao.deleteAll()
@@ -112,17 +146,24 @@ class StatsServiceSpec extends BaseDBContextSpec {
 
   it should "fetch stats and update existing stats in DB" in withCtx { ctx =>
     //given
-    val api = mock[StatsApi]
+    val api = new Api
     val topicDao = new TopicDao(ctx)
     val chapterDao = new ChapterDao(ctx)
-    val service = new StatsService(api, topicDao, chapterDao)
+    val service = new StatsService(api.api, topicDao, chapterDao)
     val topicStatsData = getStatsData(multiplier = 1)
     val chapterStatsData = getStatsData(multiplier = 2)
     val topic = "test_topic"
     val chapter = "test_chapter"
 
-    (api.getStatsTopic _).expects(topic).returning(Future.successful(topicStatsData))
-    (api.getStatsChapter _).expects(topic, chapter).returning(Future.successful(chapterStatsData))
+    api.getStatsTopic.expects(*).onCall { t: String =>
+      t shouldBe topic
+      Future.successful(topicStatsData)
+    }
+    api.getStatsChapter.expects(*, *).onCall { (t, c) =>
+      t shouldBe topic
+      c shouldBe chapter
+      Future.successful(chapterStatsData)
+    }
 
     val beforeF = for {
       _ <- topicDao.deleteAll()

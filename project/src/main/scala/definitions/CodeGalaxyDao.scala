@@ -15,6 +15,7 @@ object CodeGalaxyDao extends CodeGalaxyModule {
 
   override def definition: Project = super.definition
     .enablePlugins(ScalaJSPlugin, ScalaJSBundlerPlugin)
+    .settings(ScalaJsModule.settings: _*)
     .settings(
       description := "DAO module for CodeGalaxy app"
     )

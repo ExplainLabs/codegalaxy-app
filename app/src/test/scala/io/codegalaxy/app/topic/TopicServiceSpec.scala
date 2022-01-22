@@ -4,7 +4,6 @@ import io.codegalaxy.api.data.InfoData
 import io.codegalaxy.api.stats._
 import io.codegalaxy.api.topic._
 import io.codegalaxy.app.BaseDBContextSpec
-import io.codegalaxy.app.topic.TopicServiceSpec._
 import io.codegalaxy.domain.dao.TopicDao
 import io.codegalaxy.domain.{Topic, TopicEntity, TopicStats}
 
@@ -12,19 +11,38 @@ import scala.concurrent.Future
 
 class TopicServiceSpec extends BaseDBContextSpec {
 
+  //noinspection TypeAnnotation
+  class Api {
+    val getStats = mockFunction[Future[List[StatsRespData]]]
+    val getTopics = mockFunction[Future[List[TopicWithInfoData]]]
+    val getTopicIcon = mockFunction[String, Future[Option[String]]]
+    
+    val api = new MockTopicWithStatsApi(
+      getStatsMock = getStats,
+      getTopicsMock = getTopics,
+      getTopicIconMock = getTopicIcon
+    )
+  }
+
   it should "fetch topics and save them in DB" in withCtx { ctx =>
     //given
-    val api = mock[TopicWithStatsApi]
+    val api = new Api
     val dao = new TopicDao(ctx)
-    val service = new TopicService(api, dao)
+    val service = new TopicService(api.api, dao)
     val (t1, svg1) = (getTopicData("topic1"), "test svg1")
     val (t2, svg2) = (getTopicData("topic2"), "test svg2")
     val stats = getStatsRespData("topic1", multiplier = 1)
 
-    (api.getTopics _).expects().returning(Future.successful(List(t1, t2)))
-    (api.getTopicIcon _).expects(t1.alias).returning(Future.successful(Some(svg1)))
-    (api.getTopicIcon _).expects(t2.alias).returning(Future.successful(Some(svg2)))
-    (api.getStats _).expects().returning(Future.successful(List(stats)))
+    api.getTopics.expects().returning(Future.successful(List(t1, t2)))
+    api.getTopicIcon.expects(*).onCall { a: String =>
+      a shouldBe t1.alias
+      Future.successful(Some(svg1))
+    }
+    api.getTopicIcon.expects(*).onCall { a: String =>
+      a shouldBe t2.alias
+      Future.successful(Some(svg2))
+    }
+    api.getStats.expects().returning(Future.successful(List(stats)))
 
     val beforeF = dao.deleteAll()
     
@@ -48,9 +66,9 @@ class TopicServiceSpec extends BaseDBContextSpec {
   
   it should "refresh topics in DB" in withCtx { ctx =>
     //given
-    val api = mock[TopicWithStatsApi]
+    val api = new Api
     val dao = new TopicDao(ctx)
-    val service = new TopicService(api, dao)
+    val service = new TopicService(api.api, dao)
     val (t1, svg1) = (getTopicData("topic1"), "test svg1")
     val (t2, svg2) = (getTopicData("topic2"), "test svg2")
     val stats = getStatsRespData("topic1", multiplier = 1)
@@ -58,10 +76,16 @@ class TopicServiceSpec extends BaseDBContextSpec {
     val newSvg = "new svg"
     val newStats = getStatsRespData("newTopic", multiplier = 2)
 
-    (api.getTopics _).expects().returning(Future.successful(List(t1, newTopic)))
-    (api.getTopicIcon _).expects(t1.alias).returning(Future.successful(Some(svg1)))
-    (api.getTopicIcon _).expects(newTopic.alias).returning(Future.successful(Some(newSvg)))
-    (api.getStats _).expects().returning(Future.successful(List(newStats)))
+    api.getTopics.expects().returning(Future.successful(List(t1, newTopic)))
+    api.getTopicIcon.expects(*).onCall { a: String =>
+      a shouldBe t1.alias
+      Future.successful(Some(svg1))
+    }
+    api.getTopicIcon.expects(*).onCall { a: String =>
+      a shouldBe newTopic.alias
+      Future.successful(Some(newSvg))
+    }
+    api.getStats.expects().returning(Future.successful(List(newStats)))
 
     val beforeF = for {
       _ <- dao.deleteAll()
@@ -93,16 +117,16 @@ class TopicServiceSpec extends BaseDBContextSpec {
   
   it should "return local data from DB" in withCtx { ctx =>
     //given
-    val api = mock[TopicWithStatsApi]
+    val api = new Api
     val dao = new TopicDao(ctx)
-    val service = new TopicService(api, dao)
+    val service = new TopicService(api.api, dao)
     val (t1, svg1) = (getTopicData("topic1"), "test svg1")
     val (t2, svg2) = (getTopicData("topic2"), "test svg2")
     val stats = getStatsRespData("topic1", multiplier = 1)
 
-    (api.getTopics _).expects().never()
-    (api.getTopicIcon _).expects(*).never()
-    (api.getStats _).expects().never()
+    api.getTopics.expects().never()
+    api.getTopicIcon.expects(*).never()
+    api.getStats.expects().never()
 
     val beforeF = for {
       _ <- dao.deleteAll()
@@ -190,9 +214,4 @@ class TopicServiceSpec extends BaseDBContextSpec {
       }
     )
   }
-}
-
-object TopicServiceSpec {
-
-  trait TopicWithStatsApi extends TopicApi with StatsApi
 }

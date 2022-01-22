@@ -2,7 +2,7 @@ package io.codegalaxy.app
 
 import io.codegalaxy.app.chapter.ChapterState
 import io.codegalaxy.app.topic.TopicActions.TopicsFetchAction
-import io.codegalaxy.app.topic.TopicState
+import io.codegalaxy.app.topic.{MockTopicActions, TopicState}
 import io.codegalaxy.app.user.UserActions.UserLoginAction
 import io.codegalaxy.app.user._
 import io.codegalaxy.domain._
@@ -12,6 +12,7 @@ import scommons.react._
 import scommons.react.navigation._
 import scommons.react.navigation.stack._
 import scommons.react.navigation.tab._
+import scommons.react.redux.Dispatch
 import scommons.react.redux.task.FutureTask
 import scommons.react.test._
 import scommons.reactnative._
@@ -24,21 +25,50 @@ class CodeGalaxyRootSpec extends AsyncTestSpec
   with BaseTestSpec
   with TestRendererUtils {
 
+  //noinspection TypeAnnotation
+  class State {
+    val userState = mockFunction[UserState]
+    val topicState = mockFunction[TopicState]
+    val chapterState = mockFunction[ChapterState]
+
+    val state = new MockCodeGalaxyState(
+      userStateMock = userState,
+      topicStateMock = topicState,
+      chapterStateMock = chapterState
+    )
+  }
+
+  //noinspection TypeAnnotation
+  class UserActions {
+    val userProfileFetch = mockFunction[Dispatch, UserLoginAction]
+
+    val actions = new MockUserActions(userProfileFetchMock = userProfileFetch)
+  }
+
+  //noinspection TypeAnnotation
+  class TopicActions {
+    val fetchTopics = mockFunction[Dispatch, Boolean, TopicsFetchAction]
+
+    val actions = new MockTopicActions(fetchTopicsMock = fetchTopics)
+  }
+
   it should "dispatch actions and render LoginScreen if not logged-in" in {
     //given
     val dispatch = mockFunction[Any, Any]
-    val actions = mock[CodeGalaxyActions]
-    val state = mock[CodeGalaxyStateDef]
+    val userActions = new UserActions
+    val topicActions = new TopicActions
+    val state = new State
     val onAppReady = mockFunction[Unit]
-    val codeGalaxyRoot = new CodeGalaxyRoot(actions)
-    val props = CodeGalaxyRootProps(dispatch, actions, state, onAppReady = onAppReady)
-    (state.userState _).expects().returning(UserState(None)).twice()
+    val codeGalaxyRoot = new CodeGalaxyRoot(mock[CodeGalaxyActions])
+    val props = CodeGalaxyRootProps(dispatch, userActions.actions, topicActions.actions, state.state,
+      onAppReady = onAppReady)
+    state.userState.expects().returning(UserState(None)).twice()
 
     val profileAction = UserLoginAction(FutureTask("Fetching Profile", Future.successful((None, None))))
 
     //then
-    (actions.userProfileFetch _).expects(dispatch).returning(profileAction)
-    (actions.fetchTopics _).expects(*, *).never()
+    userActions.userProfileFetch.expects(dispatch).returning(profileAction)
+    topicActions.fetchTopics.expects(*, *).never()
     dispatch.expects(profileAction)
     onAppReady.expects()
 
@@ -72,14 +102,25 @@ class CodeGalaxyRootSpec extends AsyncTestSpec
   it should "dispatch actions and render main screen if logged-in" in {
     //given
     val dispatch = mockFunction[Any, Any]
-    val actions = mock[CodeGalaxyActions]
-    val state = mock[CodeGalaxyStateDef]
+    val userActions = new UserActions
+    val topicActions = new TopicActions
+    val state = new State
     val onAppReady = mockFunction[Unit]
-    val codeGalaxyRoot = new CodeGalaxyRoot(actions)
-    val profile = Some(mock[ProfileEntity])
-    val props = CodeGalaxyRootProps(dispatch, actions, state, onAppReady = onAppReady)
+    val codeGalaxyRoot = new CodeGalaxyRoot(mock[CodeGalaxyActions])
+    val profile = Some(ProfileEntity(
+      id = 123,
+      username = "test_user",
+      email = None,
+      firstName = None,
+      lastName = None,
+      fullName = None,
+      city = None,
+      avatarUrl = None
+    ))
+    val props = CodeGalaxyRootProps(dispatch, userActions.actions, topicActions.actions, state.state,
+      onAppReady = onAppReady)
     val config = ConfigEntity(123, darkTheme = true)
-    (state.userState _).expects()
+    state.userState.expects()
       .returning(UserState(profile, Some(config)))
       .twice()
 
@@ -87,8 +128,11 @@ class CodeGalaxyRootSpec extends AsyncTestSpec
     val fetchTopicsAction = TopicsFetchAction(FutureTask("Fetching Topics", Future.successful(Nil)))
 
     //then
-    (actions.userProfileFetch _).expects(dispatch).returning(profileAction)
-    (actions.fetchTopics _).expects(dispatch, false).returning(fetchTopicsAction)
+    userActions.userProfileFetch.expects(dispatch).returning(profileAction)
+    topicActions.fetchTopics.expects(dispatch, *).onCall { (_, refresh) =>
+      refresh shouldBe false
+      fetchTopicsAction
+    }
     dispatch.expects(profileAction)
     dispatch.expects(fetchTopicsAction)
     onAppReady.expects()
@@ -97,9 +141,9 @@ class CodeGalaxyRootSpec extends AsyncTestSpec
     val renderer = createTestRenderer(<(codeGalaxyRoot())(^.wrapped := props)())
 
     //then
-    eventually {
-      import codeGalaxyRoot._
+    import codeGalaxyRoot._
 
+    eventually {
       val List(statusBar, safeAreaProv) = renderer.root.children.toList
       assertNativeComponent(statusBar, <.StatusBar(^.barStyle := StatusBar.BarStyle.`light-content`)())
       assertNativeComponent(safeAreaProv, <.SafeAreaProvider()(), { children: List[TestInstance] =>
@@ -121,17 +165,19 @@ class CodeGalaxyRootSpec extends AsyncTestSpec
   it should "render dynamic app stack screens titles" in {
     //given
     val dispatch = mockFunction[Any, Any]
-    val actions = mock[CodeGalaxyActions]
-    val state = mock[CodeGalaxyStateDef]
+    val userActions = new UserActions
+    val topicActions = new TopicActions
+    val state = new State
     val onAppReady = mockFunction[Unit]
-    val codeGalaxyRoot = new CodeGalaxyRoot(actions)
+    val codeGalaxyRoot = new CodeGalaxyRoot(mock[CodeGalaxyActions])
     val profile = Some(mock[ProfileEntity])
-    val props = CodeGalaxyRootProps(dispatch, actions, state, onAppReady = onAppReady)
-    (state.userState _).expects().returning(UserState(profile)).twice()
+    val props = CodeGalaxyRootProps(dispatch, userActions.actions, topicActions.actions, state.state,
+      onAppReady = onAppReady)
+    state.userState.expects().returning(UserState(profile)).twice()
 
     val profileAction = UserLoginAction(FutureTask("Fetching Profile", Future.successful((None, None))))
-    (actions.userProfileFetch _).expects(dispatch).returning(profileAction)
-    (actions.fetchTopics _).expects(*, *).never()
+    userActions.userProfileFetch.expects(dispatch).returning(profileAction)
+    topicActions.fetchTopics.expects(*, *).never()
     dispatch.expects(profileAction)
     onAppReady.expects()
 
@@ -162,7 +208,7 @@ class CodeGalaxyRootSpec extends AsyncTestSpec
       }
 
       //then
-      (state.topicState _).expects().returning(TopicState(Seq(Topic(
+      state.topicState.expects().returning(TopicState(Seq(Topic(
         entity = TopicEntity(
           id = 1,
           alias = topic,
@@ -177,7 +223,7 @@ class CodeGalaxyRootSpec extends AsyncTestSpec
         ),
         stats = None
       ))))
-      (state.chapterState _).expects().returning(ChapterState(Some(topic), Seq(Chapter(
+      state.chapterState.expects().returning(ChapterState(Some(topic), Seq(Chapter(
         entity = ChapterEntity(
           id = 1,
           topic = topic,
@@ -225,14 +271,16 @@ class CodeGalaxyRootSpec extends AsyncTestSpec
   it should "render initial empty component" in {
     //given
     val dispatch = mockFunction[Any, Any]
-    val actions = mock[CodeGalaxyActions]
-    val state = mock[CodeGalaxyStateDef]
-    val codeGalaxyRoot = new CodeGalaxyRoot(actions)
-    val props = CodeGalaxyRootProps(dispatch, actions, state, onAppReady = () => ())
-    (state.userState _).expects().returning(UserState(None)).twice()
+    val userActions = new UserActions
+    val topicActions = new TopicActions
+    val state = new State
+    val codeGalaxyRoot = new CodeGalaxyRoot(mock[CodeGalaxyActions])
+    val props = CodeGalaxyRootProps(dispatch, userActions.actions, topicActions.actions, state.state,
+      onAppReady = () => ())
+    state.userState.expects().returning(UserState(None)).twice()
 
     val profileAction = UserLoginAction(FutureTask("Fetching Profile", Future.successful((None, None))))
-    (actions.userProfileFetch _).expects(dispatch).returning(profileAction)
+    userActions.userProfileFetch.expects(dispatch).returning(profileAction)
     dispatch.expects(profileAction)
 
     //when

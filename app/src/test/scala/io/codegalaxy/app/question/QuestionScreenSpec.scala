@@ -21,14 +21,25 @@ class QuestionScreenSpec extends AsyncTestSpec with BaseTestSpec with TestRender
 
   QuestionScreen.questionViewComp = mockUiComponent("QuestionView")
 
+  //noinspection TypeAnnotation
+  class Actions {
+    val fetchQuestion = mockFunction[Dispatch, String, String, QuestionFetchAction]
+    val submitAnswer = mockFunction[Dispatch, String, String, QuestionData, AnswerSubmitAction]
+    
+    val actions = new MockQuestionActions(
+      fetchQuestionMock = fetchQuestion,
+      submitAnswerMock = submitAnswer
+    )
+  }
+  
   it should "dispatch actions when onSubmitAnswer" in {
     //given
     val dispatch = mockFunction[Any, Any]
-    val actions = mock[QuestionActions]
-    val props = getQuestionScreenProps(dispatch, actions)
+    val actions = new Actions
+    val props = getQuestionScreenProps(dispatch, actions.actions)
     val renderer = createTestRenderer(<(QuestionScreen())(^.wrapped := props)())
     val viewComp = findComponentProps(renderer.root, questionViewComp)
-    val resp = mock[QuestionData]
+    val resp = getQuestionData
     val topic = inside(props.data.topic) {
       case Some(topic) => topic
     }
@@ -41,7 +52,12 @@ class QuestionScreenSpec extends AsyncTestSpec with BaseTestSpec with TestRender
     }
 
     //then
-    (actions.submitAnswer _).expects(dispatch, topic, chapter, data).returning(submitAction)
+    actions.submitAnswer.expects(dispatch, *, *, *).onCall { (_, t, c, d) =>
+      t shouldBe topic
+      c shouldBe chapter
+      d shouldBe data
+      submitAction
+    }
     dispatch.expects(submitAction)
 
     //when
@@ -54,8 +70,8 @@ class QuestionScreenSpec extends AsyncTestSpec with BaseTestSpec with TestRender
   it should "dispatch actions when onNextQuestion" in {
     //given
     val dispatch = mockFunction[Any, Any]
-    val actions = mock[QuestionActions]
-    val props = getQuestionScreenProps(dispatch, actions)
+    val actions = new Actions
+    val props = getQuestionScreenProps(dispatch, actions.actions)
     val renderer = createTestRenderer(<(QuestionScreen())(^.wrapped := props)())
     val updatedProps = {
       val question = inside(props.data.question) {
@@ -80,7 +96,11 @@ class QuestionScreenSpec extends AsyncTestSpec with BaseTestSpec with TestRender
       Future.successful(data)))
 
     //then
-    (actions.fetchQuestion _).expects(dispatch, topic, chapter).returning(fetchAction)
+    actions.fetchQuestion.expects(dispatch, *, *).onCall { (_, t, c) =>
+      t shouldBe topic
+      c shouldBe chapter
+      fetchAction
+    }
     dispatch.expects(fetchAction)
 
     //when
@@ -93,10 +113,10 @@ class QuestionScreenSpec extends AsyncTestSpec with BaseTestSpec with TestRender
   it should "dispatch actions if topic is changed when mount" in {
     //given
     val dispatch = mockFunction[Any, Any]
-    val actions = mock[QuestionActions]
+    val actions = new Actions
     val topic = "new_topic"
     val (props, chapter) = {
-      val props = getQuestionScreenProps(dispatch, actions)
+      val props = getQuestionScreenProps(dispatch, actions.actions)
       val chapter = inside(props.data.chapter) {
         case Some(chapter) => chapter
       }
@@ -107,7 +127,11 @@ class QuestionScreenSpec extends AsyncTestSpec with BaseTestSpec with TestRender
       Future.successful(data)))
     
     //then
-    (actions.fetchQuestion _).expects(dispatch, topic, chapter).returning(fetchAction)
+    actions.fetchQuestion.expects(dispatch, *, *).onCall { (_, t, c) =>
+      t shouldBe topic
+      c shouldBe chapter
+      fetchAction
+    }
     dispatch.expects(fetchAction)
 
     //when
@@ -120,10 +144,10 @@ class QuestionScreenSpec extends AsyncTestSpec with BaseTestSpec with TestRender
   it should "dispatch actions if chapter is changed when mount" in {
     //given
     val dispatch = mockFunction[Any, Any]
-    val actions = mock[QuestionActions]
+    val actions = new Actions
     val chapter = "new_chapter"
     val (props, topic) = {
-      val props = getQuestionScreenProps(dispatch, actions)
+      val props = getQuestionScreenProps(dispatch, actions.actions)
       val topic = inside(props.data.topic) {
         case Some(topic) => topic
       }
@@ -134,7 +158,11 @@ class QuestionScreenSpec extends AsyncTestSpec with BaseTestSpec with TestRender
       Future.successful(data)))
     
     //then
-    (actions.fetchQuestion _).expects(dispatch, topic, chapter).returning(fetchAction)
+    actions.fetchQuestion.expects(dispatch, *, *).onCall { (_, t, c) =>
+      t shouldBe topic
+      c shouldBe chapter
+      fetchAction
+    }
     dispatch.expects(fetchAction)
 
     //when
@@ -147,11 +175,11 @@ class QuestionScreenSpec extends AsyncTestSpec with BaseTestSpec with TestRender
   it should "do not dispatch actions if params not changed when mount" in {
     //given
     val dispatch = mockFunction[Any, Any]
-    val actions = mock[QuestionActions]
-    val props = getQuestionScreenProps(dispatch, actions)
+    val actions = new Actions
+    val props = getQuestionScreenProps(dispatch, actions.actions)
     
     //then
-    (actions.fetchQuestion _).expects(*, *, *).never()
+    actions.fetchQuestion.expects(*, *, *).never()
 
     //when
     testRender(<(QuestionScreen())(^.wrapped := props)())
@@ -203,9 +231,17 @@ class QuestionScreenSpec extends AsyncTestSpec with BaseTestSpec with TestRender
       )
     )
   }
+  
+  private def getQuestionData: QuestionData =
+    QuestionData(
+      uuid = "test_uuid",
+      text = "test text",
+      answerType = "test answerType",
+      choices = Nil
+    )
 
   private def getQuestionScreenProps(dispatch: Dispatch = mock[Dispatch],
-                                     actions: QuestionActions = mock[QuestionActions],
+                                     actions: QuestionActions = new Actions().actions,
                                      data: QuestionState = QuestionState(
                                        topic = Some("test_topic"),
                                        chapter = Some("test_chapter"),

@@ -9,6 +9,13 @@ import scala.concurrent.Future
 
 class CodeGalaxyTaskControllerSpec extends TestSpec {
 
+  //noinspection TypeAnnotation
+  class State {
+    val currentTask = mockFunction[Option[AbstractTask]]
+
+    val state = new MockCodeGalaxyState(currentTaskMock = currentTask)
+  }
+
   it should "return component" in {
     //when & then
     CodeGalaxyTaskController.uiComponent shouldBe TaskManager
@@ -19,11 +26,11 @@ class CodeGalaxyTaskControllerSpec extends TestSpec {
     val props = mock[Props[Unit]]
     val dispatch = mock[Dispatch]
     val currentTask = Some(FutureTask("test task", Future.successful(())))
-    val state = mock[CodeGalaxyStateDef]
-    (state.currentTask _).expects().returning(currentTask)
+    val state = new State
+    state.currentTask.expects().returning(currentTask)
 
     //when
-    val result = CodeGalaxyTaskController.mapStateToProps(dispatch, state, props)
+    val result = CodeGalaxyTaskController.mapStateToProps(dispatch, state.state, props)
 
     //then
     inside(result) { case TaskManagerProps(task) =>

@@ -4,10 +4,9 @@ import common.Libs
 import sbt.Keys._
 import sbt._
 import scommons.sbtplugin.ScommonsPlugin.autoImport._
-import scommons.sbtplugin.project.CommonMobileModule
 import scoverage.ScoverageKeys.coverageExcludedPackages
 
-object CodeGalaxyApp extends CodeGalaxyModule with CommonMobileModule {
+object CodeGalaxyApp extends ScalaJsModule {
 
   override val id = "codegalaxy-app"
 

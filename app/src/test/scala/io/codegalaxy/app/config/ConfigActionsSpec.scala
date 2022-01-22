@@ -10,15 +10,25 @@ import scala.concurrent.Future
 
 class ConfigActionsSpec extends AsyncTestSpec {
 
+  //noinspection TypeAnnotation
+  class ConfigService {
+    val setDarkTheme = mockFunction[Int, Boolean, Future[ConfigEntity]]
+
+    val service = new MockConfigService(setDarkThemeMock = setDarkTheme)
+  }
+
   it should "dispatch ConfigUpdatedAction when updateDarkTheme" in {
     //given
-    val configService = mock[ConfigService]
-    val actions = new ConfigActionsTest(configService)
+    val configService = new ConfigService
+    val actions = new ConfigActionsTest(configService.service)
     val dispatch = mockFunction[Any, Any]
     val config = ConfigEntity(123, darkTheme = true)
 
-    (configService.setDarkTheme _).expects(123, true)
-      .returning(Future.successful(config))
+    configService.setDarkTheme.expects(*, *).onCall { (id, t) =>
+      id shouldBe 123
+      t shouldBe true
+      Future.successful(config)
+    }
 
     //then
     dispatch.expects(ConfigUpdatedAction(config))

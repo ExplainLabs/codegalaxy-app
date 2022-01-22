@@ -10,10 +10,17 @@ import scala.concurrent.Future
 
 class TopicActionsSpec extends AsyncTestSpec {
 
+  //noinspection TypeAnnotation
+  class TopicService {
+    val fetch = mockFunction[Boolean, Future[Seq[Topic]]]
+    
+    val service = new MockTopicService(fetchMock = fetch)
+  }
+  
   it should "dispatch TopicsFetchedAction when fetchTopics" in {
     //given
-    val topicService = mock[TopicService]
-    val actions = new TopicActionsTest(topicService)
+    val topicService = new TopicService
+    val actions = new TopicActionsTest(topicService.service)
     val dispatch = mockFunction[Any, Any]
     val topic = Topic(
       entity = TopicEntity(
@@ -34,7 +41,10 @@ class TopicActionsSpec extends AsyncTestSpec {
     val refresh = true
 
     //then
-    (topicService.fetch _).expects(refresh).returning(Future.successful(dataList))
+    topicService.fetch.expects(*).onCall { (r: Boolean) =>
+      r shouldBe refresh
+      Future.successful(dataList)
+    }
     dispatch.expects(TopicsFetchedAction(dataList))
 
     //when

@@ -11,11 +11,20 @@ import scala.concurrent.Future
 
 class ChapterServiceSpec extends BaseDBContextSpec {
 
+  //noinspection TypeAnnotation
+  class Api {
+    val getChaptersWithStatistics = mockFunction[String, Future[List[ChapterWithStatisticsRespData]]]
+
+    val api = new MockChapterApi(
+      getChaptersWithStatisticsMock = getChaptersWithStatistics
+    )
+  }
+
   it should "fetch chapters with statistics and save them in DB" in withCtx { ctx =>
     //given
-    val api = mock[ChapterApi]
+    val api = new Api
     val dao = new ChapterDao(ctx)
-    val service = new ChapterService(api, dao)
+    val service = new ChapterService(api.api, dao)
     val topic = "test_topic"
     val c1 = getChapterRespData("chapter1", multiplier = 1)
     val c2 = {
@@ -23,7 +32,10 @@ class ChapterServiceSpec extends BaseDBContextSpec {
       data.copy(chapter = data.chapter.copy(info = None))
     }
 
-    (api.getChaptersWithStatistics _).expects(topic).returning(Future.successful(List(c1, c2)))
+    api.getChaptersWithStatistics.expects(*).onCall { t: String =>
+      t shouldBe topic
+      Future.successful(List(c1, c2))
+    }
 
     val beforeF = dao.deleteAll()
     
@@ -47,16 +59,19 @@ class ChapterServiceSpec extends BaseDBContextSpec {
   
   it should "refresh chapters with statistics in DB" in withCtx { ctx =>
     //given
-    val api = mock[ChapterApi]
+    val api = new Api
     val dao = new ChapterDao(ctx)
-    val service = new ChapterService(api, dao)
+    val service = new ChapterService(api.api, dao)
     val topic = "test_topic"
     val c0 = getChapterRespData("chapter0", multiplier = 10)
     val c1 = getChapterRespData("chapter1", multiplier = 1)
     val c2 = getChapterRespData("chapter2", multiplier = 2)
     val newChapter = getChapterRespData("newChapter", multiplier = 3)
 
-    (api.getChaptersWithStatistics _).expects(topic).returning(Future.successful(List(c1, newChapter)))
+    api.getChaptersWithStatistics.expects(*).onCall { t: String =>
+      t shouldBe topic
+      Future.successful(List(c1, newChapter))
+    }
 
     val otherTopic = "other_topic"
     val beforeF = for {
@@ -92,14 +107,14 @@ class ChapterServiceSpec extends BaseDBContextSpec {
   
   it should "return local data from DB" in withCtx { ctx =>
     //given
-    val api = mock[ChapterApi]
+    val api = new Api
     val dao = new ChapterDao(ctx)
-    val service = new ChapterService(api, dao)
+    val service = new ChapterService(api.api, dao)
     val topic = "test_topic"
     val c1 = getChapterRespData("chapter1", multiplier = 1)
     val c2 = getChapterRespData("chapter2", multiplier = 2)
 
-    (api.getChaptersWithStatistics _).expects(*).never()
+    api.getChaptersWithStatistics.expects(*).never()
 
     val beforeF = for {
       _ <- dao.deleteAll()

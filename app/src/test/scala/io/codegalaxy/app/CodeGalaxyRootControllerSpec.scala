@@ -29,9 +29,10 @@ class CodeGalaxyRootControllerSpec extends TestSpec {
     
     //then
     inside(result) {
-      case CodeGalaxyRootProps(resDispatch, resActions, resState, resOnAppReady) =>
+      case CodeGalaxyRootProps(resDispatch, userActions, topicActions, resState, resOnAppReady) =>
         resDispatch shouldBe dispatch
-        resActions shouldBe actions
+        userActions shouldBe actions
+        topicActions shouldBe actions
         resState shouldBe state
         resOnAppReady shouldBe onAppReady
     }

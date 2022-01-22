@@ -3,7 +3,7 @@ package io.codegalaxy.app
 import io.codegalaxy.app.auth._
 import io.codegalaxy.app.chapter.ChapterListController
 import io.codegalaxy.app.question.QuestionController
-import io.codegalaxy.app.topic.{TopicListController, TopicParams}
+import io.codegalaxy.app.topic.{TopicActions, TopicListController, TopicParams}
 import io.codegalaxy.app.user._
 import scommons.react._
 import scommons.react.hooks._
@@ -19,7 +19,8 @@ import scala.concurrent.Future
 import scala.scalajs.js
 
 case class CodeGalaxyRootProps(dispatch: Dispatch,
-                               actions: UserActions,
+                               userActions: UserActions,
+                               topicActions: TopicActions,
                                state: CodeGalaxyStateDef,
                                onAppReady: () => Unit)
 
@@ -59,12 +60,12 @@ class CodeGalaxyRoot(actions: CodeGalaxyActions) extends FunctionComponent[CodeG
     useEffect({ () =>
       val initF = for {
         (maybeProfile, _) <- {
-          val action = props.actions.userProfileFetch(props.dispatch)
+          val action = props.userActions.userProfileFetch(props.dispatch)
           props.dispatch(action)
           action.task.future
         }
         _ <- if (maybeProfile.isDefined) {
-          val action = actions.fetchTopics(props.dispatch)
+          val action = props.topicActions.fetchTopics(props.dispatch)
           props.dispatch(action)
           action.task.future
         }

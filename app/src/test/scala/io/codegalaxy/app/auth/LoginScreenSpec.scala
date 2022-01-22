@@ -25,7 +25,10 @@ class LoginScreenSpec extends TestSpec with TestRendererUtils {
     val List(button, _) = findComponents(renderer.root, <.TouchableOpacity.reactClass)
 
     //then
-    onLogin.expects(emailText, passwordText)
+    onLogin.expects(*, *).onCall { (email, password) =>
+      email shouldBe emailText
+      password shouldBe passwordText
+    }
 
     //when
     button.props.onPress()

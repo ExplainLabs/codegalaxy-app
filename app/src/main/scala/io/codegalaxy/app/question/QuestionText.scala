@@ -36,7 +36,7 @@ object QuestionText extends FunctionComponent[QuestionTextProps] {
           (idx + 1) < siblings.length && siblings(idx + 1).data.getOrElse("").trim.nonEmpty
         }
         
-        node.children.find(_.name.getOrElse("") == "code")
+        node.children.find(_.name.contains("code"))
           .flatMap(getCodeData).map((newLineBefore, newLineAfter, _))
       }
       else if (tagName == "code") getCodeData(node).map((false, false, _))

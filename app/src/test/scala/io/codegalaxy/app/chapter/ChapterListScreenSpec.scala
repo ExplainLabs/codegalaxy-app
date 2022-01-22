@@ -3,7 +3,6 @@ package io.codegalaxy.app.chapter
 import io.codegalaxy.app.CodeGalaxyIcons
 import io.codegalaxy.app.chapter.ChapterActions.ChaptersFetchAction
 import io.codegalaxy.app.chapter.ChapterListScreen._
-import io.codegalaxy.app.chapter.ChapterListScreenSpec.FlatListDataMock
 import io.codegalaxy.app.info._
 import io.codegalaxy.app.topic.TopicParams
 import io.codegalaxy.domain.{Chapter, ChapterEntity, ChapterStats}
@@ -21,11 +20,17 @@ import scommons.reactnative.safearea._
 
 import scala.concurrent.Future
 import scala.scalajs.js
-import scala.scalajs.js.annotation.JSExportAll
 
 class ChapterListScreenSpec extends AsyncTestSpec
   with BaseTestSpec
   with TestRendererUtils {
+
+  //noinspection TypeAnnotation
+  class Actions {
+    val fetchChapters = mockFunction[Dispatch, String, Boolean, ChaptersFetchAction]
+
+    val actions = new MockChapterActions(fetchChaptersMock = fetchChapters)
+  }
 
   it should "call onChapterNavigate when onPress" in {
     //given
@@ -36,7 +41,10 @@ class ChapterListScreenSpec extends AsyncTestSpec
     val List(touchable) = findComponents(comp, <.TouchableWithoutFeedback.reactClass)
 
     //then
-    navigate.expects(item.entity.alias)
+    navigate.expects(*).onCall { chapter: String =>
+      chapter shouldBe item.entity.alias
+      ()
+    }
 
     //when
     touchable.props.onPress()
@@ -47,8 +55,8 @@ class ChapterListScreenSpec extends AsyncTestSpec
   it should "dispatch actions when onRefresh" in {
     //given
     val dispatch = mockFunction[Any, Any]
-    val actions = mock[ChapterActions]
-    val props = getChapterListScreenProps(dispatch, actions)
+    val actions = new Actions
+    val props = getChapterListScreenProps(dispatch, actions.actions)
     val topic = props.params.topic
     val renderer = createTestRenderer(<(ChapterListScreen())(^.wrapped := props)())
     val List(flatList) = findComponents(renderer.root, <.FlatList.reactClass)
@@ -58,7 +66,11 @@ class ChapterListScreenSpec extends AsyncTestSpec
       Future.successful(Nil)))
 
     //then
-    (actions.fetchChapters _).expects(dispatch, topic, true).returning(fetchAction)
+    actions.fetchChapters.expects(dispatch, *, *).onCall { (_, t, r) =>
+      t shouldBe topic
+      r shouldBe true
+      fetchAction
+    }
     dispatch.expects(fetchAction)
 
     //when
@@ -75,17 +87,21 @@ class ChapterListScreenSpec extends AsyncTestSpec
   it should "dispatch actions when mount" in {
     //given
     val dispatch = mockFunction[Any, Any]
-    val actions = mock[ChapterActions]
+    val actions = new Actions
     val topic = "new_topic"
     val props = {
-      val props = getChapterListScreenProps(dispatch, actions)
+      val props = getChapterListScreenProps(dispatch, actions.actions)
       props.copy(params = props.params.copy(topic = topic))
     }
     val fetchAction = ChaptersFetchAction(topic, FutureTask("Fetching Chapters",
       Future.successful(Nil)))
     
     //then
-    (actions.fetchChapters _).expects(dispatch, topic, false).returning(fetchAction)
+    actions.fetchChapters.expects(dispatch, *, *).onCall { (_, t, r) =>
+      t shouldBe topic
+      r shouldBe false
+      fetchAction
+    }
     dispatch.expects(fetchAction)
 
     //when
@@ -100,11 +116,11 @@ class ChapterListScreenSpec extends AsyncTestSpec
   it should "not dispatch actions if params not changed when mount" in {
     //given
     val dispatch = mockFunction[Any, Any]
-    val actions = mock[ChapterActions]
-    val props = getChapterListScreenProps(dispatch, actions)
+    val actions = new Actions
+    val props = getChapterListScreenProps(dispatch, actions.actions)
     
     //then
-    (actions.fetchChapters _).expects(*, *, *).never()
+    actions.fetchChapters.expects(*, *, *).never()
 
     //when
     testRender(<(ChapterListScreen())(^.wrapped := props)())
@@ -180,7 +196,7 @@ class ChapterListScreenSpec extends AsyncTestSpec
   }
 
   private def getChapterListScreenProps(dispatch: Dispatch = mock[Dispatch],
-                                        actions: ChapterActions = mock[ChapterActions],
+                                        actions: ChapterActions = new Actions().actions,
                                         data: ChapterState = ChapterState(
                                           topic = Some("test_topic"),
                                           chapters = List(Chapter(
@@ -220,9 +236,7 @@ class ChapterListScreenSpec extends AsyncTestSpec
     val comp = testRender(<(ChapterListScreen())(^.wrapped := props)())
     val List(flatList) = findComponents(comp, <.FlatList.reactClass)
 
-    val listData = mock[FlatListDataMock]
-    (listData.item _).expects().returning(data)
-
+    val listData = js.Dynamic.literal("item" -> data.asInstanceOf[js.Any])
     val result = flatList.props.renderItem(listData.asInstanceOf[FlatListData[Chapter]])
     createTestRenderer(result.asInstanceOf[ReactElement]).root
   }
@@ -247,13 +261,5 @@ class ChapterListScreenSpec extends AsyncTestSpec
         }
       })
     })
-  }
-}
-
-object ChapterListScreenSpec {
-
-  @JSExportAll
-  trait FlatListDataMock {
-    def item: Chapter
   }
 }
