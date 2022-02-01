@@ -22,6 +22,6 @@ object CodeGalaxyModule {
   val settings: Seq[Setting[_]] = Seq(
     organization := "io.codegalaxy.app",
 
-    parallelExecution in Test := false
+    Test / parallelExecution := false
   )
 }

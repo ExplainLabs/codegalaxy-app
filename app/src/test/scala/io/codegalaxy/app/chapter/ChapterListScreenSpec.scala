@@ -38,7 +38,9 @@ class ChapterListScreenSpec extends AsyncTestSpec
     val props = getChapterListScreenProps(navigate = navigate)
     val item = props.data.chapters.head
     val comp = renderItem(props, item)
-    val List(touchable) = findComponents(comp, <.TouchableWithoutFeedback.reactClass)
+    val touchable = inside(findComponents(comp, <.TouchableWithoutFeedback.reactClass)) {
+      case List(touchable) => touchable
+    }
 
     //then
     navigate.expects(*).onCall { chapter: String =>
@@ -59,7 +61,9 @@ class ChapterListScreenSpec extends AsyncTestSpec
     val props = getChapterListScreenProps(dispatch, actions.actions)
     val topic = props.params.topic
     val renderer = createTestRenderer(<(ChapterListScreen())(^.wrapped := props)())
-    val List(flatList) = findComponents(renderer.root, <.FlatList.reactClass)
+    val flatList = inside(findComponents(renderer.root, <.FlatList.reactClass)) {
+      case List(flatList) => flatList
+    }
     flatList.props.refreshing shouldBe false
     
     val fetchAction = ChaptersFetchAction(topic, FutureTask("Fetching Chapters",
@@ -132,7 +136,9 @@ class ChapterListScreenSpec extends AsyncTestSpec
     //given
     val props = getChapterListScreenProps()
     val comp = testRender(<(ChapterListScreen())(^.wrapped := props)())
-    val List(flatList) = findComponents(comp, <.FlatList.reactClass)
+    val flatList = inside(findComponents(comp, <.FlatList.reactClass)) {
+      case List(flatList) => flatList
+    }
     val item = props.data.chapters.head
 
     //when
@@ -234,7 +240,9 @@ class ChapterListScreenSpec extends AsyncTestSpec
 
   private def renderItem(props: ChapterListScreenProps, data: Chapter): TestInstance = {
     val comp = testRender(<(ChapterListScreen())(^.wrapped := props)())
-    val List(flatList) = findComponents(comp, <.FlatList.reactClass)
+    val flatList = inside(findComponents(comp, <.FlatList.reactClass)) {
+      case List(flatList) => flatList
+    }
 
     val listData = js.Dynamic.literal("item" -> data.asInstanceOf[js.Any])
     val result = flatList.props.renderItem(listData.asInstanceOf[FlatListData[Chapter]])

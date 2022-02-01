@@ -36,7 +36,9 @@ class TopicListScreenSpec extends AsyncTestSpec
     val props = getTopicListScreenProps(navigate = navigate)
     val item = props.data.topics.head
     val comp = renderItem(props, item)
-    val List(touchable) = findComponents(comp, <.TouchableWithoutFeedback.reactClass)
+    val touchable = inside(findComponents(comp, <.TouchableWithoutFeedback.reactClass)) {
+      case List(touchable) => touchable
+    }
 
     //then
     navigate.expects(*).onCall { topic: String =>
@@ -56,7 +58,9 @@ class TopicListScreenSpec extends AsyncTestSpec
     val actions = new Actions
     val props = getTopicListScreenProps(dispatch, actions.actions)
     val renderer = createTestRenderer(<(TopicListScreen())(^.wrapped := props)())
-    val List(flatList) = findComponents(renderer.root, <.FlatList.reactClass)
+    val flatList = inside(findComponents(renderer.root, <.FlatList.reactClass)) {
+      case List(flatList) => flatList
+    }
     flatList.props.refreshing shouldBe false
     
     val fetchAction = TopicsFetchAction(FutureTask("Fetching Topics",
@@ -131,7 +135,9 @@ class TopicListScreenSpec extends AsyncTestSpec
     //given
     val props = getTopicListScreenProps()
     val comp = testRender(<(TopicListScreen())(^.wrapped := props)())
-    val List(flatList) = findComponents(comp, <.FlatList.reactClass)
+    val flatList = inside(findComponents(comp, <.FlatList.reactClass)) {
+      case List(flatList) => flatList
+    }
     val item = props.data.topics.head
 
     //when
@@ -228,7 +234,9 @@ class TopicListScreenSpec extends AsyncTestSpec
 
   private def renderItem(props: TopicListScreenProps, data: Topic): TestInstance = {
     val comp = testRender(<(TopicListScreen())(^.wrapped := props)())
-    val List(flatList) = findComponents(comp, <.FlatList.reactClass)
+    val flatList = inside(findComponents(comp, <.FlatList.reactClass)) {
+      case List(flatList) => flatList
+    }
 
     val listData = js.Dynamic.literal("item" -> data.asInstanceOf[js.Any])
     val result = flatList.props.renderItem(listData.asInstanceOf[FlatListData[Topic]])
