@@ -17,12 +17,16 @@ class LoginScreenSpec extends TestSpec with TestRendererUtils {
     val onLogin = mockFunction[String, String, Unit]
     val props = LoginScreenProps(onLogin = onLogin, onSignup = () => ())
     val renderer = createTestRenderer(<(LoginScreen())(^.wrapped := props)())
-    val List(email, password) = findComponents(renderer.root, <.TextInput.reactClass)
+    val (email, password) = inside(findComponents(renderer.root, <.TextInput.reactClass)) {
+      case List(email, password) => (email, password)
+    }
     val emailText = "test@test.com"
     val passwordText = "test12345"
     email.props.onChangeText(emailText)
     password.props.onChangeText(passwordText)
-    val List(button, _) = findComponents(renderer.root, <.TouchableOpacity.reactClass)
+    val button = inside(findComponents(renderer.root, <.TouchableOpacity.reactClass)) {
+      case List(button, _) => button
+    }
 
     //then
     onLogin.expects(*, *).onCall { (email, password) =>
@@ -39,7 +43,9 @@ class LoginScreenSpec extends TestSpec with TestRendererUtils {
     val onSignup = mockFunction[Unit]
     val props = LoginScreenProps(onLogin = (_, _) => (), onSignup = onSignup)
     val renderer = createTestRenderer(<(LoginScreen())(^.wrapped := props)())
-    val List(_, link) = findComponents(renderer.root, <.TouchableOpacity.reactClass)
+    val link = inside(findComponents(renderer.root, <.TouchableOpacity.reactClass)) {
+      case List(_, link) => link
+    }
 
     //then
     onSignup.expects()
@@ -52,7 +58,9 @@ class LoginScreenSpec extends TestSpec with TestRendererUtils {
     //given
     val props = LoginScreenProps(onLogin = (_, _) => (), onSignup = () => ())
     val renderer = createTestRenderer(<(LoginScreen())(^.wrapped := props)())
-    val List(email, password) = findComponents(renderer.root, <.TextInput.reactClass)
+    val (email, password) = inside(findComponents(renderer.root, <.TextInput.reactClass)) {
+      case List(email, password) => (email, password)
+    }
     val emailText = "test@test.com"
     val passwordText = "test12345"
 

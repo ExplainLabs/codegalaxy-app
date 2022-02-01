@@ -79,13 +79,10 @@ class CodeGalaxyRootSpec extends AsyncTestSpec
     import codeGalaxyRoot._
 
     eventually {
-      val List(statusBar, safeAreaProv) = renderer.root.children.toList
-      assertNativeComponent(statusBar, <.StatusBar(^.barStyle := StatusBar.BarStyle.`dark-content`)())
-      assertNativeComponent(safeAreaProv, <.SafeAreaProvider()(), { children: List[TestInstance] =>
-        val List(navContainer) = children
-        assertNativeComponent(navContainer, <.NavigationContainer(^.theme := DefaultTheme)(), { children: List[TestInstance] =>
-          val List(navigator) = children
-          assertNativeComponent(navigator,
+      assertComponents(renderer.root.children, List(
+        <.StatusBar(^.barStyle := StatusBar.BarStyle.`dark-content`)(),
+        <.SafeAreaProvider()(
+          <.NavigationContainer(^.theme := DefaultTheme)(
             <(LoginStack.Navigator)(
               ^.screenOptions := new StackScreenOptions {
                 override val headerShown = false
@@ -94,8 +91,8 @@ class CodeGalaxyRootSpec extends AsyncTestSpec
               <(LoginStack.Screen)(^.name := "Login", ^.component := loginController())()
             )
           )
-        })
-      })
+        )
+      ))
     }
   }
   
@@ -144,21 +141,18 @@ class CodeGalaxyRootSpec extends AsyncTestSpec
     import codeGalaxyRoot._
 
     eventually {
-      val List(statusBar, safeAreaProv) = renderer.root.children.toList
-      assertNativeComponent(statusBar, <.StatusBar(^.barStyle := StatusBar.BarStyle.`light-content`)())
-      assertNativeComponent(safeAreaProv, <.SafeAreaProvider()(), { children: List[TestInstance] =>
-        val List(navContainer) = children
-        assertNativeComponent(navContainer, <.NavigationContainer(^.theme := DarkTheme)(), { children: List[TestInstance] =>
-          val List(navigator) = children
-          assertNativeComponent(navigator,
+      assertComponents(renderer.root.children, List(
+        <.StatusBar(^.barStyle := StatusBar.BarStyle.`light-content`)(),
+        <.SafeAreaProvider()(
+          <.NavigationContainer(^.theme := DarkTheme)(
             <(AppStack.Navigator)()(
               <(AppStack.Screen)(^.name := "Home", ^.component := homeTabComp)(),
               <(AppStack.Screen)(^.name := "Quiz", ^.component := chapterListController())(),
               <(AppStack.Screen)(^.name := "Question", ^.component := questionController())()
             )
           )
-        })
-      })
+        )
+      ))
     }
   }
 
@@ -190,7 +184,9 @@ class CodeGalaxyRootSpec extends AsyncTestSpec
 
     prepareF.map { _ =>
       val result = renderer.root.children(1)
-      val List(appStackNav) = findComponents(result, AppStack.Navigator)
+      val appStackNav = inside(findComponents(result, AppStack.Navigator)) {
+        case List(appStackNav) => appStackNav
+      }
       val topic = "test_topic"
       val chapter = "test_chapter"
 
