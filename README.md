@@ -14,12 +14,12 @@ Mobile App for https://codegalaxy.io/
 
 ### Initial Setup:
 
-Please, make sure you have `Node.js` **version 12.x** installed locally.
+Please, make sure you have `Node.js` **version 16.x** installed locally.
 
-Then, please make sure you have `expo-cli` **version 4** installed
+Then, please make sure you have `expo-cli` **version 5.x** installed
 globally:
 ```bash
-npm i expo-cli@4 -g
+npm i expo-cli@5 -g
 ```
 
 Then you can run following commands to init the project:
