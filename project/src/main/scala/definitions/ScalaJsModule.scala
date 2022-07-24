@@ -23,8 +23,6 @@ object ScalaJsModule {
     Test / jsEnv := new NodeJSEnv(NodeJSEnv.Config().withArgs(List("--enable-source-maps"))),
     Test / scalaJSLinkerConfig ~= {
       _.withSourceMap(true)
-    },
-
-    scalaVersion := "2.13.5"
+    }
   )
 }
