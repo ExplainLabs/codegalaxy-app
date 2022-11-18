@@ -1,6 +1,7 @@
 package definitions
 
 import common.Libs
+import org.scoverage.coveralls.Imports.CoverallsKeys._
 import sbt.Keys._
 import sbt._
 import scommons.sbtplugin.project.CommonModule
@@ -21,6 +22,8 @@ object CodeGalaxyModule {
 
   val settings: Seq[Setting[_]] = Seq(
     organization := "io.codegalaxy.app",
+
+    coverallsService := GitHubActionsCI.jobId.map(_ => GitHubActionsCI),
 
     Test / parallelExecution := false
   )

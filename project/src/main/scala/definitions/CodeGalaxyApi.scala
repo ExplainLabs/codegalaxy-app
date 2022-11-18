@@ -31,7 +31,11 @@ object CodeGalaxyApi {
     ).jvmSettings(
       // Add JVM-specific settings here
     ).jsSettings(
-      ScalaJsModule.settings: _*
+      ScalaJsModule.settings ++ Seq(
+        libraryDependencies ++= Seq(
+          Libs.scalaJsJavaSecureRandom.value % "test"
+        )
+      ): _*
     )
 
   lazy val jvm: Project = `codegalaxy-api`.jvm
