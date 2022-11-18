@@ -1,6 +1,9 @@
 import definitions._
+import scommons.sbtplugin.project.CommonModule
 
 lazy val `codegalaxy-app-root` = (project in file("."))
+  .settings(CommonModule.settings: _*)
+  .settings(CodeGalaxyModule.settings: _*)
   .aggregate(
     `codegalaxy-api-jvm`,
     `codegalaxy-api-js`,
