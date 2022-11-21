@@ -16,19 +16,15 @@ Mobile App for https://codegalaxy.io/
 
 Please, make sure you have `Node.js` **version 16.x** installed locally.
 
-Then, please make sure you have `expo-cli` **version 5.x** installed
-globally:
+Then, please make sure you have `expo-cli` installed globally:
 ```bash
-npm i expo-cli@5 -g
+npm i expo-cli@6 -g
 ```
 
 Then you can run following commands to init the project:
-
 ```bash
 cd app
-npm install
-#Or
-expo install
+npm i
 ```
 
 NOTE: when upgrading/re-installing the project perform these commands **first**:
@@ -55,9 +51,10 @@ sbt "project codegalaxy-app" fastOptJS
 Then you can run it in emulator:
 ```bash
 cd app
-expo start --ios
+npm i
+npx expo start --ios
 #or:
-expo start --android
+npx expo start --android
 ```
 
 #### How to Run App with reload workflow
